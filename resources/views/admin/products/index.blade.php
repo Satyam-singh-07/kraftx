@@ -89,10 +89,10 @@
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-900 dark:text-white font-semibold">
                             @if($product->sale_price)
-                                <span class="text-red-500">${{ number_format($product->sale_price, 2) }}</span>
-                                <span class="text-gray-400 line-through text-xs ml-1">${{ number_format($product->price, 2) }}</span>
+                                <span class="text-red-500">₹{{ number_format($product->sale_price, 2) }}</span>
+                                <span class="text-gray-400 line-through text-xs ml-1">₹{{ number_format($product->price, 2) }}</span>
                             @else
-                                ${{ number_format($product->price, 2) }}
+                                ₹{{ number_format($product->price, 2) }}
                             @endif
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{{ $product->stock }}</td>

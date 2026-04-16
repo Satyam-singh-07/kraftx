@@ -15,8 +15,9 @@ Route::get('/', function () {
         ->get();
 
     $collections = Collection::where('status', 1)
-        ->orderBy('name')
-        ->take(6)
+        ->where('show_on_home', 1)
+        ->orderBy('sort_order')
+        ->take(12)
         ->get();
 
     $topPicks = Product::with(['images', 'variants'])
@@ -63,8 +64,8 @@ Route::get('/', function () {
                 'url' => $product->slug ? route('product.show', $product->slug) : route('product.detail'),
                 'image' => $imageUrl,
                 'hoverImage' => $hoverUrl,
-                'price' => '$' . number_format($displayPrice, 2),
-                'oldPrice' => $oldPrice !== null ? '$' . number_format($oldPrice, 2) : null,
+                'price' => '₹' . number_format($displayPrice, 2),
+                'oldPrice' => $oldPrice !== null ? '₹' . number_format($oldPrice, 2) : null,
                 'hasSize' => !empty($sizes),
                 'sizes' => $sizes,
                 'badges' => !empty($badges) ? $badges : null,

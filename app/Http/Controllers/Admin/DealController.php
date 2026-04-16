@@ -46,6 +46,7 @@ class DealController extends Controller
         ]);
 
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
+        $validated['status'] = $request->boolean('status');
 
         if ($request->hasFile('banner_image')) {
             $validated['banner_image'] = $this->uploadImage($request->file('banner_image'));
@@ -80,6 +81,7 @@ class DealController extends Controller
         ]);
 
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
+        $validated['status'] = $request->boolean('status');
 
         if ($request->hasFile('banner_image')) {
             if ($deal->banner_image) {

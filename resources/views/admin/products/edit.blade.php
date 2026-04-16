@@ -95,18 +95,18 @@
             <x-admin.card title="Pricing & Inventory">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Regular Price ($) <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Regular Price (₹) <span class="text-red-500">*</span></label>
                         <div class="relative">
-                            <span class="absolute left-4 top-2.5 text-gray-400">$</span>
+                            <span class="absolute left-4 top-2.5 text-gray-400">₹</span>
                             <input type="number" step="0.01" name="price" required value="{{ old('price', $product->price) }}" placeholder="0.00"
                                    class="block w-full pl-8 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none">
                         </div>
                         @error('price') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Sale Price ($)</label>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Sale Price (₹)</label>
                         <div class="relative">
-                            <span class="absolute left-4 top-2.5 text-gray-400">$</span>
+                            <span class="absolute left-4 top-2.5 text-gray-400">₹</span>
                             <input type="number" step="0.01" name="sale_price" value="{{ old('sale_price', $product->sale_price) }}" placeholder="0.00"
                                    class="block w-full pl-8 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none">
                         </div>

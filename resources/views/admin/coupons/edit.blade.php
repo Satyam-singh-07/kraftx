@@ -27,7 +27,7 @@
                             <select name="discount_type" required
                                     class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none">
                                 <option value="percentage" {{ old('discount_type', $coupon->discount_type) == 'percentage' ? 'selected' : '' }}>Percentage (%)</option>
-                                <option value="fixed" {{ old('discount_type', $coupon->discount_type) == 'fixed' ? 'selected' : '' }}>Fixed Amount ($)</option>
+                                <option value="fixed" {{ old('discount_type', $coupon->discount_type) == 'fixed' ? 'selected' : '' }}>Fixed Amount (₹)</option>
                             </select>
                         </div>
                         <div>
@@ -43,13 +43,13 @@
             <x-admin.card title="Usage Restrictions">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Minimum Cart Value ($)</label>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Minimum Cart Value (₹)</label>
                         <input type="number" step="0.01" name="min_cart_value" value="{{ old('min_cart_value', $coupon->min_cart_value) }}"
                                class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none">
                         <p class="text-[10px] text-gray-500 mt-1">Leave 0 for no minimum requirement.</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Maximum Discount ($)</label>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Maximum Discount (₹)</label>
                         <input type="number" step="0.01" name="max_discount" value="{{ old('max_discount', $coupon->max_discount) }}"
                                class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none">
                         <p class="text-[10px] text-gray-500 mt-1">Useful for capping percentage discounts.</p>

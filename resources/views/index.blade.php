@@ -191,8 +191,8 @@
                                     'url' => route('product.detail'),
                                     'image' => 'assets/images/product/product-1.jpg',
                                     'hoverImage' => 'assets/images/product/product-1_2.jpg',
-                                    'price' => '$69.99',
-                                    'oldPrice' => '$99.99',
+                                    'price' => '₹69.99',
+                                    'oldPrice' => '₹99.99',
                                     'hasSize' => false,
                                     'badges' => [['type' => 'new', 'text' => 'NEW']]
                                 ],
@@ -201,8 +201,8 @@
                                     'url' => route('product.detail'),
                                     'image' => 'assets/images/product/product-2.jpg',
                                     'hoverImage' => 'assets/images/product/product-2_2.jpg',
-                                    'price' => '$29.99',
-                                    'oldPrice' => '$49.99',
+                                    'price' => '₹29.99',
+                                    'oldPrice' => '₹49.99',
                                     'hasSize' => false,
                                     'badges' => [['type' => 'sale', 'text' => '-25%']]
                                 ],
@@ -211,8 +211,8 @@
                                     'url' => route('product.detail'),
                                     'image' => 'assets/images/product/product-3.jpg',
                                     'hoverImage' => 'assets/images/product/product-3_2.jpg',
-                                    'price' => '$15.99',
-                                    'oldPrice' => '$25.99',
+                                    'price' => '₹15.99',
+                                    'oldPrice' => '₹25.99',
                                     'hasSize' => false,
                                     'badges' => [['type' => 'sale', 'text' => '-25%']]
                                 ],
@@ -221,8 +221,8 @@
                                     'url' => route('product.detail'),
                                     'image' => 'assets/images/product/product-4.jpg',
                                     'hoverImage' => 'assets/images/product/product-4_2.jpg',
-                                    'price' => '$45.99',
-                                    'oldPrice' => '$79.99',
+                                    'price' => '₹45.99',
+                                    'oldPrice' => '₹79.99',
                                     'hasSize' => true,
                                     'sizes' => ['S', 'M', 'L', 'XL']
                                 ]
@@ -361,8 +361,8 @@
                                         <i class="icon icon-Star"></i>
                                     </div>
                                     <div class="price-wrap">
-                                        <span class="price-new text-primary fw-semibold">$9,99</span>
-                                        <span class="price-old text-caption-01 cl-text-3">$19,99</span>
+                                        <span class="price-new text-primary fw-semibold">₹9,99</span>
+                                        <span class="price-old text-caption-01 cl-text-3">₹19,99</span>
                                     </div>
                                     <ul class="product-color_list">
                                         <li class="product-color-item color-swatch hover-tooltip tooltip-bot active">
@@ -450,8 +450,8 @@
                                         <i class="icon icon-Star"></i>
                                     </div>
                                     <div class="price-wrap">
-                                        <span class="price-new text-primary fw-semibold">$34,99</span>
-                                        <span class="price-old text-caption-01 cl-text-3">$59,99</span>
+                                        <span class="price-new text-primary fw-semibold">₹34,99</span>
+                                        <span class="price-old text-caption-01 cl-text-3">₹59,99</span>
                                     </div>
                                     <ul class="product-color_list">
                                         <li class="product-color-item color-swatch hover-tooltip tooltip-bot active">
@@ -557,8 +557,8 @@
                                         <i class="icon icon-Star"></i>
                                     </div>
                                     <div class="price-wrap">
-                                        <span class="price-new text-primary fw-semibold">$22,99</span>
-                                        <span class="price-old text-caption-01 cl-text-3">$39,99</span>
+                                        <span class="price-new text-primary fw-semibold">₹22,99</span>
+                                        <span class="price-old text-caption-01 cl-text-3">₹39,99</span>
                                     </div>
                                     <ul class="product-color_list">
                                         <li class="product-color-item color-swatch hover-tooltip tooltip-bot active">
@@ -641,8 +641,8 @@
                                         <i class="icon icon-Star"></i>
                                     </div>
                                     <div class="price-wrap">
-                                        <span class="price-new text-primary fw-semibold">$67,99</span>
-                                        <span class="price-old text-caption-01 cl-text-3">$99,99</span>
+                                        <span class="price-new text-primary fw-semibold">₹67,99</span>
+                                        <span class="price-old text-caption-01 cl-text-3">₹99,99</span>
                                     </div>
                                     <ul class="product-color_list">
                                         <li class="product-color-item color-swatch hover-tooltip tooltip-bot active">
@@ -697,8 +697,8 @@
                                             High neck midi wool coat
                                         </a>
                                         <div class="price-wrap">
-                                            <span class="price-new text-primary fw-semibold">$29,99</span>
-                                            <span class="price-old text-caption-01 cl-text-3">$39.99</span>
+                                            <span class="price-new text-primary fw-semibold">₹29,99</span>
+                                            <span class="price-old text-caption-01 cl-text-3">₹39.99</span>
                                         </div>
                                     </div>
                                 </div>
@@ -723,8 +723,8 @@
                                             High neck midi wool coat
                                         </a>
                                         <div class="price-wrap">
-                                            <span class="price-new text-primary fw-semibold">$49,99</span>
-                                            <span class="price-old text-caption-01 cl-text-3">$59.99</span>
+                                            <span class="price-new text-primary fw-semibold">₹49,99</span>
+                                            <span class="price-old text-caption-01 cl-text-3">₹59.99</span>
                                         </div>
                                     </div>
                                 </div>
@@ -753,8 +753,8 @@
                                             High neck midi wool coat
                                         </a>
                                         <div class="price-wrap">
-                                            <span class="price-new text-primary fw-semibold">$69,99</span>
-                                            <span class="price-old text-caption-01 cl-text-3">$79.99</span>
+                                            <span class="price-new text-primary fw-semibold">₹69,99</span>
+                                            <span class="price-old text-caption-01 cl-text-3">₹79.99</span>
                                         </div>
                                     </div>
                                 </div>
@@ -881,7 +881,7 @@
                                             <a href="product-detail.html" class="link fw-medium lh-24">
                                                 High neck midi wool coat
                                             </a>
-                                            <p class="prd_price fw-semibold text-primary">$29.99</p>
+                                            <p class="prd_price fw-semibold text-primary">₹29.99</p>
                                         </div>
                                     </div>
                                 </div>
@@ -926,7 +926,7 @@
                                             <a href="product-detail.html" class="link fw-medium lh-24">
                                                 Square metallic frame sunglasses
                                             </a>
-                                            <p class="prd_price fw-semibold text-primary">$29.99</p>
+                                            <p class="prd_price fw-semibold text-primary">₹29.99</p>
                                         </div>
                                     </div>
                                 </div>

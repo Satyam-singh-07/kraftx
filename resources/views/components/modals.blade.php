@@ -38,7 +38,7 @@
         <div class="d-flex justify-content-center border-end">
             <div class="tf-currencies">
                 <select class="tf-dropdown-select style-default type-currencies">
-                    <option selected data-thumbnail="{{ asset('assets/images/country/us.png') }}">(USD $)</option>
+                    <option selected data-thumbnail="{{ asset('assets/images/country/us.png') }}">(INR ₹)</option>
                     <option data-thumbnail="{{ asset('assets/images/country/vn.png') }}">(VND ₫)</option>
                 </select>
             </div>
@@ -381,7 +381,7 @@
                             linen slim-fit shirt
                         </a>
                         <div class="price-wrap">
-                            <span class="price-new text-primary fw-semibold price-on-sale">$79.99</span>
+                            <span class="price-new text-primary fw-semibold price-on-sale">₹79.99</span>
                         </div>
                     </div>
                 </div>
@@ -408,7 +408,7 @@
                         </div>
                         <a href="#shoppingCart" data-bs-toggle="offcanvas"
                             class="btn-action-price tf-btn type-xl animate-btn w-100">
-                            Add to Cart - $79.99
+                            Add to Cart - ₹79.99
                         </a>
                     </div>
                 </div>
@@ -441,14 +441,14 @@
                     <p class="product-infor-cate text-caption-01 mb-4">Clothing</p>
                     <h3 class="product-infor-name mb-12">Lyocell wrap top</h3>
                     <div class="product-infor-price mb-12">
-                        <h4 class="price-on-sale">$59.99</h4>
+                        <h4 class="price-on-sale">₹59.99</h4>
                     </div>
                 </div>
                 <div class="tf-product-total-quantity">
                     <div class="group-action">
                         <a href="#shoppingCart" data-bs-toggle="offcanvas"
                             class="btn-action-price tf-btn type-xl animate-btn w-100">
-                            Add to Cart - $59.99
+                            Add to Cart - ₹59.99
                         </a>
                     </div>
                 </div>

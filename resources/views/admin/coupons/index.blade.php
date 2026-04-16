@@ -26,7 +26,7 @@
                             <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm font-mono font-bold text-gray-800 dark:text-white">{{ $coupon->code }}</span>
                         </td>
                         <td class="px-6 py-4 text-sm font-bold text-blue-600 dark:text-blue-400">
-                            {{ $coupon->discount_type === 'percentage' ? $coupon->discount_value . '%' : '$' . number_format($coupon->discount_value, 2) }}
+                            {{ $coupon->discount_type === 'percentage' ? $coupon->discount_value . '%' : '₹' . number_format($coupon->discount_value, 2) }}
                         </td>
                         <td class="px-6 py-4">
                             <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $coupon->used_count }} / {{ $coupon->usage_limit ?? '∞' }}</div>

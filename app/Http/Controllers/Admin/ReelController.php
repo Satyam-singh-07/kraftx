@@ -38,6 +38,7 @@ class ReelController extends Controller
             $validated['thumbnail'] = $this->uploadThumbnail($request->file('thumbnail'));
         }
 
+        $validated['status'] = $request->boolean('status');
         Reel::create($validated);
 
         return redirect()->route('admin.reels.index')->with('success', 'Reel added successfully.');
@@ -67,6 +68,7 @@ class ReelController extends Controller
             $validated['thumbnail'] = $this->uploadThumbnail($request->file('thumbnail'));
         }
 
+        $validated['status'] = $request->boolean('status');
         $reel->update($validated);
 
         return redirect()->route('admin.reels.index')->with('success', 'Reel updated successfully.');

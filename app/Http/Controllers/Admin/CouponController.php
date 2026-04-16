@@ -33,6 +33,7 @@ class CouponController extends Controller
             'status' => 'boolean',
         ]);
 
+        $validated['status'] = $request->boolean('status');
         Coupon::create($validated);
 
         return redirect()->route('admin.coupons.index')->with('success', 'Coupon created successfully.');
@@ -57,6 +58,7 @@ class CouponController extends Controller
             'status' => 'boolean',
         ]);
 
+        $validated['status'] = $request->boolean('status');
         $coupon->update($validated);
 
         return redirect()->route('admin.coupons.index')->with('success', 'Coupon updated successfully.');

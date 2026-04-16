@@ -41,6 +41,7 @@ class BannerController extends Controller
             $validated['mobile_image'] = $this->uploadImage($request->file('mobile_image'));
         }
 
+        $validated['status'] = $request->boolean('status');
         Banner::create($validated);
 
         return redirect()->route('admin.banners.index')->with('success', 'Banner created successfully.');
@@ -77,6 +78,7 @@ class BannerController extends Controller
             $validated['mobile_image'] = $this->uploadImage($request->file('mobile_image'));
         }
 
+        $validated['status'] = $request->boolean('status');
         $banner->update($validated);
 
         return redirect()->route('admin.banners.index')->with('success', 'Banner updated successfully.');

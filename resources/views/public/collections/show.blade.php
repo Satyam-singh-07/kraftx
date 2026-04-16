@@ -28,9 +28,9 @@
                         <div class="p-4">
                             <h3 class="text-lg font-semibold text-gray-900 truncate">{{ $product->name }}</h3>
                             <div class="mt-2 flex items-center justify-between">
-                                <span class="text-blue-600 font-bold">${{ number_format($product->sale_price ?? $product->price, 2) }}</span>
+                                <span class="text-blue-600 font-bold">₹{{ number_format($product->sale_price ?? $product->price, 2) }}</span>
                                 @if($product->sale_price)
-                                    <span class="text-gray-400 line-through text-sm">${{ number_format($product->price, 2) }}</span>
+                                    <span class="text-gray-400 line-through text-sm">₹{{ number_format($product->price, 2) }}</span>
                                 @endif
                             </div>
                         </div>

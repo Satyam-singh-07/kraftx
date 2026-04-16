@@ -235,9 +235,9 @@
                                         </div>
                                     </div>
                                     <div class="product-infor-price mb-12">
-                                        <h4 class="price-on-sale">$79.99</h4>
+                                        <h4 class="price-on-sale">₹79.99</h4>
                                         <div class="br-line type-vertical"></div>
-                                        <p class="cl-text-3 text-decoration-line-through">$98.99</p>
+                                        <p class="cl-text-3 text-decoration-line-through">₹98.99</p>
                                         <span class="badge-sale text-white fw-semibold text-caption-02">
                                             -25%
                                         </span>
@@ -345,7 +345,7 @@
                                                 <span
                                                     class="d-none d-sm-block d-md-none d-lg-block">&nbsp;-&nbsp;</span>
                                                 <span
-                                                    class="price-add d-none d-sm-block d-md-none d-lg-block">$79.99</span>
+                                                    class="price-add d-none d-sm-block d-md-none d-lg-block">₹79.99</span>
                                             </a>
                                         </div>
                                         <a href="checkout.html" class="tf-btn type-xl btn-primary animate-btn w-100">
@@ -447,7 +447,7 @@
                             <div class="prd_info d-none d-lg-grid">
                                 <p class="name__prd fw-medium lh-24">Lyocell wrap top</p>
                                 <p class="distribute__prd text-caption-01 cl-text-3">Green, XS, Cotton</p>
-                                <p class="price__prd fw-semibold">$79.00</p>
+                                <p class="price__prd fw-semibold">₹79.00</p>
                             </div>
                         </div>
                     </div>
@@ -478,7 +478,7 @@
                             </div>
                             <a href="product-video.html#shoppingCart" data-bs-toggle="offcanvas"
                                 class="tf-btn animate-btn btn-add-to-cart">
-                                Add To Cart - $79.99
+                                Add To Cart - ₹79.99
                             </a>
                         </form>
                     </div>
@@ -943,8 +943,8 @@
                                                 <i class="icon icon-Star"></i>
                                             </div>
                                             <div class="price-wrap">
-                                                <span class="price-new text-primary fw-semibold">$69,99</span>
-                                                <span class="price-old text-caption-01 cl-text-3">$99,99</span>
+                                                <span class="price-new text-primary fw-semibold">₹69,99</span>
+                                                <span class="price-old text-caption-01 cl-text-3">₹99,99</span>
                                             </div>
                                             <ul class="product-color_list">
                                                 <li
@@ -1027,8 +1027,8 @@
                                                 <i class="icon icon-Star"></i>
                                             </div>
                                             <div class="price-wrap">
-                                                <span class="price-new text-primary fw-semibold">$29,99</span>
-                                                <span class="price-old text-caption-01 cl-text-3">$49,99</span>
+                                                <span class="price-new text-primary fw-semibold">₹29,99</span>
+                                                <span class="price-old text-caption-01 cl-text-3">₹49,99</span>
                                             </div>
                                             <ul class="product-color_list">
                                                 <li
@@ -1105,8 +1105,8 @@
                                                 <i class="icon icon-Star"></i>
                                             </div>
                                             <div class="price-wrap">
-                                                <span class="price-new text-primary fw-semibold">$15,99</span>
-                                                <span class="price-old text-caption-01 cl-text-3">$25,99</span>
+                                                <span class="price-new text-primary fw-semibold">₹15,99</span>
+                                                <span class="price-old text-caption-01 cl-text-3">₹25,99</span>
                                             </div>
                                             <ul class="product-color_list">
                                                 <li
@@ -1191,8 +1191,8 @@
                                                 <i class="icon icon-Star"></i>
                                             </div>
                                             <div class="price-wrap">
-                                                <span class="price-new text-primary fw-semibold">$45,99</span>
-                                                <span class="price-old text-caption-01 cl-text-3">$79,99</span>
+                                                <span class="price-new text-primary fw-semibold">₹45,99</span>
+                                                <span class="price-old text-caption-01 cl-text-3">₹79,99</span>
                                             </div>
                                             <ul class="product-color_list">
                                                 <li
@@ -1272,8 +1272,8 @@
                                                 <i class="icon icon-Star"></i>
                                             </div>
                                             <div class="price-wrap">
-                                                <span class="price-new text-primary fw-semibold">$15,99</span>
-                                                <span class="price-old text-caption-01 cl-text-3">$25,99</span>
+                                                <span class="price-new text-primary fw-semibold">₹15,99</span>
+                                                <span class="price-old text-caption-01 cl-text-3">₹25,99</span>
                                             </div>
                                             <ul class="product-color_list">
                                                 <li
@@ -1358,8 +1358,8 @@
                                                 <i class="icon icon-Star"></i>
                                             </div>
                                             <div class="price-wrap">
-                                                <span class="price-new text-primary fw-semibold">$45,99</span>
-                                                <span class="price-old text-caption-01 cl-text-3">$79,99</span>
+                                                <span class="price-new text-primary fw-semibold">₹45,99</span>
+                                                <span class="price-old text-caption-01 cl-text-3">₹79,99</span>
                                             </div>
                                             <ul class="product-color_list">
                                                 <li
@@ -1461,8 +1461,8 @@
                                                 <i class="icon icon-Star"></i>
                                             </div>
                                             <div class="price-wrap">
-                                                <span class="price-new text-primary fw-semibold">$69,99</span>
-                                                <span class="price-old text-caption-01 cl-text-3">$99,99</span>
+                                                <span class="price-new text-primary fw-semibold">₹69,99</span>
+                                                <span class="price-old text-caption-01 cl-text-3">₹99,99</span>
                                             </div>
                                             <ul class="product-color_list">
                                                 <li
@@ -1545,8 +1545,8 @@
                                                 <i class="icon icon-Star"></i>
                                             </div>
                                             <div class="price-wrap">
-                                                <span class="price-new text-primary fw-semibold">$29,99</span>
-                                                <span class="price-old text-caption-01 cl-text-3">$49,99</span>
+                                                <span class="price-new text-primary fw-semibold">₹29,99</span>
+                                                <span class="price-old text-caption-01 cl-text-3">₹49,99</span>
                                             </div>
                                             <ul class="product-color_list">
                                                 <li
@@ -1699,7 +1699,7 @@
                             <div class="tf-currencies">
                                 <select class="tf-dropdown-select style-default type-currencies">
                                     <option selected data-thumbnail="assets/images/country/us.png">United States
-                                        (USD $)
+                                        (INR ₹)
                                     </option>
                                     <option data-thumbnail="assets/images/country/vn.png">Viet Nam (VND ₫)</option>
                                 </select>
@@ -1776,7 +1776,7 @@
             <div class="d-flex justify-content-center border-end">
                 <div class="tf-currencies">
                     <select class="tf-dropdown-select style-default type-currencies">
-                        <option selected data-thumbnail="assets/images/country/us.png">(USD $)</option>
+                        <option selected data-thumbnail="assets/images/country/us.png">(INR ₹)</option>
                         <option data-thumbnail="assets/images/country/vn.png">(VND ₫)</option>
                     </select>
                 </div>
@@ -2163,8 +2163,8 @@
                                 linen slim-fit shirt
                             </a>
                             <div class="price-wrap">
-                                <span class="price-new text-primary fw-semibold price-on-sale">$79.99</span>
-                                <span class="price-old text-caption-01 cl-text-3">$99,99</span>
+                                <span class="price-new text-primary fw-semibold price-on-sale">₹79.99</span>
+                                <span class="price-old text-caption-01 cl-text-3">₹99,99</span>
                             </div>
                         </div>
                     </div>
@@ -2231,7 +2231,7 @@
                                 class="btn-action-price tf-btn type-xl animate-btn w-100">
                                 Add to Cart
                                 <span class="d-none d-sm-block d-md-none d-lg-block">&nbsp;-&nbsp;</span>
-                                <span class="price-add d-none d-sm-block d-md-none d-lg-block">$79.99</span>
+                                <span class="price-add d-none d-sm-block d-md-none d-lg-block">₹79.99</span>
                             </a>
                         </div>
                         <a href="checkout.html" class="tf-btn type-xl btn-primary animate-btn w-100">
@@ -2313,9 +2313,9 @@
                             </div>
                         </div>
                         <div class="product-infor-price mb-12">
-                            <h4 class="price-on-sale">$59.99</h4>
+                            <h4 class="price-on-sale">₹59.99</h4>
                             <div class="br-line type-vertical"></div>
-                            <p class="cl-text-3 text-decoration-line-through">$98.99</p>
+                            <p class="cl-text-3 text-decoration-line-through">₹98.99</p>
                             <span class="badge-sale text-white fw-semibold text-caption-02">
                                 -25%
                             </span>
@@ -2427,7 +2427,7 @@
                                     class="btn-action-price tf-btn type-xl animate-btn w-100">
                                     Add to Cart
                                     <span class="d-none d-sm-block d-md-none d-lg-block">&nbsp;-&nbsp;</span>
-                                    <span class="price-add d-none d-sm-block d-md-none d-lg-block">$59.99</span>
+                                    <span class="price-add d-none d-sm-block d-md-none d-lg-block">₹59.99</span>
                                 </a>
                             </div>
                             <a href="checkout.html" class="tf-btn type-xl btn-primary animate-btn w-100">
@@ -2464,8 +2464,8 @@
                                 High neck midi wool coat
                             </a>
                             <div class="price-wrap">
-                                <span class="price-new text-primary fw-semibold">$39,99</span>
-                                <span class="price-old text-caption-01 cl-text-3">$49,99</span>
+                                <span class="price-new text-primary fw-semibold">₹39,99</span>
+                                <span class="price-old text-caption-01 cl-text-3">₹49,99</span>
                             </div>
                         </div>
                     </div>
@@ -2479,8 +2479,8 @@
                                 linen slim-fit shirt
                             </a>
                             <div class="price-wrap">
-                                <span class="price-new text-primary fw-semibold">$29,99</span>
-                                <span class="price-old text-caption-01 cl-text-3">$49,99</span>
+                                <span class="price-new text-primary fw-semibold">₹29,99</span>
+                                <span class="price-old text-caption-01 cl-text-3">₹49,99</span>
                             </div>
                         </div>
                     </div>
@@ -2494,8 +2494,8 @@
                                 Square frame sunglasses
                             </a>
                             <div class="price-wrap">
-                                <span class="price-new text-primary fw-semibold">$59,99</span>
-                                <span class="price-old text-caption-01 cl-text-3">$69,99</span>
+                                <span class="price-new text-primary fw-semibold">₹59,99</span>
+                                <span class="price-old text-caption-01 cl-text-3">₹69,99</span>
                             </div>
                         </div>
                     </div>
@@ -2511,7 +2511,7 @@
                 <div class="cart-threshold">
                     <p class="text">
                         Buy
-                        <span class="text-primary fw-7">$70.00</span>
+                        <span class="text-primary fw-7">₹70.00</span>
                         more to get freeship
                     </p>
                     <div class="tf-progress-bar tf-progress-ship">
@@ -2585,7 +2585,7 @@
                                             class="fw-semibold d-flex align-items-center justify-content-between gap-4">
                                             <span class="number">1</span>
                                             <span>x</span>
-                                            <span class="price tf-mini-card-price">$36.00</span>
+                                            <span class="price tf-mini-card-price">₹36.00</span>
                                         </div>
                                     </div>
                                 </div>
@@ -2636,7 +2636,7 @@
                                             class="fw-semibold d-flex align-items-center justify-content-between gap-4">
                                             <span class="number">1</span>
                                             <span>x</span>
-                                            <span class="price tf-mini-card-price">$43.00</span>
+                                            <span class="price tf-mini-card-price">₹43.00</span>
                                         </div>
                                     </div>
                                 </div>
@@ -2687,7 +2687,7 @@
                                             class="fw-semibold d-flex align-items-center justify-content-between gap-4">
                                             <span class="number">1</span>
                                             <span>x</span>
-                                            <span class="price tf-mini-card-price">$18.00</span>
+                                            <span class="price tf-mini-card-price">₹18.00</span>
                                         </div>
                                     </div>
                                 </div>
@@ -2738,7 +2738,7 @@
                                             class="fw-semibold d-flex align-items-center justify-content-between gap-4">
                                             <span class="number">1</span>
                                             <span>x</span>
-                                            <span class="price tf-mini-card-price">$60.00</span>
+                                            <span class="price tf-mini-card-price">₹60.00</span>
                                         </div>
                                     </div>
                                 </div>
@@ -2764,7 +2764,7 @@
                             <div class="tf-mini-cart-total">
                                 <h5 class="text-total d-flex align-content-center justify-content-between">
                                     <span class="subtotal">Subtotal</span>
-                                    <span class="total-price tf-totals-total-value">$186,99</span>
+                                    <span class="total-price tf-totals-total-value">₹186,99</span>
                                 </h5>
                             </div>
                             <div class="checkbox-wrap">
@@ -2866,7 +2866,7 @@
                                 <div id="zipcode-success" class="success" style="display: none">
                                     <p>We found one shipping rate available for your address:</p>
                                     <p class="standard">
-                                        Standard at <span>$0.00</span>
+                                        Standard at <span>₹0.00</span>
                                         USD
                                     </p>
                                 </div>
@@ -2890,7 +2890,7 @@
                             </div>
                             <div class="wrap">
                                 <h5>
-                                    Only <span class="text-primary">$2</span>
+                                    Only <span class="text-primary">₹2</span>
                                     for a gift box
                                 </h5>
                             </div>
@@ -3031,8 +3031,8 @@
                                             <i class="icon icon-Star"></i>
                                         </div>
                                         <div class="price-wrap">
-                                            <span class="price-new text-primary fw-semibold">$69,99</span>
-                                            <span class="price-old text-caption-01 cl-text-3">$99,99</span>
+                                            <span class="price-new text-primary fw-semibold">₹69,99</span>
+                                            <span class="price-old text-caption-01 cl-text-3">₹99,99</span>
                                         </div>
                                         <ul class="product-color_list">
                                             <li
@@ -3114,8 +3114,8 @@
                                             <i class="icon icon-Star"></i>
                                         </div>
                                         <div class="price-wrap">
-                                            <span class="price-new text-primary fw-semibold">$29,99</span>
-                                            <span class="price-old text-caption-01 cl-text-3">$49,99</span>
+                                            <span class="price-new text-primary fw-semibold">₹29,99</span>
+                                            <span class="price-old text-caption-01 cl-text-3">₹49,99</span>
                                         </div>
                                         <ul class="product-color_list">
                                             <li
@@ -3199,8 +3199,8 @@
                                             <i class="icon icon-Star"></i>
                                         </div>
                                         <div class="price-wrap">
-                                            <span class="price-new text-primary fw-semibold">$15,99</span>
-                                            <span class="price-old text-caption-01 cl-text-3">$25,99</span>
+                                            <span class="price-new text-primary fw-semibold">₹15,99</span>
+                                            <span class="price-old text-caption-01 cl-text-3">₹25,99</span>
                                         </div>
                                         <ul class="product-color_list">
                                             <li
@@ -3287,8 +3287,8 @@
                                             <i class="icon icon-Star"></i>
                                         </div>
                                         <div class="price-wrap">
-                                            <span class="price-new text-primary fw-semibold">$45,99</span>
-                                            <span class="price-old text-caption-01 cl-text-3">$79,99</span>
+                                            <span class="price-new text-primary fw-semibold">₹45,99</span>
+                                            <span class="price-old text-caption-01 cl-text-3">₹79,99</span>
                                         </div>
                                         <ul class="product-color_list">
                                             <li

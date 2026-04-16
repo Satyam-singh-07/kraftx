@@ -17,6 +17,8 @@ class Collection extends Model
         'image',
         'description',
         'status',
+        'show_on_home',
+        'sort_order',
     ];
 
     public function products(): BelongsToMany

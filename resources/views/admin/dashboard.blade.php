@@ -21,7 +21,7 @@
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Price</label>
                     <div class="mt-1 relative rounded-md shadow-sm">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span class="text-gray-500 sm:text-sm">$</span>
+                            <span class="text-gray-500 sm:text-sm">₹</span>
                         </div>
                         <input type="number" class="block w-full pl-7 pr-12 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="0.00">
                     </div>
@@ -44,7 +44,7 @@
             />
             <x-admin.card
                 title="Total Revenue"
-                value="${{ number_format($stats['total_revenue'], 2) }}"
+                value="₹{{ number_format($stats['total_revenue'], 2) }}"
                 icon="shopping-bag"
                 color="green"
                 trend="+8.5%"
@@ -92,7 +92,7 @@
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                         <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{{ $order['id'] }}</td>
                         <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{{ $order['customer'] }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white font-semibold">${{ number_format($order['amount'], 2) }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white font-semibold">₹{{ number_format($order['amount'], 2) }}</td>
                         <td class="px-6 py-4">
                             <span class="px-2 py-1 text-xs font-semibold rounded-full
                                 {{ $order['status'] === 'Completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
@@ -124,7 +124,7 @@
                 data: {
                     labels: {!! json_encode($stats['sales_data']['labels']) !!},
                     datasets: [{
-                        label: 'Revenue ($)',
+                        label: 'Revenue (₹)',
                         data: {!! json_encode($stats['sales_data']['data']) !!},
                         borderColor: '#2563eb',
                         backgroundColor: 'rgba(37, 99, 235, 0.1)',

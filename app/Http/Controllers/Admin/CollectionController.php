@@ -31,9 +31,13 @@ class CollectionController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'description' => 'nullable|string',
             'status' => 'boolean',
+            'show_on_home' => 'boolean',
+            'sort_order' => 'integer',
         ]);
 
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['name']);
+        $validated['status'] = $request->boolean('status');
+        $validated['show_on_home'] = $request->boolean('show_on_home');
 
         if ($request->hasFile('image')) {
             $validated['image'] = $this->uploadImage($request->file('image'));
@@ -57,9 +61,13 @@ class CollectionController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'description' => 'nullable|string',
             'status' => 'boolean',
+            'show_on_home' => 'boolean',
+            'sort_order' => 'integer',
         ]);
 
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['name']);
+        $validated['status'] = $request->boolean('status');
+        $validated['show_on_home'] = $request->boolean('show_on_home');
 
         if ($request->hasFile('image')) {
             if ($collection->image) {

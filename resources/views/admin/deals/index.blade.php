@@ -26,7 +26,7 @@
                             <div class="text-xs text-gray-500 dark:text-gray-400">Priority: {{ $deal->priority }}</div>
                         </td>
                         <td class="px-6 py-4 text-sm font-bold text-blue-600 dark:text-blue-400">
-                            {{ $deal->discount_type === 'percentage' ? $deal->discount_value . '%' : '$' . number_format($deal->discount_value, 2) }}
+                            {{ $deal->discount_type === 'percentage' ? $deal->discount_value . '%' : '₹' . number_format($deal->discount_value, 2) }}
                         </td>
                         <td class="px-6 py-4">
                             <div class="text-xs text-gray-600 dark:text-gray-400">Starts: {{ $deal->start_date ? $deal->start_date->format('M d, Y H:i') : 'Immediate' }}</div>
