@@ -17,7 +17,7 @@ Route::get('/', function () {
     $collections = Collection::where('status', 1)
         ->where('show_on_home', 1)
         ->orderBy('sort_order')
-        ->take(12)
+        ->take(6)
         ->get();
 
     $topPicks = Product::with(['images', 'variants'])
@@ -87,6 +87,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('products/bulk-delete', [\App\Http\Controllers\Admin\ProductController::class, 'bulkDelete'])->name('products.bulk-delete');
     Route::post('products/{product}/toggle-status', [\App\Http\Controllers\Admin\ProductController::class, 'toggleStatus'])->name('products.toggle-status');
     Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
+    Route::post('collections/{collection}/toggle-status', [\App\Http\Controllers\Admin\CollectionController::class, 'toggleStatus'])->name('collections.toggle-status');
     Route::resource('collections', \App\Http\Controllers\Admin\CollectionController::class);
     Route::resource('customers', \App\Http\Controllers\Admin\CustomerController::class);
     Route::resource('banners', \App\Http\Controllers\Admin\BannerController::class);

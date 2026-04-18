@@ -128,10 +128,10 @@
                     @foreach($collections as $collection)
                     <div class="swiper-slide wow fadeInUp">
                         <a href="{{ route('collection.show', $collection->slug) }}" class="category-v01 hover-img">
-                            <div class="cate-image img-style">
+                            <div class="cate-image img-style rounded-circle overflow-hidden" style="aspect-ratio: 1/1;">
                                 <img loading="lazy" width="210" height="210"
                                     src="{{ $collection->image ? Storage::url($collection->image) : asset('assets/images/category/'.$fallbackCategoryImages[$loop->index % count($fallbackCategoryImages)]) }}"
-                                    alt="{{ $collection->name }}">
+                                    alt="{{ $collection->name }}" class="rounded-circle object-fit-cover w-100 h-100">
                             </div>
                             <p class="cate-name h5 text-center link link-underline">{{ $collection->name }}</p>
                         </a>

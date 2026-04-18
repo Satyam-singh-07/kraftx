@@ -14,7 +14,7 @@ class CollectionController extends Controller
 {
     public function index()
     {
-        $collections = Collection::withCount('products')->get();
+        $collections = Collection::withCount('products')->orderBy('sort_order')->get();
         return view('admin.collections.index', compact('collections'));
     }
 
@@ -88,6 +88,18 @@ class CollectionController extends Controller
         }
         $collection->delete();
         return back()->with('success', 'Collection deleted successfully.');
+    }
+
+    public function toggleStatus(Collection $collection)
+    {
+        $collection->status = !$collection->status;
+        $collection->save();
+
+        return response()->json([
+            'success' => true,
+            'status' => $collection->status,
+            'message' => 'Status updated successfully.'
+        ]);
     }
 
     protected function uploadImage($file)

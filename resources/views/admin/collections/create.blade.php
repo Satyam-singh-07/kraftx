@@ -59,11 +59,29 @@
                                   class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none">{{ old('description') }}</textarea>
                     </div>
 
-                    <div class="flex items-center space-x-3 pt-2">
-                        <input type="hidden" name="status" value="0">
-                        <input type="checkbox" name="status" id="status" value="1" {{ old('status', '1') == '1' ? 'checked' : '' }}
-                               class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        <label for="status" class="text-sm font-medium text-gray-700 dark:text-gray-300">Active Collection</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Sort Order</label>
+                            <input type="number" name="sort_order" value="{{ old('sort_order', '0') }}"
+                                   class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none">
+                            @error('sort_order') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 pt-2">
+                        <div class="flex items-center space-x-3">
+                            <input type="hidden" name="status" value="0">
+                            <input type="checkbox" name="status" id="status" value="1" {{ old('status', '1') == '1' ? 'checked' : '' }}
+                                   class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <label for="status" class="text-sm font-medium text-gray-700 dark:text-gray-300">Active Collection</label>
+                        </div>
+
+                        <div class="flex items-center space-x-3">
+                            <input type="hidden" name="show_on_home" value="0">
+                            <input type="checkbox" name="show_on_home" id="show_on_home" value="1" {{ old('show_on_home', '0') == '1' ? 'checked' : '' }}
+                                   class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <label for="show_on_home" class="text-sm font-medium text-gray-700 dark:text-gray-300">Show on Home Page</label>
+                        </div>
                     </div>
                 </div>
             </x-admin.card>
