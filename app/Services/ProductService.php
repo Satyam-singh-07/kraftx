@@ -39,6 +39,7 @@ class ProductService
                 'sku' => $dto->sku,
                 'status' => $dto->status,
                 'featured' => $dto->featured,
+                'is_trending' => $dto->is_trending,
             ];
 
             $product = $this->productRepository->create($productData);
@@ -106,6 +107,7 @@ class ProductService
                 'sku' => $dto->sku,
                 'status' => $dto->status,
                 'featured' => $dto->featured,
+                'is_trending' => $dto->is_trending,
             ];
 
             $this->productRepository->update($id, $productData);

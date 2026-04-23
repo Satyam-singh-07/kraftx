@@ -27,6 +27,7 @@ class ProductRequest extends FormRequest
             'sku' => ['nullable', 'string', 'max:255', 'unique:products,sku,' . $productId],
             'status' => ['boolean'],
             'featured' => ['boolean'],
+            'is_trending' => ['boolean'],
             'collection_ids' => ['nullable', 'array'],
             'collection_ids.*' => ['exists:collections,id'],
             'tag_ids' => ['nullable', 'array'],

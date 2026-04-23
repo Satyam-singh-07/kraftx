@@ -1,5 +1,5 @@
 <x-layouts.admin>
-    <div class="max-w-4xl mx-auto space-y-6">
+    <div class="max-w-4xl mx-auto space-y-6" x-data="productEdit()">
         <div class="flex items-center justify-between">
             <h2 class="text-xl font-bold text-gray-800 dark:text-white">Edit Product: {{ $product->name }}</h2>
             <a href="{{ route('admin.products.index') }}" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Back to List</a>
@@ -75,13 +75,18 @@
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Gallery Images</label>
                         <div class="grid grid-cols-3 gap-2 mb-4">
-                            @foreach($product->images->where('is_primary', false) as $image)
-                                <div class="relative group">
-                                    <img src="{{ asset('storage/' . $image->image_path) }}" class="w-full h-20 object-cover rounded-lg">
+                            @foreach($product->images as $image)
+                                <div class="relative group" id="image-container-{{ $image->id }}">
+                                    <img src="{{ str_starts_with($image->image_path, 'assets/') ? asset($image->image_path) : Storage::url($image->image_path) }}" 
+                                         class="w-full h-20 object-cover rounded-lg {{ $image->is_primary ? 'ring-2 ring-blue-500' : '' }}">
                                     <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
-                                        {{-- Delete logic for individual gallery images would go here --}}
-                                        <span class="text-white text-[10px] font-bold">EXISTING</span>
+                                        <button type="button" @click="deleteImage({{ $image->id }})" class="p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        </button>
                                     </div>
+                                    @if($image->is_primary)
+                                        <span class="absolute bottom-1 right-1 bg-blue-500 text-white text-[8px] px-1 rounded">MAIN</span>
+                                    @endif
                                 </div>
                             @endforeach
                         </div>
@@ -89,11 +94,11 @@
                         <p class="text-[10px] text-gray-500 mt-2">Add more images to the gallery</p>
                         @error('gallery_images.*') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                     </div>
-                </div>
-            </x-admin.card>
+                    </div>
+                    </x-admin.card>
 
-            <x-admin.card title="Pricing & Inventory">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <x-admin.card title="Pricing & Inventory">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Regular Price (₹) <span class="text-red-500">*</span></label>
                         <div class="relative">
@@ -122,11 +127,11 @@
                         <input type="text" name="sku" value="{{ old('sku', $product->sku) }}" placeholder="Enter SKU"
                                class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none">
                     </div>
-                </div>
-            </x-admin.card>
+                    </div>
+                    </x-admin.card>
 
-            <x-admin.card title="Organization">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <x-admin.card title="Organization">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Collections</label>
                         <select name="collection_ids[]" multiple size="3"
@@ -138,9 +143,9 @@
                         </select>
                         <p class="text-[10px] text-gray-500 mt-1">Hold Cmd/Ctrl to select multiple</p>
                     </div>
-                </div>
+                    </div>
 
-                <div class="flex items-center space-x-8 mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
+                    <div class="flex items-center space-x-8 mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
                     <label class="flex items-center group cursor-pointer">
                         <input type="hidden" name="status" value="0">
                         <input type="checkbox" name="status" value="1" {{ old('status', $product->status) ? 'checked' : '' }} 
@@ -153,11 +158,17 @@
                                class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                         <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-blue-600 transition-colors">Featured Product</span>
                     </label>
-                </div>
-            </x-admin.card>
+                    <label class="flex items-center group cursor-pointer">
+                        <input type="hidden" name="is_trending" value="0">
+                        <input type="checkbox" name="is_trending" value="1" {{ old('is_trending', $product->is_trending) ? 'checked' : '' }}
+                            class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-blue-600 transition-colors">Trending Product</span>
+                    </label>
+                    </div>
+                    </x-admin.card>
 
-            <x-admin.card title="SEO Settings">
-                <div class="space-y-5 mt-4">
+                    <x-admin.card title="SEO Settings">
+                    <div class="space-y-5 mt-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Meta Title</label>
                         <input type="text" name="seo_meta[meta_title]" value="{{ old('seo_meta.meta_title', $product->seoMeta?->meta_title) }}" placeholder="SEO Title"
@@ -173,14 +184,42 @@
                         <input type="text" name="seo_meta[canonical_url]" value="{{ old('seo_meta.canonical_url', $product->seoMeta?->canonical_url) }}" placeholder="https://example.com/product-url"
                                class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none">
                     </div>
-                </div>
-            </x-admin.card>
+                    </div>
+                    </x-admin.card>
 
-            <div class="flex justify-end pt-4 pb-12">
-                <button type="submit" class="px-10 py-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/30 font-bold text-lg">
+                    <div class="flex justify-end pt-4 pb-12">
+                    <button type="submit" class="px-10 py-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/30 font-bold text-lg">
                     Update Product
-                </button>
-            </div>
-        </form>
-    </div>
-</x-layouts.admin>
+                    </button>
+                    </div>
+                    </form>
+                    </div>
+
+                    @push('scripts')
+                    <script>
+                    document.addEventListener('alpine:init', () => {
+                    Alpine.data('productEdit', () => ({
+                    async deleteImage(imageId) {
+                    if (!confirm('Are you sure you want to delete this image?')) return;
+
+                    try {
+                        let res = await axios.delete(`/admin/products/images/${imageId}`, {
+                            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+                        });
+
+                        if (res.data.success) {
+                            document.getElementById(`image-container-${imageId}`).remove();
+                            window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'success', text: 'Image deleted!' } }));
+                        }
+                    } catch (e) {
+                        let msg = e.response?.data?.message || 'Failed to delete image.';
+                        window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'error', text: msg } }));
+                    }
+                    }
+                    }));
+                    });
+                    </script>
+                    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+                    @endpush
+                    </x-layouts.admin>
+

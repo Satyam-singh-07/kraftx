@@ -25,7 +25,7 @@ class ProductController extends Controller
     {
         $filters = $request->only(['search', 'status', 'featured', 'min_price', 'max_price', 'sort']);
         $products = $this->productRepository->getAllPaginated($filters);
-
+        // dd($products);
         return view('admin.products.index', compact('products', 'filters'));
     }
 
@@ -116,6 +116,35 @@ class ProductController extends Controller
         try {
             $success = $this->productService->toggleStatus($id);
             return response()->json(['success' => $success]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function deleteImage(\App\Models\ProductImage $image)
+    {
+        try {
+            // Only delete if it's not the primary image or if there are other images
+            if ($image->is_primary && $image->product->images()->count() <= 1) {
+                return response()->json(['success' => false, 'message' => 'Cannot delete the only image.'], 422);
+            }
+
+            // If deleting primary, make another one primary if exists
+            if ($image->is_primary) {
+                $nextImage = $image->product->images()->where('id', '!=', $image->id)->first();
+                if ($nextImage) {
+                    $nextImage->update(['is_primary' => true]);
+                }
+            }
+
+            // Delete from storage
+            if (!str_starts_with($image->image_path, 'assets/')) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($image->image_path);
+            }
+
+            $image->delete();
+
+            return response()->json(['success' => true]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }

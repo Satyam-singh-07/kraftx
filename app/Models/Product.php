@@ -26,6 +26,7 @@ class Product extends Model
         'sku',
         'status',
         'featured',
+        'is_trending',
     ];
 
     public function deals(): BelongsToMany
@@ -46,6 +47,16 @@ class Product extends Model
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class);
+    }
+
+    public function primaryImage(): HasMany
+    {
+        return $this->hasMany(ProductImage::class)->where('is_primary', true);
+    }
+
+    public function getPrimaryImageAttribute()
+    {
+        return $this->images->firstWhere('is_primary', true) ?? $this->images->first();
     }
 
     public function variants(): HasMany

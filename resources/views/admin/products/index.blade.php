@@ -77,10 +77,24 @@
                             <input type="checkbox" value="{{ $product->id }}" x-model="selected" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                         </td>
                         <td class="px-6 py-4 flex items-center space-x-3">
-                            @if($product->images->count() > 0)
-                                <img src="{{ asset('storage/' . $product->images->first()->image_path) }}" alt="{{ $product->name }}" class="w-10 h-10 rounded object-cover">
+                            @php
+                                $mainImage = $product->primary_image;
+                                $imageUrl = null;
+                                if ($mainImage) {
+                                    $path = $mainImage->image_path;
+                                    if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, '/')) {
+                                        $imageUrl = $path;
+                                    } elseif (str_starts_with($path, 'assets/')) {
+                                        $imageUrl = asset($path);
+                                    } else {
+                                        $imageUrl = Storage::url($path);
+                                    }
+                                }
+                            @endphp
+                            @if($imageUrl)
+                                <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="w-10 h-10 rounded object-cover">
                             @else
-                                <div class="w-10 h-10 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-400">No Img</div>
+                                <div class="w-10 h-10 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-400 text-[10px]">No Img</div>
                             @endif
                             <div>
                                 <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $product->name }}</div>

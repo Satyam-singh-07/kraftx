@@ -180,6 +180,14 @@
                             class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-blue-600 transition-colors">Featured
                             Product</span>
                     </label>
+                    <label class="flex items-center group cursor-pointer">
+                        <input type="hidden" name="is_trending" value="0">
+                        <input type="checkbox" name="is_trending" value="1" {{ old('is_trending') == '1' ? 'checked' : '' }}
+                            class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span
+                            class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-blue-600 transition-colors">Trending
+                            Product</span>
+                    </label>
                 </div>
             </x-admin.card>
 
