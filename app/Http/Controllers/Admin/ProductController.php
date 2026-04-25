@@ -46,6 +46,7 @@ class ProductController extends Controller
             $dto = ProductDTO::fromRequest(
                 $request->validated(),
                 $request->file('main_image'),
+                $request->file('size_weight_image'),
                 $request->file('gallery_images') ?? []
             );
 
@@ -77,6 +78,7 @@ class ProductController extends Controller
             $dto = ProductDTO::fromRequest(
                 $request->validated(),
                 $request->file('main_image'),
+                $request->file('size_weight_image'),
                 $request->file('gallery_images') ?? []
             );
             $this->productService->updateProduct($id, $dto);

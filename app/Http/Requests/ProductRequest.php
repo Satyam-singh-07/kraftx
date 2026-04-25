@@ -20,6 +20,7 @@ class ProductRequest extends FormRequest
             'slug' => ['nullable', 'string', 'max:255', 'unique:products,slug,' . $productId],
             'short_description' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
+            'perfect_placement' => ['nullable', 'string'],
             'video_url' => ['nullable', 'string', 'max:255'],
             'price' => ['required', 'numeric', 'min:0'],
             'sale_price' => ['nullable', 'numeric', 'min:0', 'lt:price'],
@@ -35,6 +36,7 @@ class ProductRequest extends FormRequest
             'variants' => ['nullable', 'array'],
             'seo_meta' => ['nullable', 'array'],
             'main_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'size_weight_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
             'gallery_images' => ['nullable', 'array'],
             'gallery_images.*' => ['image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
         ];

@@ -12,7 +12,64 @@
         $sizes = $product->variants->whereNotNull('size')->unique('size');
     @endphp
 
+    @push('styles')
+    <style>
+        .custom-accordion .accordion-item {
+            border: none;
+            border-bottom: 1px solid #ebebeb !important;
+            border-radius: 0 !important;
+        }
+        .custom-accordion .accordion-button {
+            padding: 18px 0;
+            font-weight: 700;
+            font-size: 16px;
+            color: #111;
+            background-color: transparent !important;
+            box-shadow: none !important;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .custom-accordion .accordion-button::after {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-size: 18px;
+            width: 18px;
+            height: 18px;
+            transition: transform 0.3s ease;
+        }
+        .custom-accordion .accordion-button:not(.collapsed)::after {
+            transform: rotate(-180deg);
+        }
+        .custom-accordion .accordion-body {
+            padding: 0 0 20px 0;
+            color: #666;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        .custom-accordion .accordion-body strong {
+            color: #333;
+        }
+    </style>
+    @endpush
+
     <main id="wrapper">
+        <!-- Breadcrumbs -->
+        <div class="section-page-title-single flat-spacing-3">
+            <div class="container">
+                <div class="main-page-title">
+                    <div class="breadcrumbs">
+                        <a href="{{ route('home') }}" class="text-caption-01 cl-text-3 link">Home</a>
+                        <i class="icon icon-CaretRightThin cl-text-3"></i>
+                        <a href="#" class="text-caption-01 cl-text-3 link">Shop</a>
+                        <i class="icon icon-CaretRightThin cl-text-3"></i>
+                        <P class="text-caption-01">
+                            {{ $product->name }}
+                        </P>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Breadcrumbs -->
 
         <!-- Product Single -->
         <section class="section-product-single tf-main-product section-image-zoom">
@@ -93,22 +150,80 @@
                                             </span>
                                         </div>
                                         <div class="br-line type-vertical"></div>
+                                        <div class="meta_sold text-caption-01 d-flex align-items-center gap-4">
+                                            <i class="icon icon-Lightning" style="color: #f7ba01;"></i>
+                                            <span class="cl-text-2">{{ rand(51, 150) }} sold in last 48 hours</span>
+                                        </div>
+                                        <div class="br-line type-vertical"></div>
+                                        <div class="meta_prd_code text-caption-01">
+                                            <span class="cl-text-2">SKU:</span>
+                                            <span>{{ $product->sku }}</span>
+                                        </div>
                                     </div>
-                                    <div class="product-infor-price mb-12">
+                                    <div class="product-infor-price mb-12"> 
                                         @if($product->sale_price)
-                                            <h4 class="price-on-sale">₹{{ number_format($product->sale_price, 2) }}</h4>
-                                            <div class="br-line type-vertical"></div>
-                                            <p class="cl-text-3 text-decoration-line-through">₹{{ number_format($product->price, 2) }}</p>
+                                            <h4 class="price-on-sale">₹{{ number_format($product->sale_price, 0) }}</h4>
+                                            <p class="cl-text-3 text-decoration-line-through">₹{{ number_format($product->price, 0) }}</p>
                                             <span class="badge-sale text-white fw-semibold text-caption-02">
-                                                -{{ round((($product->price - $product->sale_price) / $product->price) * 100) }}%
+                                                {{ round((($product->price - $product->sale_price) / $product->price) * 100) }}% OFF
                                             </span>
                                         @else
-                                            <h4 class="price">₹{{ number_format($product->price, 2) }}</h4>
+                                            <h4 class="price">₹{{ number_format($product->price, 0) }}</h4>
                                         @endif
                                     </div>
-                                    <p class="product-infor-desc cl-text-2 mb-12">
-                                        {{ $product->short_description }}
-                                    </p>
+                                    
+                                    <div class="product-infor-highlights mb-20">
+                                        <!-- Top List Section -->
+                                        <div class="highlight-list-top mb-24">
+                                            <div class="d-flex align-items-center gap-10 mb-8">
+                                                <i class="icon icon-Truck" style="color: #b58b21; font-size: 20px;"></i>
+                                                <span class="text-caption-01 fw-medium" style="color: #111;">Free Shipping Available</span>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-10 mb-8">
+                                                <i class="icon icon-Lightning" style="color: #b58b21; font-size: 20px;"></i>
+                                                <span class="text-caption-01 fw-medium" style="color: #111;">Cash on Delivery available (₹99 extra)</span>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-10">
+                                                <i class="icon icon-Lightning" style="color: #2d4f1e; font-size: 20px;"></i>
+                                                <span class="text-caption-01 fw-medium" style="color: #2d4f1e;">Get Upto ₹100 OFF on prepaid orders</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Bottom Grid Section -->
+                                        <div class="row g-2 text-center pt-20 border-top">
+                                            <div class="col-3">
+                                                <div class="feature-item">
+                                                    <i class="icon icon-Truck2 d-block mb-8" style="font-size: 32px; color: #333;"></i>
+                                                    <span class="text-caption-02 fw-medium text-dark d-block lh-sm">Fast Delivery</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-3">
+                                                <div class="feature-item">
+                                                    <i class="icon icon-Star d-block mb-8" style="font-size: 32px; color: #333;"></i>
+                                                    <span class="text-caption-02 fw-medium text-dark d-block lh-sm">Premium Quality</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-3">
+                                                <div class="feature-item">
+                                                    <i class="icon icon-ArrowsLeftRight d-block mb-8" style="font-size: 32px; color: #333;"></i>
+                                                    <span class="text-caption-02 fw-medium text-dark d-block lh-sm">Easy Replacement</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-3">
+                                                <div class="feature-item">
+                                                    <i class="icon icon-ShieldCheck d-block mb-8" style="font-size: 32px; color: #333;"></i>
+                                                    <span class="text-caption-02 fw-medium text-dark d-block lh-sm">Secure Payment</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="product-infor-view text-caption-01 d-flex align-items-center gap-4 mb-12">
+                                        <i class="icon icon-Eye" style="color: #6c757d;"></i>
+                                        <span class="cl-text-2 text-secondary">
+                                            <span id="viewing-count">{{ rand(101, 500) }}</span> people are viewing this item right now
+                                        </span>
+                                    </div>
                                 </div>
                                 <div class="br-line"></div>
                                 <div class="tf-product-variant">
@@ -163,7 +278,7 @@
                                             <button type="button" id="add-to-cart-btn" class="btn-action-price tf-btn type-xl animate-btn w-100">
                                                 Add To Cart
                                                 <span class="d-none d-sm-block d-md-none d-lg-block">&nbsp;-&nbsp;</span>
-                                                <span class="price-add d-none d-sm-block d-md-none d-lg-block">₹{{ number_format($product->sale_price ?? $product->price, 2) }}</span>
+                                                <span class="price-add d-none d-sm-block d-md-none d-lg-block">₹{{ number_format($product->sale_price ?? $product->price, 0) }}</span>
                                             </button>
                                         </div>
                                         <a href="#" class="tf-btn type-xl btn-primary animate-btn w-100">
@@ -171,23 +286,86 @@
                                         </a>
                                     </div>
                                 </div>
-                                <div class="tf-product-extra-link">
-                                    <a href="#" class="product-extra-icon link"><i class="icon icon-ArrowsLeftRight"></i>Compare</a>
-                                    <a href="#ask" data-bs-toggle="modal" class="product-extra-icon link"><i class="icon icon-Question"></i>Ask A Question</a>
-                                    <a href="#share" data-bs-toggle="modal" class="product-extra-icon link"><i class="icon icon-ShareNetwork"></i>Share</a>
-                                </div>
-                                <div class="br-line"></div>
-                                <div class="tf-product-variant">
-                                    <div class="variant-picker-item">
-                                        <div class="variant-picker-label text-caption-02">
-                                            <i class="icon icon-Timer"></i>
-                                            <p>Estimated Delivery: <span class="fw-semibold">3-7 Days</span> (All over India)</p>
+                                
+                                <!-- Product Description Accordion -->
+                                <div class="prd-desc-accordion custom-accordion mt-30">
+                                    <div class="accordion" id="productAccordion">
+                                        <!-- About the Product -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAbout">
+                                                    About the Product
+                                                </button>
+                                            </h2>
+                                            <div id="collapseAbout" class="accordion-collapse collapse show" data-bs-parent="#productAccordion">
+                                                <div class="accordion-body">
+                                                    {!! $product->description !!}
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="variant-picker-item">
-                                        <div class="variant-picker-label text-caption-02">
-                                            <i class="icon icon-ArrowClockwise"></i>
-                                            <p>Return within <span class="fw-semibold">7 Days</span> of purchase.</p>
+
+                                        <!-- Size & Weight -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSize">
+                                                    Size & Weight
+                                                </button>
+                                            </h2>
+                                            <div id="collapseSize" class="accordion-collapse collapse" data-bs-parent="#productAccordion">
+                                                <div class="accordion-body text-center">
+                                                    @if($product->size_weight_image)
+                                                        <img src="{{ asset('storage/' . $product->size_weight_image) }}" alt="Size & Weight" class="img-fluid rounded shadow-sm">
+                                                    @else
+                                                        <p>Size and weight information will be updated soon.</p>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Perfect Placement -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePlacement">
+                                                    Perfect Placement
+                                                </button>
+                                            </h2>
+                                            <div id="collapsePlacement" class="accordion-collapse collapse" data-bs-parent="#productAccordion">
+                                                <div class="accordion-body">
+                                                    @if($product->perfect_placement)
+                                                        {!! $product->perfect_placement !!}
+                                                    @else
+                                                        <p>Information about perfect placement will be updated soon.</p>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Premium Packaging -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePackaging">
+                                                    Premium Packaging
+                                                </button>
+                                            </h2>
+                                            <div id="collapsePackaging" class="accordion-collapse collapse" data-bs-parent="#productAccordion">
+                                                <div class="accordion-body">
+                                                    <p>Every product is handled with care and packed in premium quality packaging materials to ensure it reaches you in perfect condition.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Return & Shipping -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseReturn">
+                                                    Return & Shipping
+                                                </button>
+                                            </h2>
+                                            <div id="collapseReturn" class="accordion-collapse collapse" data-bs-parent="#productAccordion">
+                                                <div class="accordion-body">
+                                                    <p>We offer nationwide shipping across India. Delivery typically takes 3-7 business days. We accept returns within 7 days of delivery for damaged or defective products.</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -213,7 +391,12 @@
                                 <p class="distribute__prd text-caption-01 cl-text-3">
                                     {{ $colors->first()->color ?? '' }}{{ $sizes->isNotEmpty() ? ', ' . $sizes->first()->size : '' }}
                                 </p>
-                                <p class="price__prd fw-semibold">₹{{ number_format($product->sale_price ?? $product->price, 2) }}</p>
+                                <div class="d-flex align-items-center gap-10">
+                                    <p class="price__prd fw-semibold">₹{{ number_format($product->sale_price ?? $product->price, 0) }}</p>
+                                    @if($product->sale_price)
+                                        <p class="cl-text-3 text-decoration-line-through text-caption-02">₹{{ number_format($product->price, 0) }}</p>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -240,7 +423,7 @@
                                 </div>
                             </div>
                             <button type="button" id="sticky-add-to-cart-btn" class="tf-btn animate-btn btn-add-to-cart">
-                                Add To Cart - ₹{{ number_format($product->sale_price ?? $product->price, 2) }}
+                                Add To Cart - ₹{{ number_format($product->sale_price ?? $product->price, 0) }}
                             </button>
                         </div>
                     </div>
@@ -248,47 +431,6 @@
             </div>
         </div>
         <!-- /Sticky ATC -->
-
-        <!-- Product Description -->
-        <section class="section-product-description flat-spacing flat-animate-tab">
-            <div class="container">
-                <ul class="tab-btn-wrap-v1" role="tablist">
-                    <li class="nav-tab-item" role="presentation">
-                        <a href="#description" data-bs-toggle="tab" class="tf-btn-tab active" role="tab">
-                            <span class="h5 fw-medium">Description</span>
-                        </a>
-                    </li>
-                    <li class="nav-tab-item" role="presentation">
-                        <a href="#shipping-returns" data-bs-toggle="tab" class="tf-btn-tab" role="tab">
-                            <span class="h5 fw-medium">Shipping & Returns</span>
-                        </a>
-                    </li>
-                </ul>
-                <div class="tab-content">
-                    <div class="tab-pane active show" id="description" role="tabpanel">
-                        <div class="tab-content_desc">
-                            <div class="box-desc">
-                                <h5 class="desc_title">Product Description</h5>
-                                <div class="desc_info">
-                                    {!! $product->description !!}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="tab-pane" id="shipping-returns" role="tabpanel">
-                        <div class="tab-content_desc">
-                            <div class="box-desc">
-                                <h5 class="desc_title">Shipping Information</h5>
-                                <p class="cl-text-2">We offer nationwide shipping across India. Delivery typically takes 3-7 business days depending on your location.</p>
-                                <h5 class="desc_title mt-20">Return Policy</h5>
-                                <p class="cl-text-2">Returns are accepted within 7 days of purchase. Items must be in their original condition and packaging.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <!-- /Product Description -->
 
         <!-- Related Product -->
         @if($relatedProducts->isNotEmpty())
@@ -325,63 +467,6 @@
         <!-- /Related Product -->
     </main>
 
-    <!-- Modal Ask -->
-    <div class="modal modalCentered fade modal-log modal-ask" id="ask">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <span class="icon-close-popup" data-bs-dismiss="modal"><i class="icon icon-X2"></i></span>
-                <div class="modal-heading text-center">
-                    <h3 class="title-pop mb-8">Ask A Question</h3>
-                    <p class="desc-pop cl-text-2">Have a question about {{ $product->name }}? Ask us today!</p>
-                </div>
-                <div class="modal-main">
-                    <form class="form-log mb-20">
-                        <div class="form-content">
-                            <fieldset class="tf-field">
-                                <label class="tf-lable fw-medium">Your Name<span class="text-primary">*</span></label>
-                                <input type="text" placeholder="Your Name*" required>
-                            </fieldset>
-                            <fieldset class="tf-field">
-                                <label class="tf-lable fw-medium">Your Email<span class="text-primary">*</span></label>
-                                <input type="email" placeholder="Your Email*" required>
-                            </fieldset>
-                            <fieldset class="tf-field">
-                                <label class="tf-lable fw-medium">Your Message<span class="text-primary">*</span></label>
-                                <textarea placeholder="Your Message*" required></textarea>
-                            </fieldset>
-                        </div>
-                        <div class="group-action">
-                            <button type="submit" class="tf-btn animate-btn w-100">Send Message</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Share -->
-    <div class="modal modalCentered fade modal-share" id="share">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-heading d-flex align-items-center justify-content-between">
-                    <h4 class="title-pop">Share</h4>
-                    <span class="cs-pointer d-flex link" data-bs-dismiss="modal"><i class="icon-X2 fs-24"></i></span>
-                </div>
-                <div class="modal-main">
-                    <ul class="tf-social-icon-2 hv-dark mb-20">
-                        <li><a href="#"><i class="icon icon-FacebookLogo"></i></a></li>
-                        <li><a href="#"><i class="icon icon-XLogo"></i></a></li>
-                        <li><a href="#"><i class="icon icon-InstagramLogo"></i></a></li>
-                    </ul>
-                    <div class="wrap-code btn-coppy-text">
-                        <p class="coppyText cl-text-2" id="coppyText">{{ Request::url() }}</p>
-                        <div class="btn-action-copy tf-btn" onclick="copyToClipboard()">Copy</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <x-slot name="scripts">
         <script>
             function copyToClipboard() {
@@ -395,8 +480,26 @@
                 const addToCartBtn = document.getElementById('add-to-cart-btn');
                 const stickyAddToCartBtn = document.getElementById('sticky-add-to-cart-btn');
                 
+                // Live viewing count update (realistic fluctuation)
+                const viewingCountEl = document.getElementById('viewing-count');
+                if (viewingCountEl) {
+                    setInterval(() => {
+                        let count = parseInt(viewingCountEl.textContent);
+                        // 60% chance to increase, 40% chance to decrease
+                        const change = Math.floor(Math.random() * 3) + 1;
+                        if (Math.random() > 0.4 || count < 110) {
+                            count += change;
+                        } else {
+                            count -= change;
+                        }
+                        // Cap between 100 and 500 for realism
+                        count = Math.max(100, Math.min(500, count));
+                        viewingCountEl.textContent = count;
+                    }, 2000);
+                }
+                
                 function handleAddToCart(event) {
-                    const isSticky = event.target.id === 'sticky-add-to-cart-btn';
+                    const isSticky = event.currentTarget.id === 'sticky-add-to-cart-btn';
                     
                     const productId = document.querySelector('input[name="product_id"]').value;
                     const quantity = isSticky 
@@ -458,3 +561,23 @@
     </x-slot>
 
 </x-layout>
+ Here is the updated code:
+...
+                                        <!-- Size & Weight -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSize">
+                                                    Size & Weight
+                                                </button>
+                                            </h2>
+                                            <div id="collapseSize" class="accordion-collapse collapse" data-bs-parent="#productAccordion">
+                                                <div class="accordion-body text-center">
+                                                    @if($product->size_weight_image)
+                                                        <img src="{{ asset('storage/' . $product->size_weight_image) }}" alt="Size & Weight" class="img-fluid rounded shadow-sm">
+                                                    @else
+                                                        <p>Size and weight information will be updated soon.</p>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+...

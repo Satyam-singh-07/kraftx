@@ -33,6 +33,7 @@ class ProductService
                 'short_description' => $dto->short_description,
                 'description' => $dto->description,
                 'video_url' => $dto->video_url,
+                'perfect_placement' => $dto->perfect_placement,
                 'price' => $dto->price,
                 'sale_price' => $dto->sale_price,
                 'stock' => $dto->stock,
@@ -41,6 +42,10 @@ class ProductService
                 'featured' => $dto->featured,
                 'is_trending' => $dto->is_trending,
             ];
+
+            if ($dto->size_weight_image) {
+                $productData['size_weight_image'] = $this->uploadSimpleImage($dto->size_weight_image);
+            }
 
             $product = $this->productRepository->create($productData);
 
@@ -95,12 +100,15 @@ class ProductService
     {
         DB::beginTransaction();
         try {
+            $product = $this->productRepository->findById($id);
+            
             $productData = [
                 'name' => $dto->name,
                 'slug' => $dto->slug,
                 'short_description' => $dto->short_description,
                 'description' => $dto->description,
                 'video_url' => $dto->video_url,
+                'perfect_placement' => $dto->perfect_placement,
                 'price' => $dto->price,
                 'sale_price' => $dto->sale_price,
                 'stock' => $dto->stock,
@@ -109,6 +117,14 @@ class ProductService
                 'featured' => $dto->featured,
                 'is_trending' => $dto->is_trending,
             ];
+
+            if ($dto->size_weight_image) {
+                // Remove old size_weight image if exists
+                if ($product->size_weight_image) {
+                    Storage::disk('public')->delete($product->size_weight_image);
+                }
+                $productData['size_weight_image'] = $this->uploadSimpleImage($dto->size_weight_image);
+            }
 
             $this->productRepository->update($id, $productData);
             $product = $this->productRepository->findById($id);
@@ -146,6 +162,20 @@ class ProductService
             Log::error('Product update failed: ' . $e->getMessage());
             throw $e;
         }
+    }
+
+    protected function uploadSimpleImage($imageFile)
+    {
+        $filename = time() . '_' . uniqid() . '.' . $imageFile->getClientOriginalExtension();
+        $path = 'products/details/' . $filename;
+
+        $img = Image::decode($imageFile);
+        Storage::disk('public')->put(
+            $path,
+            (string) $img->encodeUsingFileExtension($imageFile->getClientOriginalExtension(), quality: 80)
+        );
+
+        return $path;
     }
 
     protected function uploadImage($product, $imageFile, bool $isPrimary)
