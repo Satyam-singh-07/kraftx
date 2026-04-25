@@ -40,6 +40,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 Route::get('/product/{slug}', [\App\Http\Controllers\Public\ProductController::class, 'show'])->name('product.show');
 Route::get('/collection/{slug}', [\App\Http\Controllers\Public\ProductController::class, 'collectionShow'])->name('collection.show');
 
+// Cart Routes
+Route::post('/cart/add', [\App\Http\Controllers\Public\CartController::class, 'add'])->name('cart.add');
+
 // Public Deals & Coupons
 Route::get('/deals', [\App\Http\Controllers\Public\DealController::class, 'index'])->name('deals.index');
 Route::get('/deals/{slug}', [\App\Http\Controllers\Public\DealController::class, 'show'])->name('deals.show');

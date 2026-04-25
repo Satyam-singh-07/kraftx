@@ -25,7 +25,18 @@ class ProductController extends Controller
             ['name' => $product->name, 'url' => '']
         ];
 
-        return view('public.products.show', compact('product', 'breadcrumbs'));
+        // Fetch related products from the same collection
+        $relatedProducts = collect();
+        if ($product->collections->first()) {
+            $relatedProducts = $product->collections->first()->products()
+                ->with(['images', 'variants'])
+                ->where('products.id', '!=', $product->id)
+                ->where('status', true)
+                ->take(8)
+                ->get();
+        }
+
+        return view('public.products.show', compact('product', 'breadcrumbs', 'relatedProducts'));
     }
     
     public function collectionShow(string $slug)
