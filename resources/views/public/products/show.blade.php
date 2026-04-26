@@ -606,11 +606,6 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            // Refresh drawer content
-                            if (window.refreshCartDrawer) {
-                                window.refreshCartDrawer();
-                            }
-                            
                             // Open the drawer
                             const cartDrawerEl = document.getElementById('shoppingCart');
                             if (cartDrawerEl) {

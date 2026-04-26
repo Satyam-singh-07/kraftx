@@ -964,7 +964,7 @@
 </style>
 
 <!-- Shopping Cart -->
-<div class="offcanvas offcanvas-end popup-shopping-cart" id="shoppingCart" data-bs-backdrop="static">
+<div class="offcanvas offcanvas-end popup-shopping-cart" id="shoppingCart">
     <div class="cart-drawer-recommendations">
         <div class="cart-drawer-panel-head">
             <h5 class="title">You may also like</h5>
@@ -1052,10 +1052,17 @@
             return '₹' + Math.round(amount).toLocaleString('en-IN');
         }
 
+        let isFetching = false;
         window.refreshCartDrawer = function() {
+            if (isFetching) return;
+            isFetching = true;
+
             // Fetch Cart Items
             fetch('{{ route('cart.fetch') }}')
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
                         toolbarCounts.forEach(el => el.textContent = data.cart_count);
@@ -1071,49 +1078,61 @@
                             subtotalDisplay.textContent = formatCurrency(data.total);
                             updateShippingProgress(data.total);
                             
-                            itemsList.innerHTML = data.items.map(item => `
-                                <div class="tf-mini-cart-item file-delete" data-id="${item.id}">
-                                    <div class="tf-mini-cart-image">
-                                        <a href="/product/${item.product.slug}">
-                                            <img src="${item.product.images[0] ? '/storage/' + item.product.images[0].image_path : '/assets/images/product/product-placeholder.jpg'}" alt="${item.product.name}">
-                                        </a>
-                                    </div>
-                                    <div class="tf-mini-cart-info">
-                                        <div class="cart-item-copy">
-                                            <a class="title link" href="/product/${item.product.slug}">${item.product.name}</a>
-                                            <div class="cart-item-meta">
-                                                <span>Color: <strong>${item.variant?.color ?? 'Standard'}</strong></span>
-                                                <span>Size: <strong>${item.variant?.size ?? 'One Size'}</strong></span>
+                            itemsList.innerHTML = data.items.map(item => {
+                                if (!item.product) return '';
+                                const imagePath = item.product.images && item.product.images[0] 
+                                    ? '/storage/' + item.product.images[0].image_path 
+                                    : '/assets/images/product/product-placeholder.jpg';
+                                
+                                return `
+                                    <div class="tf-mini-cart-item file-delete" data-id="${item.id}">
+                                        <div class="tf-mini-cart-image">
+                                            <a href="/product/${item.product.slug}">
+                                                <img src="${imagePath}" alt="${item.product.name}">
+                                            </a>
+                                        </div>
+                                        <div class="tf-mini-cart-info">
+                                            <div class="cart-item-copy">
+                                                <a class="title link" href="/product/${item.product.slug}">${item.product.name}</a>
+                                                <div class="cart-item-meta">
+                                                    <span>Color: <strong>${item.variant?.color ?? 'Standard'}</strong></span>
+                                                    <span>Size: <strong>${item.variant?.size ?? 'One Size'}</strong></span>
+                                                </div>
+                                            </div>
+                                            <div class="cart-item-summary">
+                                                <div class="remove-cart-item" data-id="${item.id}">Remove</div>
+                                                <div class="cart-item-line-total">${item.quantity} x ${formatCurrency(item.price)}</div>
+                                            </div>
+                                            <div class="cart-item-controls">
+                                                <div class="wg-quantity small">
+                                                    <span class="btn-quantity minus-btn-cart cs-pointer" data-id="${item.id}">-</span>
+                                                    <input type="text" name="number" value="${item.quantity}" readonly>
+                                                    <span class="btn-quantity plus-btn-cart cs-pointer" data-id="${item.id}">+</span>
+                                                </div>
+                                                <div class="price fw-6">${formatCurrency(item.price * item.quantity)}</div>
                                             </div>
                                         </div>
-                                        <div class="cart-item-summary">
-                                            <div class="remove-cart-item" data-id="${item.id}">Remove</div>
-                                            <div class="cart-item-line-total">${item.quantity} x ${formatCurrency(item.price)}</div>
-                                        </div>
-                                        <div class="cart-item-controls">
-                                            <div class="wg-quantity small">
-                                                <span class="btn-quantity minus-btn-cart cs-pointer" data-id="${item.id}">-</span>
-                                                <input type="text" name="number" value="${item.quantity}" readonly>
-                                                <span class="btn-quantity plus-btn-cart cs-pointer" data-id="${item.id}">+</span>
-                                            </div>
-                                            <div class="price fw-6">${formatCurrency(item.price * item.quantity)}</div>
-                                        </div>
                                     </div>
-                                </div>
-                            `).join('');
+                                `;
+                            }).join('');
                         }
                     }
-                });
+                })
+                .catch(error => console.error('Error fetching cart:', error))
+                .finally(() => { isFetching = false; });
 
             // Fetch Recommendations
             fetch('{{ route('cart.recommendations') }}')
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
                         recommendationsList.innerHTML = data.products.map(product => `
                             <a class="cart-recommendation-card" href="/product/${product.slug}">
                                 <div class="cart-recommendation-media">
-                                        <img src="${product.images[0] ? '/storage/' + product.images[0].image_path : '/assets/images/product/product-placeholder.jpg'}" alt="${product.name}">
+                                        <img src="${product.images && product.images[0] ? '/storage/' + product.images[0].image_path : '/assets/images/product/product-placeholder.jpg'}" alt="${product.name}">
                                 </div>
                                 <div>
                                     <p class="cart-recommendation-name">${product.name}</p>
@@ -1125,7 +1144,8 @@
                             </a>
                         `).join('');
                     }
-                });
+                })
+                .catch(error => console.error('Error fetching recommendations:', error));
         };
 
         function updateShippingProgress(total) {
@@ -1158,24 +1178,55 @@
         });
 
         function updateQuantity(itemId, change) {
+            if (isFetching) return;
+            
             const itemEl = document.querySelector(`.tf-mini-cart-item[data-id="${itemId}"]`);
+            if (!itemEl) return;
             const input = itemEl.querySelector('input');
             const newQty = parseInt(input.value) + change;
             if (newQty < 1) return;
 
+            isFetching = true;
             fetch('{{ route('cart.update') }}', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                 body: JSON.stringify({ item_id: itemId, quantity: newQty })
-            }).then(() => refreshCartDrawer());
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Update failed');
+                return response.json();
+            })
+            .then(() => {
+                isFetching = false;
+                refreshCartDrawer();
+            })
+            .catch(error => {
+                console.error('Error updating quantity:', error);
+                isFetching = false;
+            });
         }
 
         function removeCartItem(itemId) {
+            if (isFetching) return;
+            
+            isFetching = true;
             fetch('{{ route('cart.remove') }}', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                 body: JSON.stringify({ item_id: itemId })
-            }).then(() => refreshCartDrawer());
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Remove failed');
+                return response.json();
+            })
+            .then(() => {
+                isFetching = false;
+                refreshCartDrawer();
+            })
+            .catch(error => {
+                console.error('Error removing item:', error);
+                isFetching = false;
+            });
         }
 
         // Initial fetch when drawer opens
@@ -1206,67 +1257,3 @@
     </div>
 </div>
 <!-- /Search -->
-
-<!-- Register -->
-<div class="modal modalCentered fade modal-log" id="register">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <span class="icon-close-popup" data-bs-dismiss="modal">
-                <i class="icon-X2"></i>
-            </span>
-            <div class="modal-heading text-center">
-                <h3 class="title-pop mb-8">Create Account</h3>
-            </div>
-            <div class="modal-main">
-                <form action="#" class="form-log">
-                    <div class="form-content">
-                        <fieldset class="tf-field">
-                            <label class="tf-lable fw-medium">Email address *</label>
-                            <input type="email" placeholder="Email address" required>
-                        </fieldset>
-                        <fieldset class="tf-field password-wrapper">
-                            <label class="tf-lable fw-medium">Password *</label>
-                            <input class="password-field" type="password" placeholder="Password" required>
-                        </fieldset>
-                    </div>
-                    <div class="group-action">
-                        <button type="submit" class="tf-btn animate-btn w-100">Create Account</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- /Register -->
-
-<!-- Sign In -->
-<div class="modal modalCentered fade modal-log" id="sign">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <span class="icon-close-popup" data-bs-dismiss="modal">
-                <i class="icon-X2"></i>
-            </span>
-            <div class="modal-heading text-center">
-                <h3 class="title-pop mb-8">Sign In</h3>
-            </div>
-            <div class="modal-main">
-                <form action="#" class="form-log">
-                    <div class="form-content">
-                        <fieldset class="tf-field">
-                            <label class="tf-lable fw-medium">Email address *</label>
-                            <input type="email" placeholder="Email address" required>
-                        </fieldset>
-                        <fieldset class="tf-field password-wrapper">
-                            <label class="tf-lable fw-medium">Password *</label>
-                            <input class="password-field" type="password" placeholder="Password" required>
-                        </fieldset>
-                    </div>
-                    <div class="group-action">
-                        <button type="submit" class="tf-btn animate-btn w-100">Login</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- /Sign In -->
