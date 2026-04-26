@@ -464,11 +464,12 @@
         max-width: min(920px, 100vw) !important;
         padding: 0;
         border: 0;
-        background: #f7f3ee;
+        background: #f7f3ee !important; /* Force background */
         color: #171717;
         display: flex;
         flex-direction: row;
         overflow: hidden;
+        pointer-events: auto !important; /* Fix for desktop closure */
     }
 
     .popup-shopping-cart .btn-reset {
@@ -487,6 +488,7 @@
         display: flex;
         flex-direction: column;
         gap: 18px;
+        pointer-events: auto !important;
     }
 
     .cart-drawer-main {
@@ -497,6 +499,7 @@
         flex-direction: column;
         gap: 18px;
         background: #fffdfb;
+        pointer-events: auto !important;
     }
 
     .cart-drawer-panel-head {
@@ -964,8 +967,8 @@
 </style>
 
 <!-- Shopping Cart -->
-<div class="offcanvas offcanvas-end popup-shopping-cart" id="shoppingCart">
-    <div class="cart-drawer-recommendations">
+<div class="offcanvas offcanvas-end popup-shopping-cart" id="shoppingCart" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="cart-drawer-recommendations" onclick="event.stopPropagation()">
         <div class="cart-drawer-panel-head">
             <h5 class="title">You may also like</h5>
             <button type="button" class="btn-reset cart-drawer-close" data-bs-dismiss="offcanvas" aria-label="Close">
@@ -976,7 +979,7 @@
             <!-- Recommended items injected by JS -->
         </div>
     </div>
-    <div class="cart-drawer-main">
+    <div class="cart-drawer-main" onclick="event.stopPropagation()">
         <div class="cart-drawer-main-header">
             <h5 class="title">Shopping Cart</h5>
             <button type="button" class="btn-reset cart-drawer-close" data-bs-dismiss="offcanvas" aria-label="Close">

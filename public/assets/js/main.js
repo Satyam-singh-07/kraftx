@@ -314,15 +314,18 @@
     -------------------------------------------------------------------------*/
     var clickModalSecond = function () {
         $(".show-shopping-cart").on("click", function () {
-            $("#shoppingCart").modal("show");
+            var myOffcanvas = document.getElementById('shoppingCart');
+            var bsOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(myOffcanvas);
+            bsOffcanvas.show();
         });
         $(".btn-icon-action.wishlist").on("click", function () {
-            $("#wishlist").modal("show");
+            var myOffcanvas = document.getElementById('wishlist');
+            if (myOffcanvas) {
+                var bsOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(myOffcanvas);
+                bsOffcanvas.show();
+            }
         });
 
-        $(".btn-add-to-cart").on("click", function () {
-            $(".tf-add-cart-success").addClass("active");
-        });
         $(".tf-add-cart-success .tf-add-cart-close").on("click", function () {
             $(".tf-add-cart-success").removeClass("active");
         });
