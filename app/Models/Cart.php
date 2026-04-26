@@ -15,6 +15,10 @@ class Cart extends Model
         'session_id',
         'user_id',
         'ip_address',
+        'status',
+        'expires_at',
+        'device_type',
+        'user_agent',
     ];
 
     public function items(): HasMany

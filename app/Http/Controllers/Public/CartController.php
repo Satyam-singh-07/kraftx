@@ -3,22 +3,27 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Services\CartService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
 
 class CartController extends Controller
 {
+    protected $cartService;
+
+    public function __construct(CartService $cartService)
+    {
+        $this->cartService = $cartService;
+    }
+
     /**
      * Fetch the current cart data.
      */
     public function fetch(Request $request)
     {
-        $cart = $this->getOrCreateCart($request);
+        $cart = $this->cartService->getOrCreateCart($request);
         $items = $cart->items()->with(['product.images', 'variant'])->get();
 
         return response()->json([
@@ -41,52 +46,25 @@ class CartController extends Controller
             'size'       => 'nullable|string',
         ]);
 
-        $product = Product::findOrFail($request->product_id);
-        $variant = null;
-
-        // Attempt to find a matching variant if color or size is provided
+        $variantId = null;
         if ($request->color || $request->size) {
-            $query = ProductVariant::where('product_id', $product->id);
+            $query = ProductVariant::where('product_id', $request->product_id);
             if ($request->color) {
                 $query->where('color', $request->color);
             }
             if ($request->size) {
                 $query->where('size', $request->size);
             }
-            $variant = $query->first();
+            $variantId = $query->first()?->id;
         }
 
-        // Get or create the cart for the current session or user
-        $cart = $this->getOrCreateCart($request);
-
-        // Calculate price (use variant price if available, else product price)
-        $price = $variant && $variant->price ? $variant->price : ($product->sale_price ?? $product->price);
-
-        // Check if item already exists in cart
-        $cartItem = CartItem::where('cart_id', $cart->id)
-            ->where('product_id', $product->id)
-            ->where('product_variant_id', $variant?->id)
-            ->first();
-
-        if ($cartItem) {
-            $cartItem->update([
-                'quantity' => $cartItem->quantity + $request->quantity,
-                'price'    => $price,
-            ]);
-        } else {
-            CartItem::create([
-                'cart_id'            => $cart->id,
-                'product_id'         => $product->id,
-                'product_variant_id' => $variant?->id,
-                'quantity'           => $request->quantity,
-                'price'              => $price,
-            ]);
-        }
+        $cart = $this->cartService->getOrCreateCart($request);
+        $this->cartService->addItem($cart, $request->product_id, $request->quantity, $variantId);
 
         return response()->json([
             'success' => true,
             'message' => 'Product added to cart successfully!',
-            'cart_count' => $cart->items()->sum('quantity'),
+            'cart_count' => $cart->items->sum('quantity'),
         ]);
     }
 
@@ -126,7 +104,7 @@ class CartController extends Controller
         $cart = $cartItem->cart;
         $cartItem->delete();
 
-        // Refresh cart model to reflect deletion
+        // Refresh items collection
         $cart->load('items');
 
         return response()->json([
@@ -152,28 +130,5 @@ class CartController extends Controller
             'success' => true,
             'products' => $products
         ]);
-    }
-
-    /**
-     * Resolve the current cart or create a new one.
-     */
-    protected function getOrCreateCart(Request $request)
-    {
-        $userId = Auth::id();
-        $sessionId = Session::getId();
-
-        if ($userId) {
-            $cart = Cart::firstOrCreate(
-                ['user_id' => $userId],
-                ['ip_address' => $request->ip(), 'session_id' => $sessionId]
-            );
-        } else {
-            $cart = Cart::firstOrCreate(
-                ['session_id' => $sessionId],
-                ['ip_address' => $request->ip()]
-            );
-        }
-
-        return $cart;
     }
 }
