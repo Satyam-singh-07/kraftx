@@ -1010,11 +1010,6 @@
                 </div>
             </div>
             <div id="cart-footer" class="tf-mini-cart-bottom">
-                <div class="cart-quick-actions">
-                    <button type="button" class="btn-reset cart-quick-action">Note</button>
-                    <button type="button" class="btn-reset cart-quick-action">Shipping</button>
-                    <button type="button" class="btn-reset cart-quick-action">Coupon</button>
-                </div>
                 <div class="tf-mini-cart-total">
                     <div class="tf-mini-cart-total-content">
                         <span class="fw-6">Subtotal</span>
@@ -1027,10 +1022,8 @@
                     <span>I agree with <a href="#">Terms &amp; Conditions</a></span>
                 </label>
                 <div class="tf-mini-cart-view-checkout">
-                    <a href="#" class="cart-cta cart-cta-outline">View cart</a>
                     <a href="#" class="cart-cta cart-cta-solid">Check Out</a>
                 </div>
-                <button type="button" class="btn-reset cart-continue-link" data-bs-dismiss="offcanvas">Or Continue Shopping</button>
             </div>
         </div>
     </div>
