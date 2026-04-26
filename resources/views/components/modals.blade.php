@@ -569,28 +569,3 @@
 </div>
 <!-- /Sign In -->
 
-<!-- Newsletter -->
-<div class="modal modalCentered fade modal-newsletter auto-popup" id="newsletter" data-bs-config='{"backdrop":true}'>
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="image-left">
-                <img loading="lazy" width="360" height="360" src="{{ asset('assets/images/section/banner-newsletter.jpg') }}"
-                    alt="Image">
-            </div>
-            <div class="content-right">
-                <span class="icon-close-popup" data-bs-dismiss="modal">
-                    <i class="icon-X2"></i>
-                </span>
-                <p class="h6 mb-8">Subscribe & Enjoy</p>
-                <p class="h1 fw-medium mb-8 text-primary">10% OFF</p>
-                <form class="form-newsletter mb-12">
-                    <fieldset>
-                        <input type="email" placeholder="Your email address" required>
-                    </fieldset>
-                    <button type="submit" class="btn-action tf-btn small animate-btn">Subscribe</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- /Newsletter -->

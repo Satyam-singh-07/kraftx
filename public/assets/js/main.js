@@ -464,7 +464,7 @@
                 var newPrice = parseFloat(rawPrice.replace(/,/g, "")) || basePrice;
                 quantityInput.val(1);
                 productItem.find(".price-on-sale")
-                    .text(`$${newPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })}`)
+                    .text(`₹${newPrice.toLocaleString("en-IN", { minimumFractionDigits: 0 })}`)
                     .data("price", newPrice);
                 updateTotalPrice(newPrice, productItem);
             });
@@ -487,7 +487,7 @@
                 var currentPrice = price || parseFloat(scope.find(".price-on-sale").data("price"));
                 var quantity = parseInt(scope.find(".quantity-product").val(), 10);
                 var totalPrice = currentPrice * quantity;
-                scope.find(".price-add").text(`$${totalPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })}`);
+                scope.find(".price-add").text(`₹${totalPrice.toLocaleString("en-IN", { minimumFractionDigits: 0 })}`);
             }
             updateTotalPrice(null, productItem);
         });
@@ -1832,7 +1832,7 @@
             if (isNaN(basePrice)) basePrice = 0;
             $wrap.data("basePrice", basePrice);
 
-            $wrap.find(".price-add").text("$" + basePrice.toFixed(2));
+            $wrap.find(".price-add").text("₹" + basePrice.toLocaleString("en-IN", { minimumFractionDigits: 0 }));
 
             $wrap.find(".color_btn").on("click mouseover", function () {
                 var $swatch = $(this);
@@ -1888,7 +1888,7 @@
                 var qty = parseInt($wrap.find(".quantity-product").val()) || 1;
 
                 var total = basePrice * qty;
-                $wrap.find(".price-add").text("$" + total.toFixed(2));
+                $wrap.find(".price-add").text("₹" + total.toLocaleString("en-IN", { minimumFractionDigits: 0 }));
             }
         });
     };

@@ -72,7 +72,7 @@
         <!-- /Breadcrumbs -->
 
         <!-- Product Single -->
-        <section class="section-product-single tf-main-product section-image-zoom">
+        <section class="section-product-single tf-main-product section-image-zoom pb-80">
             <div class="container">
                 <div class="row">
                     <div class="col-md-6">
@@ -162,13 +162,13 @@
                                     </div>
                                     <div class="product-infor-price mb-12"> 
                                         @if($product->sale_price)
-                                            <h4 class="price-on-sale">₹{{ number_format($product->sale_price, 0) }}</h4>
+                                            <h4 class="price-on-sale" data-price="{{ $product->sale_price }}">₹{{ number_format($product->sale_price, 0) }}</h4>
                                             <p class="cl-text-3 text-decoration-line-through">₹{{ number_format($product->price, 0) }}</p>
                                             <span class="badge-sale text-white fw-semibold text-caption-02">
                                                 {{ round((($product->price - $product->sale_price) / $product->price) * 100) }}% OFF
                                             </span>
                                         @else
-                                            <h4 class="price">₹{{ number_format($product->price, 0) }}</h4>
+                                            <h4 class="price" data-price="{{ $product->price }}">₹{{ number_format($product->price, 0) }}</h4>
                                         @endif
                                     </div>
                                     
@@ -267,7 +267,7 @@
                                     </div>
                                     @endif
 
-                                    <div class="tf-product-total-quantity">
+                                    <div class="tf-product-total-quantity" id="main-quantity-container" data-base-price="{{ $product->sale_price ?? $product->price }}">
                                         <p class="">Quantity:</p>
                                         <div class="group-action">
                                             <div class="wg-quantity">
@@ -400,7 +400,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="tf-sticky-atc-infos">
+                    <div class="tf-sticky-atc-infos" id="sticky-quantity-container" data-base-price="{{ $product->sale_price ?? $product->price }}">
                         <div class="d-flex align-items-center gap-10">
                             @if($sizes->isNotEmpty())
                             <div class="tf-sticky-atc-variant-price">
@@ -434,7 +434,7 @@
 
         <!-- Related Product -->
         @if($relatedProducts->isNotEmpty())
-        <div class="flat-spacing flat-animate-tab pt-0">
+        <div class="flat-spacing flat-animate-tab mt-80">
             <div class="container">
                 <div class="text-center mb-40">
                     <h4 class="fw-medium">Related Products</h4>
@@ -480,6 +480,76 @@
                 const addToCartBtn = document.getElementById('add-to-cart-btn');
                 const stickyAddToCartBtn = document.getElementById('sticky-add-to-cart-btn');
                 
+                // Price Update Logic
+                const mainQtyContainer = document.getElementById('main-quantity-container');
+                const stickyQtyContainer = document.getElementById('sticky-quantity-container');
+                const basePrice = parseFloat(mainQtyContainer?.dataset.basePrice || 0);
+                
+                function formatPrice(amount) {
+                    return '₹' + Math.round(amount).toLocaleString('en-IN');
+                }
+
+                function updatePrice() {
+                    const quantity = parseInt(document.querySelector('input[name="quantity"]').value) || 1;
+                    const totalPrice = basePrice * quantity;
+                    const priceDisplay = document.querySelector('#add-to-cart-btn .price-add');
+                    if (priceDisplay) {
+                        priceDisplay.textContent = formatPrice(totalPrice);
+                    }
+                }
+
+                function updateStickyPrice() {
+                    const quantity = parseInt(document.querySelector('input[name="quantity_sticky"]').value) || 1;
+                    const totalPrice = basePrice * quantity;
+                    if (stickyAddToCartBtn) {
+                        stickyAddToCartBtn.textContent = `Add To Cart - ${formatPrice(totalPrice)}`;
+                    }
+                }
+
+                // Main Quantity Listeners
+                const mainDecrease = document.querySelector('#main-quantity-container .btn-decrease');
+                const mainIncrease = document.querySelector('#main-quantity-container .btn-increase');
+                const mainInput = document.querySelector('input[name="quantity"]');
+
+                if (mainDecrease) {
+                    mainDecrease.addEventListener('click', () => {
+                        setTimeout(updatePrice, 10);
+                    });
+                }
+                if (mainIncrease) {
+                    mainIncrease.addEventListener('click', () => {
+                        setTimeout(updatePrice, 10);
+                    });
+                }
+                if (mainInput) {
+                    mainInput.addEventListener('change', updatePrice);
+                    mainInput.addEventListener('input', updatePrice);
+                }
+
+                // Sticky Quantity Listeners
+                const stickyDecrease = document.querySelector('#sticky-quantity-container .minus-btn');
+                const stickyIncrease = document.querySelector('#sticky-quantity-container .plus-btn');
+                const stickyInput = document.querySelector('input[name="quantity_sticky"]');
+
+                if (stickyDecrease) {
+                    stickyDecrease.addEventListener('click', () => {
+                        setTimeout(updateStickyPrice, 10);
+                    });
+                }
+                if (stickyIncrease) {
+                    stickyIncrease.addEventListener('click', () => {
+                        setTimeout(updateStickyPrice, 10);
+                    });
+                }
+                if (stickyInput) {
+                    stickyInput.addEventListener('change', updateStickyPrice);
+                    stickyInput.addEventListener('input', updateStickyPrice);
+                }
+
+                // Initial update
+                updatePrice();
+                updateStickyPrice();
+
                 // Live viewing count update (realistic fluctuation)
                 const viewingCountEl = document.getElementById('viewing-count');
                 if (viewingCountEl) {
@@ -561,23 +631,3 @@
     </x-slot>
 
 </x-layout>
- Here is the updated code:
-...
-                                        <!-- Size & Weight -->
-                                        <div class="accordion-item">
-                                            <h2 class="accordion-header">
-                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSize">
-                                                    Size & Weight
-                                                </button>
-                                            </h2>
-                                            <div id="collapseSize" class="accordion-collapse collapse" data-bs-parent="#productAccordion">
-                                                <div class="accordion-body text-center">
-                                                    @if($product->size_weight_image)
-                                                        <img src="{{ asset('storage/' . $product->size_weight_image) }}" alt="Size & Weight" class="img-fluid rounded shadow-sm">
-                                                    @else
-                                                        <p>Size and weight information will be updated soon.</p>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-...

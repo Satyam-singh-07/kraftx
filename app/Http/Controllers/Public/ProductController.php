@@ -36,6 +36,7 @@ class ProductController extends Controller
                 ->get();
         }
 
+        // dd($relatedProducts);
         return view('public.products.show', compact('product', 'breadcrumbs', 'relatedProducts'));
     }
     
