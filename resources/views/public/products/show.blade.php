@@ -606,14 +606,19 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            alert(data.message);
-                            // Update cart counters if any
-                            const cartCounters = document.querySelectorAll('.toolbar-count, .cart-count');
-                            cartCounters.forEach(counter => {
-                                counter.textContent = data.cart_count;
-                            });
+                            // Refresh drawer content
+                            if (window.refreshCartDrawer) {
+                                window.refreshCartDrawer();
+                            }
+                            
+                            // Open the drawer
+                            const cartDrawerEl = document.getElementById('shoppingCart');
+                            if (cartDrawerEl) {
+                                const bsOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(cartDrawerEl);
+                                bsOffcanvas.show();
+                            }
                         } else {
-                            alert('Something went wrong. Please try again.');
+                            alert(data.message || 'Something went wrong. Please try again.');
                         }
                     })
                     .catch(error => {

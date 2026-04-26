@@ -458,28 +458,730 @@
 </div>
 <!-- /Quick View -->
 
+<style>
+    .popup-shopping-cart {
+        width: min(920px, 100vw) !important;
+        max-width: min(920px, 100vw) !important;
+        padding: 0;
+        border: 0;
+        background: #f7f3ee;
+        color: #171717;
+        display: flex;
+        flex-direction: row;
+        overflow: hidden;
+    }
+
+    .popup-shopping-cart .btn-reset {
+        border: 0;
+        background: transparent;
+        padding: 0;
+        color: inherit;
+    }
+
+    .cart-drawer-recommendations {
+        width: 270px;
+        flex: 0 0 270px;
+        padding: 26px 20px 22px;
+        background: #fbf8f4;
+        border-right: 1px solid rgba(23, 23, 23, 0.08);
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .cart-drawer-main {
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 26px 22px 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        background: #fffdfb;
+    }
+
+    .cart-drawer-panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .cart-drawer-panel-head h5,
+    .cart-drawer-main-header h5 {
+        margin: 0;
+        font-size: 32px;
+        line-height: 1;
+        font-weight: 500;
+        letter-spacing: -0.03em;
+    }
+
+    .cart-drawer-close {
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        transition: background-color 0.25s ease, transform 0.25s ease;
+    }
+
+    .cart-drawer-close:hover {
+        background: rgba(23, 23, 23, 0.06);
+        transform: rotate(90deg);
+    }
+
+    .cart-recommendations-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        overflow: auto;
+        min-height: 0;
+        padding-right: 6px;
+    }
+
+    .cart-recommendation-card {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .cart-recommendation-media {
+        aspect-ratio: 0.82;
+        border-radius: 18px;
+        overflow: hidden;
+        background: #f1ece5;
+    }
+
+    .cart-recommendation-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .cart-recommendation-name {
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.3;
+        font-weight: 500;
+    }
+
+    .cart-recommendation-price {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        font-size: 17px;
+    }
+
+    .cart-recommendation-price .sale {
+        color: #d0523a;
+        font-weight: 600;
+    }
+
+    .cart-recommendation-price .compare {
+        color: rgba(23, 23, 23, 0.45);
+        text-decoration: line-through;
+    }
+
+    .cart-drawer-main-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .cart-threshold {
+        padding: 18px 20px;
+        border-radius: 18px;
+        background: #f7f4ef;
+        display: grid;
+        gap: 12px;
+    }
+
+    .tf-threshold-text {
+        margin: 0;
+        font-size: 17px;
+        line-height: 1.4;
+    }
+
+    .tf-threshold-text .accent {
+        color: #d0523a;
+        font-weight: 600;
+    }
+
+    .tf-threshold-bar {
+        position: relative;
+        width: 100%;
+        height: 6px;
+        border-radius: 999px;
+        background: #ddd7d0;
+        overflow: visible;
+    }
+
+    .tf-threshold-bar-progress {
+        position: relative;
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #7ab663 0%, #98c77a 100%);
+        transition: width 0.35s ease;
+    }
+
+    .tf-threshold-bar-progress::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: -1px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid #8fbe74;
+        background: #fffdfb;
+        transform: translate(50%, -50%);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .tf-mini-cart-wrap {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .tf-mini-cart-main {
+        flex: 1 1 auto;
+        min-height: 0;
+        position: relative;
+    }
+
+    .tf-mini-cart-sroll {
+        position: absolute;
+        inset: 0;
+        overflow: auto;
+        padding-right: 8px;
+    }
+
+    .tf-mini-cart-sroll::-webkit-scrollbar,
+    .cart-recommendations-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .tf-mini-cart-sroll::-webkit-scrollbar-thumb,
+    .cart-recommendations-list::-webkit-scrollbar-thumb {
+        background: rgba(23, 23, 23, 0.14);
+        border-radius: 999px;
+    }
+
+    .tf-mini-cart-items {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .tf-mini-cart-item {
+        display: grid;
+        grid-template-columns: 104px minmax(0, 1fr);
+        gap: 16px;
+        padding: 14px 0 18px;
+        border-bottom: 1px solid rgba(23, 23, 23, 0.08);
+    }
+
+    .tf-mini-cart-items .tf-mini-cart-item:first-child {
+        padding-top: 0;
+    }
+
+    .tf-mini-cart-image {
+        border-radius: 16px;
+        overflow: hidden;
+        background: #f3eee7;
+        aspect-ratio: 1 / 1.08;
+    }
+
+    .tf-mini-cart-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .tf-mini-cart-info {
+        min-width: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px 16px;
+        align-items: start;
+    }
+
+    .cart-item-copy {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .cart-item-copy .title {
+        color: #171717;
+        font-size: 19px;
+        line-height: 1.3;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    .cart-item-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        color: rgba(23, 23, 23, 0.5);
+        font-size: 15px;
+        line-height: 1.35;
+    }
+
+    .cart-item-meta strong {
+        color: #171717;
+        font-weight: 500;
+    }
+
+    .cart-item-controls {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .cart-item-summary {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 10px;
+        text-align: right;
+    }
+
+    .remove-cart-item {
+        color: #cf5942;
+        text-decoration: underline;
+        font-size: 15px;
+        line-height: 1.2;
+        cursor: pointer;
+    }
+
+    .cart-item-line-total {
+        font-size: 17px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .wg-quantity.small {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 14px;
+        border: 1px solid rgba(23, 23, 23, 0.1);
+        border-radius: 999px;
+        background: #faf7f2;
+    }
+
+    .wg-quantity.small input {
+        width: 18px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        text-align: center;
+        font-weight: 600;
+        color: #171717;
+    }
+
+    .wg-quantity.small .btn-quantity {
+        font-size: 20px;
+        line-height: 1;
+        color: #171717;
+        user-select: none;
+    }
+
+    #cart-empty-state {
+        margin: auto 0;
+        padding: 56px 24px;
+        border-radius: 24px;
+        background: #f7f4ef;
+    }
+
+    .cart-quick-actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .cart-quick-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(23, 23, 23, 0.08);
+        background: #fff;
+        font-size: 16px;
+        color: #171717;
+    }
+
+    .tf-mini-cart-bottom {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .tf-mini-cart-total-content {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 8px;
+    }
+
+    .tf-mini-cart-total-content span:first-child {
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    #cart-subtotal-display {
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .cart-policy-check {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        font-size: 15px;
+        color: rgba(23, 23, 23, 0.78);
+    }
+
+    .cart-policy-check input {
+        width: 18px;
+        height: 18px;
+        accent-color: #171717;
+        flex-shrink: 0;
+    }
+
+    .cart-policy-check a {
+        color: inherit;
+        text-decoration: underline;
+    }
+
+    .tf-mini-cart-view-checkout {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .cart-cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 58px;
+        padding: 14px 22px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: 600;
+        transition: transform 0.25s ease, background-color 0.25s ease, color 0.25s ease;
+    }
+
+    .cart-cta:hover {
+        transform: translateY(-1px);
+    }
+
+    .cart-cta-outline {
+        border: 1px solid #171717;
+        color: #171717;
+        background: transparent;
+    }
+
+    .cart-cta-solid {
+        border: 1px solid #171717;
+        color: #fff;
+        background: #171717;
+    }
+
+    .cart-continue-link {
+        text-align: center;
+        color: #171717;
+        font-size: 16px;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    @media (max-width: 767px) {
+        .popup-shopping-cart {
+            width: min(100vw, 420px) !important;
+            max-width: min(100vw, 420px) !important;
+        }
+
+        .cart-drawer-recommendations {
+            display: none;
+        }
+
+        .cart-drawer-main {
+            padding: 20px 16px 18px;
+        }
+
+        .cart-drawer-main-header h5 {
+            font-size: 28px;
+        }
+
+        .cart-threshold {
+            padding: 16px;
+        }
+
+        .tf-mini-cart-item {
+            grid-template-columns: 84px minmax(0, 1fr);
+            gap: 12px;
+        }
+
+        .tf-mini-cart-info {
+            grid-template-columns: 1fr;
+        }
+
+        .cart-item-summary {
+            align-items: flex-start;
+            text-align: left;
+        }
+
+        .cart-item-controls {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .cart-quick-actions,
+        .tf-mini-cart-view-checkout {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
 <!-- Shopping Cart -->
-<div class="offcanvas offcanvas-end popup-shopping-cart" id="shoppingCart">
-    <div class="canvas-wrapper">
-        <div class="popup-header">
-            <div class="d-flex align-items-center justify-content-between mb-12">
-                <h5 class="title">Shopping Cart</h5>
-                <span class="icon-X2 icon-close-popup" data-bs-dismiss="offcanvas"></span>
+<div class="offcanvas offcanvas-end popup-shopping-cart" id="shoppingCart" data-bs-backdrop="static">
+    <div class="cart-drawer-recommendations">
+        <div class="cart-drawer-panel-head">
+            <h5 class="title">You may also like</h5>
+            <button type="button" class="btn-reset cart-drawer-close" data-bs-dismiss="offcanvas" aria-label="Close">
+                <i class="icon-X2"></i>
+            </button>
+        </div>
+        <div class="cart-recommendations-list" id="cart-recommendations-list">
+            <!-- Recommended items injected by JS -->
+        </div>
+    </div>
+    <div class="cart-drawer-main">
+        <div class="cart-drawer-main-header">
+            <h5 class="title">Shopping Cart</h5>
+            <button type="button" class="btn-reset cart-drawer-close" data-bs-dismiss="offcanvas" aria-label="Close">
+                <i class="icon-X2"></i>
+            </button>
+        </div>
+        <div class="cart-threshold">
+            <p class="tf-threshold-text" id="shipping-threshold-text">Buy <span class="accent" id="shipping-remaining">₹1,500</span> more to get free shipping</p>
+            <div class="tf-threshold-bar">
+                <div id="shipping-progress-bar" class="tf-threshold-bar-progress" style="width: 0%;"></div>
             </div>
         </div>
-        <div class="wrap">
-            <div class="tf-mini-cart-wrap list-file-delete wrap-empty_text text-center">
-                <div class="shop-empty_top py-5">
-                    <span class="icon"><i class="icon-Handbag fs-60"></i></span>
-                    <h4 class="text-emp mt-3">Your cart is empty</h4>
+        <div class="tf-mini-cart-wrap list-file-delete wrap-empty_text">
+            <div id="cart-empty-state" class="shop-empty_top py-5 text-center d-none">
+                <span class="icon"><i class="icon-Handbag fs-60"></i></span>
+                <h4 class="text-emp mt-3">Your cart is empty</h4>
+                <p class="mt-2 mb-0 cl-text-2">Add a few pieces and this drawer will fill up fast.</p>
+                <div class="shop-empty_bot mt-4">
+                    <a href="{{ route('home') }}" class="cart-cta cart-cta-solid">Start Shopping</a>
                 </div>
-                <div class="shop-empty_bot">
-                    <a href="{{ route('home') }}" class="tf-btn animate-btn">Start Shopping</a>
+            </div>
+
+            <div class="tf-mini-cart-main">
+                <div class="tf-mini-cart-sroll">
+                    <div class="tf-mini-cart-items" id="cart-items-list">
+                        <!-- Items injected by JS -->
+                    </div>
                 </div>
+            </div>
+            <div id="cart-footer" class="tf-mini-cart-bottom">
+                <div class="cart-quick-actions">
+                    <button type="button" class="btn-reset cart-quick-action">Note</button>
+                    <button type="button" class="btn-reset cart-quick-action">Shipping</button>
+                    <button type="button" class="btn-reset cart-quick-action">Coupon</button>
+                </div>
+                <div class="tf-mini-cart-total">
+                    <div class="tf-mini-cart-total-content">
+                        <span class="fw-6">Subtotal</span>
+                        <span class="fw-6" id="cart-subtotal-display">₹0</span>
+                    </div>
+                    <p class="cl-text-2 mb-0">Taxes and shipping calculated at checkout</p>
+                </div>
+                <label class="cart-policy-check" for="cart-terms-check">
+                    <input type="checkbox" id="cart-terms-check">
+                    <span>I agree with <a href="#">Terms &amp; Conditions</a></span>
+                </label>
+                <div class="tf-mini-cart-view-checkout">
+                    <a href="#" class="cart-cta cart-cta-outline">View cart</a>
+                    <a href="#" class="cart-cta cart-cta-solid">Check Out</a>
+                </div>
+                <button type="button" class="btn-reset cart-continue-link" data-bs-dismiss="offcanvas">Or Continue Shopping</button>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cartDrawer = document.getElementById('shoppingCart');
+        const itemsList = document.getElementById('cart-items-list');
+        const recommendationsList = document.getElementById('cart-recommendations-list');
+        const emptyState = document.getElementById('cart-empty-state');
+        const footer = document.getElementById('cart-footer');
+        const subtotalDisplay = document.getElementById('cart-subtotal-display');
+        const toolbarCounts = document.querySelectorAll('.toolbar-count, .cart-count');
+        const shippingRemaining = document.getElementById('shipping-remaining');
+        const shippingProgress = document.getElementById('shipping-progress-bar');
+        const thresholdText = document.getElementById('shipping-threshold-text');
+
+        const FREE_SHIPPING_THRESHOLD = 1500;
+
+        function formatCurrency(amount) {
+            return '₹' + Math.round(amount).toLocaleString('en-IN');
+        }
+
+        window.refreshCartDrawer = function() {
+            // Fetch Cart Items
+            fetch('{{ route('cart.fetch') }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        toolbarCounts.forEach(el => el.textContent = data.cart_count);
+                        
+                        if (data.items.length === 0) {
+                            itemsList.innerHTML = '';
+                            emptyState.classList.remove('d-none');
+                            footer.classList.add('d-none');
+                            updateShippingProgress(0);
+                        } else {
+                            emptyState.classList.add('d-none');
+                            footer.classList.remove('d-none');
+                            subtotalDisplay.textContent = formatCurrency(data.total);
+                            updateShippingProgress(data.total);
+                            
+                            itemsList.innerHTML = data.items.map(item => `
+                                <div class="tf-mini-cart-item file-delete" data-id="${item.id}">
+                                    <div class="tf-mini-cart-image">
+                                        <a href="/product/${item.product.slug}">
+                                            <img src="${item.product.images[0] ? '/storage/' + item.product.images[0].image_path : '/assets/images/product/product-placeholder.jpg'}" alt="${item.product.name}">
+                                        </a>
+                                    </div>
+                                    <div class="tf-mini-cart-info">
+                                        <div class="cart-item-copy">
+                                            <a class="title link" href="/product/${item.product.slug}">${item.product.name}</a>
+                                            <div class="cart-item-meta">
+                                                <span>Color: <strong>${item.variant?.color ?? 'Standard'}</strong></span>
+                                                <span>Size: <strong>${item.variant?.size ?? 'One Size'}</strong></span>
+                                            </div>
+                                        </div>
+                                        <div class="cart-item-summary">
+                                            <div class="remove-cart-item" data-id="${item.id}">Remove</div>
+                                            <div class="cart-item-line-total">${item.quantity} x ${formatCurrency(item.price)}</div>
+                                        </div>
+                                        <div class="cart-item-controls">
+                                            <div class="wg-quantity small">
+                                                <span class="btn-quantity minus-btn-cart cs-pointer" data-id="${item.id}">-</span>
+                                                <input type="text" name="number" value="${item.quantity}" readonly>
+                                                <span class="btn-quantity plus-btn-cart cs-pointer" data-id="${item.id}">+</span>
+                                            </div>
+                                            <div class="price fw-6">${formatCurrency(item.price * item.quantity)}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('');
+                        }
+                    }
+                });
+
+            // Fetch Recommendations
+            fetch('{{ route('cart.recommendations') }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        recommendationsList.innerHTML = data.products.map(product => `
+                            <a class="cart-recommendation-card" href="/product/${product.slug}">
+                                <div class="cart-recommendation-media">
+                                        <img src="${product.images[0] ? '/storage/' + product.images[0].image_path : '/assets/images/product/product-placeholder.jpg'}" alt="${product.name}">
+                                </div>
+                                <div>
+                                    <p class="cart-recommendation-name">${product.name}</p>
+                                    <div class="cart-recommendation-price">
+                                        <span class="sale">${formatCurrency(product.sale_price ?? product.price)}</span>
+                                        ${product.sale_price ? `<span class="compare">${formatCurrency(product.price)}</span>` : ''}
+                                    </div>
+                                </div>
+                            </a>
+                        `).join('');
+                    }
+                });
+        };
+
+        function updateShippingProgress(total) {
+            const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - total);
+            const percent = Math.min(100, (total / FREE_SHIPPING_THRESHOLD) * 100);
+            
+            if (remaining > 0) {
+                thresholdText.innerHTML = `Buy <span class="accent">${formatCurrency(remaining)}</span> more to get free shipping`;
+                shippingProgress.style.width = percent + '%';
+            } else {
+                thresholdText.innerHTML = `Free shipping unlocked for this order`;
+                shippingProgress.style.width = '100%';
+            }
+        }
+
+        // Event delegation for cart actions
+        itemsList.addEventListener('click', function(e) {
+            const target = e.target.closest('.btn-quantity, .remove-cart-item');
+            if (!target) return;
+
+            const itemId = target.dataset.id;
+            
+            if (target.classList.contains('plus-btn-cart')) {
+                updateQuantity(itemId, 1);
+            } else if (target.classList.contains('minus-btn-cart')) {
+                updateQuantity(itemId, -1);
+            } else if (target.classList.contains('remove-cart-item')) {
+                removeCartItem(itemId);
+            }
+        });
+
+        function updateQuantity(itemId, change) {
+            const itemEl = document.querySelector(`.tf-mini-cart-item[data-id="${itemId}"]`);
+            const input = itemEl.querySelector('input');
+            const newQty = parseInt(input.value) + change;
+            if (newQty < 1) return;
+
+            fetch('{{ route('cart.update') }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                body: JSON.stringify({ item_id: itemId, quantity: newQty })
+            }).then(() => refreshCartDrawer());
+        }
+
+        function removeCartItem(itemId) {
+            fetch('{{ route('cart.remove') }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                body: JSON.stringify({ item_id: itemId })
+            }).then(() => refreshCartDrawer());
+        }
+
+        // Initial fetch when drawer opens
+        cartDrawer.addEventListener('show.bs.offcanvas', refreshCartDrawer);
+    });
+</script>
 <!-- /Shopping Cart -->
 
 <!-- Search -->
@@ -568,4 +1270,3 @@
     </div>
 </div>
 <!-- /Sign In -->
-

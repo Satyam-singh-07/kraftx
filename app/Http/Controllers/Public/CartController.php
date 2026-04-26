@@ -14,6 +14,22 @@ use Illuminate\Support\Facades\Session;
 class CartController extends Controller
 {
     /**
+     * Fetch the current cart data.
+     */
+    public function fetch(Request $request)
+    {
+        $cart = $this->getOrCreateCart($request);
+        $items = $cart->items()->with(['product.images', 'variant'])->get();
+
+        return response()->json([
+            'success' => true,
+            'items' => $items,
+            'cart_count' => $items->sum('quantity'),
+            'total' => $items->sum(fn($item) => $item->price * $item->quantity),
+        ]);
+    }
+
+    /**
      * Add an item to the cart.
      */
     public function add(Request $request)
@@ -71,6 +87,67 @@ class CartController extends Controller
             'success' => true,
             'message' => 'Product added to cart successfully!',
             'cart_count' => $cart->items()->sum('quantity'),
+        ]);
+    }
+
+    /**
+     * Update cart item quantity.
+     */
+    public function update(Request $request)
+    {
+        $request->validate([
+            'item_id'  => 'required|exists:cart_items,id',
+            'quantity' => 'required|integer|min:1',
+        ]);
+
+        $cartItem = CartItem::findOrFail($request->item_id);
+        $cartItem->update(['quantity' => $request->quantity]);
+
+        $cart = $cartItem->cart;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cart updated.',
+            'cart_count' => $cart->items()->sum('quantity'),
+            'total' => $cart->items()->sum(fn($item) => $item->price * $item->quantity),
+        ]);
+    }
+
+    /**
+     * Remove an item from the cart.
+     */
+    public function remove(Request $request)
+    {
+        $request->validate([
+            'item_id' => 'required|exists:cart_items,id',
+        ]);
+
+        $cartItem = CartItem::findOrFail($request->item_id);
+        $cart = $cartItem->cart;
+        $cartItem->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Item removed from cart.',
+            'cart_count' => $cart->items()->sum('quantity'),
+            'total' => $cart->items()->sum(fn($item) => $item->price * $item->quantity),
+        ]);
+    }
+
+    /**
+     * Fetch recommended products.
+     */
+    public function recommendations()
+    {
+        $products = Product::where('status', true)
+            ->with('images')
+            ->inRandomOrder()
+            ->take(4)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'products' => $products
         ]);
     }
 

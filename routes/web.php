@@ -41,7 +41,11 @@ Route::get('/product/{slug}', [\App\Http\Controllers\Public\ProductController::c
 Route::get('/collection/{slug}', [\App\Http\Controllers\Public\ProductController::class, 'collectionShow'])->name('collection.show');
 
 // Cart Routes
+Route::get('/cart/fetch', [\App\Http\Controllers\Public\CartController::class, 'fetch'])->name('cart.fetch');
+Route::get('/cart/recommendations', [\App\Http\Controllers\Public\CartController::class, 'recommendations'])->name('cart.recommendations');
 Route::post('/cart/add', [\App\Http\Controllers\Public\CartController::class, 'add'])->name('cart.add');
+Route::post('/cart/update', [\App\Http\Controllers\Public\CartController::class, 'update'])->name('cart.update');
+Route::post('/cart/remove', [\App\Http\Controllers\Public\CartController::class, 'remove'])->name('cart.remove');
 
 // Public Deals & Coupons
 Route::get('/deals', [\App\Http\Controllers\Public\DealController::class, 'index'])->name('deals.index');
