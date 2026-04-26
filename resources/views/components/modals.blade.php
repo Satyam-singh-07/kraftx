@@ -95,7 +95,7 @@
         <a href="#shoppingCart" data-bs-toggle="offcanvas">
             <span class="toolbar-icon">
                 <i class="icon icon-Handbag"></i>
-                <span class="toolbar-count">12</span>
+                <span class="toolbar-count cart-count">0</span>
             </span>
             <span class="toolbar-label">Cart</span>
         </a>
@@ -1234,6 +1234,9 @@
 
         // Initial fetch when drawer opens
         cartDrawer.addEventListener('show.bs.offcanvas', refreshCartDrawer);
+
+        // Initial sync of counts and items on page load
+        refreshCartDrawer();
     });
 </script>
 <!-- /Shopping Cart -->

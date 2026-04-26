@@ -67,7 +67,7 @@
                     <li>
                         <a href="#shoppingCart" data-bs-toggle="offcanvas" class="nav-icon-item link shop-cart">
                             <i class="icon icon-Handbag"></i>
-                            <span class="count">12</span>
+                            <span class="count cart-count">0</span>
                         </a>
                     </li>
                 </ul>
