@@ -108,8 +108,8 @@ class CartController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Cart updated.',
-            'cart_count' => $cart->items()->sum('quantity'),
-            'total' => $cart->items()->sum(fn($item) => $item->price * $item->quantity),
+            'cart_count' => $cart->items->sum('quantity'),
+            'total' => $cart->items->sum(fn($item) => $item->price * $item->quantity),
         ]);
     }
 
@@ -126,11 +126,14 @@ class CartController extends Controller
         $cart = $cartItem->cart;
         $cartItem->delete();
 
+        // Refresh cart model to reflect deletion
+        $cart->load('items');
+
         return response()->json([
             'success' => true,
             'message' => 'Item removed from cart.',
-            'cart_count' => $cart->items()->sum('quantity'),
-            'total' => $cart->items()->sum(fn($item) => $item->price * $item->quantity),
+            'cart_count' => $cart->items->sum('quantity'),
+            'total' => $cart->items->sum(fn($item) => $item->price * $item->quantity),
         ]);
     }
 
