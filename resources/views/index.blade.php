@@ -187,6 +187,7 @@
                         @php
                             $products = [
                                 [
+                                    'id' => 1,
                                     'name' => 'Lyocell wrap top',
                                     'url' => route('product.detail'),
                                     'image' => 'assets/images/product/product-1.jpg',
@@ -197,6 +198,7 @@
                                     'badges' => [['type' => 'new', 'text' => 'NEW']]
                                 ],
                                 [
+                                    'id' => 2,
                                     'name' => 'Buttons cotton top',
                                     'url' => route('product.detail'),
                                     'image' => 'assets/images/product/product-2.jpg',
@@ -207,6 +209,7 @@
                                     'badges' => [['type' => 'sale', 'text' => '-25%']]
                                 ],
                                 [
+                                    'id' => 3,
                                     'name' => 'Wool Midi Coat',
                                     'url' => route('product.detail'),
                                     'image' => 'assets/images/product/product-3.jpg',
@@ -217,6 +220,7 @@
                                     'badges' => [['type' => 'sale', 'text' => '-25%']]
                                 ],
                                 [
+                                    'id' => 4,
                                     'name' => 'Linen slim-fit shirt',
                                     'url' => route('product.detail'),
                                     'image' => 'assets/images/product/product-4.jpg',
@@ -249,12 +253,12 @@
                 
                 <div class="tf-grid-layout sm-col-2 gap-10">
                     <div class="box-image_v01">
-                        <a href="shop-default.html" class="box-image_img img-style">
+                        <a href="{{ isset($collections) && $collections->where('name', 'Banners')->first() ? route('collection.show', $collections->where('name', 'Banners')->first()->slug) : '#' }}" class="box-image_img img-style">
                             <img loading="lazy" width="700" height="933" src="assets/images/bahubali-hanuman.png"
                                 alt="Image">
                         </a>
                         <div class="box-image_content">
-                            <a href="shop-default.html"
+                            <a href="{{ isset($collections) && $collections->where('name', 'Banners')->first() ? route('collection.show', $collections->where('name', 'Banners')->first()->slug) : '#' }}"
                                 class="title h3 fw-medium text-white link-underline-white text-decoration-thickness">
                                  <!-- Meditating Lord Hanuman -->
                             </a>
@@ -262,24 +266,24 @@
                     </div>
                     <div class="d-flex flex-column gap-10">
                         <div class="box-image_v01 h-100">
-                            <a href="shop-default.html" class="box-image_img img-style">
+                            <a href="{{ isset($collections) && $collections->where('name', 'New Arrival')->first() ? route('collection.show', $collections->where('name', 'New Arrival')->first()->slug) : '#' }}" class="box-image_img img-style">
                                 <img loading="lazy" width="700" height="461" src="assets/images/hanuman.png"
                                     alt="Image">
                             </a>
                             <div class="box-image_content">
-                                <a href="shop-default.html"
+                                <a href="{{ isset($collections) && $collections->where('name', 'New Arrival')->first() ? route('collection.show', $collections->where('name', 'New Arrival')->first()->slug) : '#' }}"
                                     class="title h3 fw-medium text-white link-underline-white text-decoration-thickness">
                                     <!-- Mahabali Lord Hanuman -->
                                 </a>
                             </div>
                         </div>
                         <div class="box-image_v01 h-100">
-                            <a href="shop-default.html" class="box-image_img img-style">
+                            <a href="{{ isset($collections) && $collections->where('name', 'Best Seller')->first() ? route('collection.show', $collections->where('name', 'Best Seller')->first()->slug) : '#' }}" class="box-image_img img-style">
                                 <img loading="lazy" width="700" height="461" src="assets/images/ganesh-ji.png"
                                     alt="Image">
                             </a>
                             <div class="box-image_content">
-                                <a href="shop-default.html"
+                                <a href="{{ isset($collections) && $collections->where('name', 'Best Seller')->first() ? route('collection.show', $collections->where('name', 'Best Seller')->first()->slug) : '#' }}"
                                     class="title h3 fw-medium text-white link-underline-white text-decoration-thickness">
                                     <!-- Shop Essentials -->
                                 </a>

@@ -1,52 +1,124 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $collection->name }} - Collection</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 text-gray-800 antialiased font-sans">
-    
-    <div class="max-w-6xl mx-auto px-4 py-8">
-        <h1 class="text-3xl font-extrabold text-gray-900 mb-2">{{ $collection->name }}</h1>
-        @if($collection->description)
-            <p class="text-gray-600 mb-8">{{ $collection->description }}</p>
-        @endif
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            @forelse($products as $product)
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-                    <a href="{{ route('product.show', $product->slug) }}">
-                        <div class="h-48 bg-gray-100 flex items-center justify-center p-4">
-                            @if($product->images->count() > 0)
-                                <img src="{{ asset('storage/' . $product->images->first()->image_path) }}" alt="{{ $product->name }}" class="max-h-full object-contain">
-                            @else
-                                <span class="text-gray-400">No Image</span>
-                            @endif
-                        </div>
-                        <div class="p-4">
-                            <h3 class="text-lg font-semibold text-gray-900 truncate">{{ $product->name }}</h3>
-                            <div class="mt-2 flex items-center justify-between">
-                                <span class="text-blue-600 font-bold">₹{{ number_format($product->sale_price ?? $product->price, 2) }}</span>
-                                @if($product->sale_price)
-                                    <span class="text-gray-400 line-through text-sm">₹{{ number_format($product->price, 2) }}</span>
-                                @endif
-                            </div>
-                        </div>
-                    </a>
+<x-layout title="{{ $collection->name }} - Collection">
+    <style>
+        .collection-hero {
+            padding-top: 36px;
+        }
+
+        .collection-hero .main-page-title {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .collection-showcase-head {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .collection-showcase-copy {
+            max-width: 620px;
+        }
+
+        .collection-showcase-copy h4 {
+            margin-bottom: 8px;
+        }
+
+        .collection-showcase-copy p {
+            margin: 0;
+        }
+
+        .collection-showcase-meta {
+            flex-shrink: 0;
+            color: var(--text-3);
+            font-size: 14px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .collection-products-slider .swiper-slide {
+            height: auto;
+        }
+
+        .collection-empty {
+            padding: 64px 24px;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: #faf8f4;
+        }
+
+        @media (max-width: 767px) {
+            .collection-showcase-head {
+                flex-direction: column;
+                align-items: start;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+
+    <!-- Page Title -->
+    <section class="section-page-title text-center flat-spacing-2 pb-0 collection-hero">
+        <div class="container">
+            <div class="main-page-title">
+                <div class="breadcrumbs">
+                    <a href="{{ route('home') }}" class="text-caption-01 cl-text-3 link">Home</a>
+                    <i class="icon icon-CaretRightThin cl-text-3"></i>
+                    <p class="text-caption-01">{{ $collection->name }}</p>
                 </div>
-            @empty
-                <div class="col-span-full text-center py-12 text-gray-500">
-                    No products found in this collection.
+                <h3>{{ $collection->name }}</h3>
+                @if($collection->description)
+                    <p class="text-body-1 cl-text-2">
+                        {!! nl2br(e($collection->description)) !!}
+                    </p>
+                @endif
+            </div>
+        </div>
+    </section>
+    <!-- /Page Title -->
+
+    <!-- Shop -->
+    <section class="flat-spacing pt-40">
+        <div class="container">
+            <div class="collection-showcase">
+                <div class="collection-showcase-head">
+                    <div class="collection-showcase-copy">
+                        <h4>Explore {{ $collection->name }}</h4>
+                        <p class="text-body-1 cl-text-2">
+                            Browse this collection in the same horizontal product style used on the home page.
+                        </p>
+                    </div>
+                    <div class="collection-showcase-meta">{{ $products->total() }} products</div>
                 </div>
-            @endforelse
+
+                @if($products->count())
+                    <div dir="ltr" class="swiper tf-swiper wrap-sw-over collection-products-slider"
+                        data-preview="4" data-tablet="3" data-mobile-sm="2" data-mobile="1.2"
+                        data-space-lg="30" data-space-md="20" data-space="12"
+                        data-pagination="1" data-pagination-sm="2" data-pagination-md="3" data-pagination-lg="4">
+                        <div class="swiper-wrapper">
+                            @foreach($products as $product)
+                                <div class="swiper-slide wow fadeInUp">
+                                    <x-product-card :product="$product" />
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="sw-dot-default tf-sw-pagination"></div>
+                    </div>
+                @else
+                    <div class="collection-empty text-center">
+                        <p class="text-body-1 cl-text-2 mb-0">No products found in this collection.</p>
+                        <a href="{{ route('home') }}" class="tf-btn animate-btn mt-20">Back To Home</a>
+                    </div>
+                @endif
+            </div>
+
+            @if($products->hasPages())
+                <div class="tf-pagination mt-40">
+                    {{ $products->links('vendor.pagination.bootstrap-5') }}
+                </div>
+            @endif
         </div>
-        
-        <div class="mt-8">
-            {{ $products->links() }}
-        </div>
-    </div>
-    
-</body>
-</html>
+    </section>
+    <!-- /Shop -->
+</x-layout>

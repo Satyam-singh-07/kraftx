@@ -68,12 +68,13 @@ class HomeController extends Controller
                 ->all();
 
             return [
+                'id' => $product->id,
                 'name' => $product->name,
                 'url' => $product->slug ? route('product.show', $product->slug) : route('product.detail'),
                 'image' => $imageUrl,
                 'hoverImage' => $hoverUrl,
-                'price' => '₹' . number_format($displayPrice, 2),
-                'oldPrice' => $oldPrice !== null ? '₹' . number_format($oldPrice, 2) : null,
+                'price' => '₹' . number_format($displayPrice, 0),
+                'oldPrice' => $oldPrice !== null ? '₹' . number_format($oldPrice, 0) : null,
                 'hasSize' => !empty($sizes),
                 'sizes' => $sizes,
                 'badges' => !empty($badges) ? $badges : null,

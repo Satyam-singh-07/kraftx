@@ -54,10 +54,11 @@
             </div>
         @endif
         <div class="product-action_bot">
-            <a href="#quickAdd" data-bs-toggle="modal"
-                class="tf-btn btn-white small  w-100">
+            <button type="button" 
+                class="tf-btn btn-white small w-100 btn-quick-add" 
+                data-product-id="{{ $product['id'] }}">
                 Quick Add
-            </a>
+            </button>
         </div>
         @if(isset($product['countdown']))
             <div class="product-countdown">

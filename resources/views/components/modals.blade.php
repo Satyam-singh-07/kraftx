@@ -1228,6 +1228,49 @@
         // Initial fetch when drawer opens
         cartDrawer.addEventListener('show.bs.offcanvas', refreshCartDrawer);
 
+        // Global listener for Quick Add buttons on product cards
+        document.addEventListener('click', function(e) {
+            const quickAddBtn = e.target.closest('.btn-quick-add');
+            if (!quickAddBtn) return;
+
+            const productId = quickAddBtn.dataset.productId;
+            if (!productId) return;
+
+            quickAddBtn.disabled = true;
+            quickAddBtn.textContent = 'Adding...';
+
+            fetch('{{ route('cart.add') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    product_id: productId,
+                    quantity: 1
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    refreshCartDrawer();
+                    const bsOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(cartDrawer);
+                    bsOffcanvas.show();
+                } else {
+                    alert(data.message || 'Error adding to cart');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred');
+            })
+            .finally(() => {
+                quickAddBtn.disabled = false;
+                quickAddBtn.textContent = 'Quick Add';
+            });
+        });
+
         // Initial sync of counts and items on page load
         refreshCartDrawer();
     });
