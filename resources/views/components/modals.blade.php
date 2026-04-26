@@ -17,48 +17,14 @@
         <div class="mb-content-top">
             <ul class="nav-ul-mb" id="wrapper-menu-navigation"></ul>
         </div>
-        <div class="need-help-wrap">
-            <p class="nd-title h6 fw-medium mb-16">Need Help?</p>
-            <p class="lh-26 cl-text-2 mb-4">
-                600 N Michigan Ave, Chicago, IL 60611, USA
-            </p>
-            <a href="https://www.google.com/maps?q=600+N+Michigan+Ave+Chicago,+IL+60611+USA" target="_blank"
-                class="text-decoration-underline text-primary lh-26 mb-16">
-                Open in Maps
-            </a>
-            <a href="mailto:hi.amere@gmail.com" class="cl-text-2 link mb-8">
-                hi.amere@gmail.com
-            </a>
-            <a href="tel:3156666688" class="cl-text-2 link">
-                315-666-6688
-            </a>
-        </div>
+       
     </div>
-    <div class="canvas-footer">
-        <div class="d-flex justify-content-center border-end">
-            <div class="tf-currencies">
-                <select class="tf-dropdown-select style-default type-currencies">
-                    <option selected data-thumbnail="{{ asset('assets/images/country/us.png') }}">(INR ₹)</option>
-                    <option data-thumbnail="{{ asset('assets/images/country/vn.png') }}">(VND ₫)</option>
-                </select>
-            </div>
-        </div>
-        <div class="d-flex justify-content-center">
-            <div class="tf-languages">
-                <select class="tf-dropdown-select style-default type-languages">
-                    <option>English</option>
-                    <option>العربية</option>
-                    <option>简体中文</option>
-                    <option>اردو</option>
-                </select>
-            </div>
-        </div>
-    </div>
+    
 </div>
 <!-- /Mobile Menu -->
 
 <!-- Toolbar -->
-<div class="tf-toolbar-bottom">
+<div class="tf-toolbar tf-toolbar-bottom">
     <div class="toolbar-item">
         <a href="{{ route('home') }}">
             <span class="toolbar-icon">
@@ -76,7 +42,7 @@
         </a>
     </div>
     <div class="toolbar-item">
-        <a href="#">
+        <a href="#sign" data-bs-toggle="modal">
             <span class="toolbar-icon">
                 <i class="icon icon-User"></i>
             </span>
@@ -91,7 +57,7 @@
             <span class="toolbar-label">Wishlist</span>
         </a>
     </div>
-    <div class="toolbar-item">
+    <div class="toolbar-item is-cart">
         <a href="#shoppingCart" data-bs-toggle="offcanvas">
             <span class="toolbar-icon">
                 <i class="icon icon-Handbag"></i>
@@ -369,53 +335,243 @@
                     <i class="icon icon-X2 fs-24"></i>
                 </span>
             </div>
-            <div class="tf-product-quick_add tf-quick-prd_variant">
-                <div class="product-mini-view">
-                    <a href="{{ route('product.detail') }}" class="prd-image">
-                        <img class="img-product" width="80" height="107"
-                            src="{{ asset('assets/images/product/single/detail-1.jpg') }}" alt="Image Product">
-                    </a>
-                    <div class="prd-content">
-                        <a href="{{ route('product.detail') }}"
-                            class="prd-name fw-medium link-underline link text-capitalize">
-                            linen slim-fit shirt
-                        </a>
-                        <div class="price-wrap">
-                            <span class="price-new text-primary fw-semibold price-on-sale">₹79.99</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="quick-variant-picker picker_size">
-                    <div class="variant-picker_label mb-12">
-                        <div>
-                            Size:
-                            <span class="variant__value text-capitalize fw-medium">L</span>
-                        </div>
-                    </div>
-                    <div class="variant-picker_values">
-                        <span class="size_btn" data-quick-size="S" data-quick-price="39.99">S</span>
-                        <span class="size_btn" data-quick-size="M" data-quick-price="59.99">M</span>
-                        <span class="size_btn active" data-quick-size="L" data-quick-price="79.99">L</span>
-                        <span class="size_btn" data-quick-size="XL" data-quick-price="89.99">XL</span>
-                    </div>
-                </div>
-                <div class="product-total-quantity">
-                    <div class="group-action">
-                        <div class="wg-quantity">
-                            <button class="btn-quantity btn-decrease"><i class="icon icon-minus"></i></button>
-                            <input class="quantity-product" type="text" name="number" value="1">
-                            <button class="btn-quantity btn-increase"><i class="icon icon-plus"></i></button>
-                        </div>
-                        <a href="#shoppingCart" data-bs-toggle="offcanvas"
-                            class="btn-action-price tf-btn type-xl animate-btn w-100">
-                            Add to Cart - ₹79.99
-                        </a>
-                    </div>
+            <div id="quick-add-content" class="tf-product-quick_add tf-quick-prd_variant">
+                <!-- Content will be loaded dynamically -->
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const quickAddModal = document.getElementById('quickAdd');
+        const quickAddContent = document.getElementById('quick-add-content');
+
+        // Handle Quick Add buttons
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('[data-bs-target="#quickAdd"]');
+            if (!btn) return;
+
+            const productId = btn.dataset.productId;
+            if (!productId) return;
+
+            // Show loading
+            quickAddContent.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            `;
+
+            fetch(`/product/${productId}/quick-add`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        renderQuickAdd(data.product);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+        function renderQuickAdd(product) {
+            const hasVariants = product.variants.length > 0;
+            const sizes = product.sizes;
+            const colors = product.colors;
+
+            let html = `
+                <div class="product-mini-view mb-24">
+                    <a href="/product/${product.slug}" class="prd-image">
+                        <img class="img-product" width="80" height="107" src="${product.image}" alt="${product.name}">
+                    </a>
+                    <div class="prd-content">
+                        <a href="/product/${product.slug}" class="prd-name fw-medium link-underline link text-capitalize">
+                            ${product.name}
+                        </a>
+                        <div class="price-wrap mt-4">
+                            <span class="price-new text-primary fw-semibold">${product.sale_price ? '₹'+product.sale_price : '₹'+product.price}</span>
+                            ${product.sale_price ? `<span class="price-old ms-2 text-muted text-decoration-line-through">₹${product.price}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            if (colors.length > 0) {
+                html += `
+                    <div class="quick-variant-picker picker_color mb-20">
+                        <div class="variant-picker_label mb-12">Color: <span class="variant__value fw-medium" id="selected-color-val">Select Color</span></div>
+                        <div class="variant-picker_values d-flex gap-8 flex-wrap">
+                            ${colors.map(color => `<span class="color_btn" data-value="${color}" title="${color}">${color}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (sizes.length > 0) {
+                html += `
+                    <div class="quick-variant-picker picker_size mb-24">
+                        <div class="variant-picker_label mb-12">Size: <span class="variant__value fw-medium" id="selected-size-val">Select Size</span></div>
+                        <div class="variant-picker_values d-flex gap-8 flex-wrap">
+                            ${sizes.map(size => `<span class="size_btn" data-value="${size}">${size}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="product-total-quantity">
+                    <div class="group-action">
+                        <div class="wg-quantity mb-16">
+                            <button class="btn-quantity btn-decrease-qa"><i class="icon icon-minus"></i></button>
+                            <input class="quantity-product-qa" type="text" name="number" value="1" readonly>
+                            <button class="btn-quantity btn-increase-qa"><i class="icon icon-plus"></i></button>
+                        </div>
+                        <div class="d-flex gap-10">
+                            <button type="button" id="confirm-quick-add" class="btn-action-price tf-btn type-xl animate-btn flex-grow-1" data-product-id="${product.id}">
+                                Add to Cart
+                            </button>
+                         
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            quickAddContent.innerHTML = html;
+
+            // Internal logic for variant selection
+            const colorBtns = quickAddContent.querySelectorAll('.color_btn');
+            const sizeBtns = quickAddContent.querySelectorAll('.size_btn');
+            const qtyInput = quickAddContent.querySelector('.quantity-product-qa');
+            const confirmBtn = document.getElementById('confirm-quick-add');
+            const buyNowBtn = document.getElementById('buy-now-quick-add');
+            
+            let selectedColor = null;
+            let selectedSize = null;
+
+            colorBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    colorBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedColor = btn.dataset.value;
+                    document.getElementById('selected-color-val').textContent = selectedColor;
+                });
+            });
+
+            sizeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    sizeBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedSize = btn.dataset.value;
+                    document.getElementById('selected-size-val').textContent = selectedSize;
+                });
+            });
+
+            quickAddContent.querySelector('.btn-increase-qa').addEventListener('click', () => {
+                qtyInput.value = parseInt(qtyInput.value) + 1;
+            });
+
+            quickAddContent.querySelector('.btn-decrease-qa').addEventListener('click', () => {
+                if (parseInt(qtyInput.value) > 1) {
+                    qtyInput.value = parseInt(qtyInput.value) - 1;
+                }
+            });
+
+            function addToCart(isBuyNow = false) {
+                if (colors.length > 0 && !selectedColor) {
+                    alert('Please select a color');
+                    return;
+                }
+                if (sizes.length > 0 && !selectedSize) {
+                    alert('Please select a size');
+                    return;
+                }
+
+                const targetBtn = isBuyNow ? buyNowBtn : confirmBtn;
+                const originalText = targetBtn.textContent;
+                
+                targetBtn.disabled = true;
+                targetBtn.textContent = isBuyNow ? 'Processing...' : 'Adding...';
+
+                fetch('{{ route('cart.add') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        product_id: product.id,
+                        quantity: qtyInput.value,
+                        color: selectedColor,
+                        size: selectedSize
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        bootstrap.Modal.getInstance(quickAddModal).hide();
+                        if (isBuyNow) {
+                            window.location.href = '/checkout';
+                        } else {
+                            if (window.refreshCartDrawer) window.refreshCartDrawer();
+                            const cartOffcanvas = document.getElementById('shoppingCart');
+                            if (cartOffcanvas) {
+                                bootstrap.Offcanvas.getOrCreateInstance(cartOffcanvas).show();
+                            }
+                        }
+                    } else {
+                        alert(data.message || 'Error adding to cart');
+                        targetBtn.disabled = false;
+                        targetBtn.textContent = originalText;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    targetBtn.disabled = false;
+                    targetBtn.textContent = originalText;
+                });
+            }
+
+            confirmBtn.addEventListener('click', () => addToCart(false));
+            buyNowBtn.addEventListener('click', () => addToCart(true));
+        }
+    });
+</script>
+
+<style>
+    .color_btn, .size_btn {
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+    .color_btn.active, .size_btn.active {
+        border-color: #171717;
+        background: #171717;
+        color: #fff;
+    }
+    .wg-quantity {
+        display: flex;
+        align-items: center;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        width: fit-content;
+    }
+    .wg-quantity .btn-quantity {
+        padding: 8px 12px;
+        background: none;
+        border: none;
+    }
+    .wg-quantity input {
+        width: 40px;
+        text-align: center;
+        border: none;
+        background: none;
+    }
+</style>
 <!-- /Quick Add -->
 
 <!-- Quick View -->
@@ -1015,12 +1171,11 @@
                         <span class="fw-6">Subtotal</span>
                         <span class="fw-6" id="cart-subtotal-display">₹0</span>
                     </div>
-                    <p class="cl-text-2 mb-0">Taxes and shipping calculated at checkout</p>
+                    
+<hr>                    
+
                 </div>
-                <label class="cart-policy-check" for="cart-terms-check">
-                    <input type="checkbox" id="cart-terms-check">
-                    <span>I agree with <a href="#">Terms &amp; Conditions</a></span>
-                </label>
+                                                                                                                        
                 <div class="tf-mini-cart-view-checkout">
                     <a href="#" class="cart-cta cart-cta-solid">Check Out</a>
                 </div>
@@ -1287,15 +1442,174 @@
                     <i class="icon-X2"></i>
                 </span>
             </div>
-            <form action="#" class="form-search-nav style-2">
+            <form action="{{ route('search.results') }}" method="GET" class="form-search-nav style-2" id="search-form">
                 <fieldset>
-                    <input type="text" placeholder="Searching..." required>
+                    <input type="text" name="q" id="search-input" placeholder="Searching..." required autocomplete="off">
                 </fieldset>
                 <button type="submit" class="btn-action">
                     <i class="icon icon-MagnifyingGlass"></i>
                 </button>
             </form>
+            
+            <div id="search-modal-content" class="mt-20">
+                <!-- Recent Searches -->
+                <div id="recent-searches-container" class="search-section mb-24 d-none">
+                    <div class="d-flex align-items-center justify-content-between mb-12">
+                        <h6 class="mb-0">Recent Searches</h6>
+                        <button type="button" id="clear-recent-searches" class="text-caption-01 text-decoration-underline border-0 bg-transparent p-0">Clear All</button>
+                    </div>
+                    <div id="recent-searches-list" class="d-flex flex-wrap gap-8">
+                        <!-- Keywords injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Suggestions/Trending -->
+                <div id="search-suggestions-container" class="search-section">
+                    <h6 class="mb-16" id="suggestions-title">Trending Now</h6>
+                    <div id="suggestions-list" class="d-flex flex-column gap-16">
+                        <!-- Products injected by JS -->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('search-input');
+        const searchForm = document.getElementById('search-form');
+        const suggestionsList = document.getElementById('suggestions-list');
+        const suggestionsTitle = document.getElementById('suggestions-title');
+        const suggestionsContainer = document.getElementById('search-suggestions-container');
+        const recentSearchesContainer = document.getElementById('recent-searches-container');
+        const recentSearchesList = document.getElementById('recent-searches-list');
+        const clearRecentBtn = document.getElementById('clear-recent-searches');
+
+        const STORAGE_KEY = 'recent_searches';
+        let debounceTimer;
+
+        // Initialize Recent Searches
+        updateRecentSearchesUI();
+
+        // Handle Input for Suggestions
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            const query = this.value.trim();
+
+            if (query.length < 2) {
+                suggestionsContainer.classList.add('d-none');
+                recentSearchesContainer.classList.toggle('d-none', JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]').length === 0);
+                return;
+            }
+
+            debounceTimer = setTimeout(() => {
+                fetchSuggestions(query);
+            }, 300);
+        });
+
+        // Save Search on Form Submit
+        searchForm.addEventListener('submit', function(e) {
+            const query = searchInput.value.trim();
+            if (query) {
+                saveRecentSearch(query);
+            }
+        });
+
+        // Clear Recent Searches
+        clearRecentBtn.addEventListener('click', function() {
+            localStorage.removeItem(STORAGE_KEY);
+            updateRecentSearchesUI();
+        });
+
+        function saveRecentSearch(query) {
+            let searches = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            searches = searches.filter(s => s.toLowerCase() !== query.toLowerCase());
+            searches.unshift(query);
+            searches = searches.slice(0, 5); // Keep last 5
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(searches));
+        }
+
+        function updateRecentSearchesUI() {
+            const searches = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            if (searches.length > 0 && !searchInput.value.trim()) {
+                recentSearchesContainer.classList.remove('d-none');
+                recentSearchesList.innerHTML = searches.map(query => `
+                    <a href="/search?q=${encodeURIComponent(query)}" class="search-tag">${query}</a>
+                `).join('');
+            } else {
+                recentSearchesContainer.classList.add('d-none');
+            }
+        }
+
+        function fetchSuggestions(query = '') {
+            fetch(`/api/search/suggestions?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.type === 'results') {
+                        suggestionsContainer.classList.remove('d-none');
+                        recentSearchesContainer.classList.add('d-none');
+                        suggestionsTitle.textContent = 'Search Suggestions';
+                        renderSuggestions(data.products);
+                    } else {
+                        suggestionsContainer.classList.add('d-none');
+                    }
+                })
+                .catch(error => console.error('Error fetching suggestions:', error));
+        }
+
+        function renderSuggestions(products) {
+            if (products.length === 0) {
+                suggestionsList.innerHTML = '<p class="text-caption-01 cl-text-2">No products found</p>';
+                return;
+            }
+
+            suggestionsList.innerHTML = products.map(product => `
+                <a href="${product.url}" class="search-item d-flex align-items-center gap-12">
+                    <div class="search-item-img flex-shrink-0">
+                        <img src="${product.image}" alt="${product.name}" width="60" height="80" style="object-fit: cover; border-radius: 8px;">
+                    </div>
+                    <div class="search-item-info">
+                        <h6 class="mb-4 text-capitalize">${product.name}</h6>
+                        <div class="d-flex align-items-center gap-8">
+                            <span class="fw-semibold">${product.price}</span>
+                            ${product.old_price ? `<span class="text-muted text-decoration-line-through text-caption-02">${product.old_price}</span>` : ''}
+                        </div>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        // Initialize state on modal open
+        document.getElementById('search').addEventListener('shown.bs.modal', function () {
+            searchInput.value = '';
+            suggestionsContainer.classList.add('d-none');
+            updateRecentSearchesUI();
+        });
+    });
+</script>
+
+<style>
+    .search-tag {
+        display: inline-block;
+        padding: 6px 14px;
+        background: #f7f4ef;
+        border-radius: 99px;
+        font-size: 13px;
+        color: #111;
+        transition: all 0.2s;
+    }
+    .search-tag:hover {
+        background: #111;
+        color: #fff;
+    }
+    .search-item {
+        transition: all 0.2s;
+        text-decoration: none;
+        color: inherit;
+    }
+    .search-item:hover h6 {
+        color: #b58b21;
+    }
+</style>
 <!-- /Search -->

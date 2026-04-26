@@ -137,24 +137,8 @@
                         </a>
                     </div>
                     @endforeach
-                    @else
-                    @foreach([
-                        ['img' => 'cate-1.jpg', 'name' => 'Outerwear'],
-                        ['img' => 'cate-2.jpg', 'name' => 'Tops & Shirts'],
-                        ['img' => 'cate-3.jpg', 'name' => 'Bottoms'],
-                        ['img' => 'cate-4.jpg', 'name' => 'Dresses'],
-                        ['img' => 'cate-5.jpg', 'name' => 'Footwear'],
-                        ['img' => 'cate-6.jpg', 'name' => 'Accessories']
-                    ] as $cat)
-                    <div class="swiper-slide wow fadeInUp">
-                        <a href="#" class="category-v01 hover-img">
-                            <div class="cate-image img-style">
-                                <img loading="lazy" width="210" height="210" src="{{ asset('assets/images/category/'.$cat['img']) }}" alt="Image">
-                            </div>
-                            <p class="cate-name h5 text-center link link-underline">{{ $cat['name'] }}</p>
-                        </a>
-                    </div>
-                    @endforeach
+                   
+
                     @endif
                 </div>
                 <div class="sw-line-default style-2 tf-sw-pagination"></div>
@@ -183,60 +167,7 @@
                             <x-product-card :product="$product" />
                         </div>
                         @endforeach
-                    @else
-                        @php
-                            $products = [
-                                [
-                                    'id' => 1,
-                                    'name' => 'Lyocell wrap top',
-                                    'url' => route('product.detail'),
-                                    'image' => 'assets/images/product/product-1.jpg',
-                                    'hoverImage' => 'assets/images/product/product-1_2.jpg',
-                                    'price' => '₹69.99',
-                                    'oldPrice' => '₹99.99',
-                                    'hasSize' => false,
-                                    'badges' => [['type' => 'new', 'text' => 'NEW']]
-                                ],
-                                [
-                                    'id' => 2,
-                                    'name' => 'Buttons cotton top',
-                                    'url' => route('product.detail'),
-                                    'image' => 'assets/images/product/product-2.jpg',
-                                    'hoverImage' => 'assets/images/product/product-2_2.jpg',
-                                    'price' => '₹29.99',
-                                    'oldPrice' => '₹49.99',
-                                    'hasSize' => false,
-                                    'badges' => [['type' => 'sale', 'text' => '-25%']]
-                                ],
-                                [
-                                    'id' => 3,
-                                    'name' => 'Wool Midi Coat',
-                                    'url' => route('product.detail'),
-                                    'image' => 'assets/images/product/product-3.jpg',
-                                    'hoverImage' => 'assets/images/product/product-3_2.jpg',
-                                    'price' => '₹15.99',
-                                    'oldPrice' => '₹25.99',
-                                    'hasSize' => false,
-                                    'badges' => [['type' => 'sale', 'text' => '-25%']]
-                                ],
-                                [
-                                    'id' => 4,
-                                    'name' => 'Linen slim-fit shirt',
-                                    'url' => route('product.detail'),
-                                    'image' => 'assets/images/product/product-4.jpg',
-                                    'hoverImage' => 'assets/images/product/product-4_2.jpg',
-                                    'price' => '₹45.99',
-                                    'oldPrice' => '₹79.99',
-                                    'hasSize' => true,
-                                    'sizes' => ['S', 'M', 'L', 'XL']
-                                ]
-                            ];
-                        @endphp
-                        @foreach($products as $product)
-                        <div class="swiper-slide wow fadeInUp">
-                            <x-product-card :product="$product" />
-                        </div>
-                        @endforeach
+                  
                     @endif
                 </div>
                 <div class="sw-dot-default tf-sw-pagination"></div>
@@ -585,6 +516,60 @@
             </div>
         </section>
         <!-- /Testimonial -->
+
+
+         <!-- Blog -->
+        <section class="flat-spacing pb-3">
+            <div class="container">
+                <div class="sect-heading type-2 text-center wow fadeInUp">
+                    <h3 class="s-title">
+                        Handicraft Guides, Idol Meaning & Decor Tips
+                    </h3>
+                    <p class="s-desc text-body-1 cl-text-2">
+                        Find expert tips on choosing idols, understanding symbolism, and decorating your space beautifully.
+                    </p>
+                </div>
+                <div dir="ltr" class="swiper tf-swiper" data-preview="3" data-tablet="2" data-mobile-sm="2"
+                    data-mobile="1" data-space-lg="30" data-space-md="20" data-space="10" data-pagination="1"
+                    data-pagination-sm="2" data-pagination-md="2" data-pagination-lg="3">
+                    <div class="swiper-wrapper">
+                        @foreach($posts as $post)
+                            <div class="swiper-slide">
+                                <article class="article-blog hover-img wow fadeInUp">
+                                    <a href="{{ route('blog.show', $post->slug) }}" class="blog-image img-style">
+                                        @if($post->featured_image)
+                                            <img loading="lazy" width="450" height="337" src="{{ Storage::url($post->featured_image) }}"
+                                                alt="{{ $post->title }}">
+                                        @else
+                                            <img loading="lazy" width="450" height="337" src="{{ asset('assets/images/blog/blog-placeholder.jpg') }}"
+                                                alt="{{ $post->title }}">
+                                        @endif
+                                    </a>
+                                    <div class="blog-content">
+                                        <p class="entry-date text-caption-01 fw-semibold cl-text-3">{{ $post->published_at->format('d F') }}</p>
+                                        <h5 class="entry-title">
+                                            <a href="{{ route('blog.show', $post->slug) }}" class="link-underline link text-capitalize">
+                                                {{ $post->title }}
+                                            </a>
+                                        </h5>
+                                        <p class="entry-desc cl-text-2">
+                                            {{ Str::limit($post->excerpt, 120) }}
+                                        </p>
+                                    </div>
+                                </article>
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="sw-line-default style-2 tf-sw-pagination"></div>
+                </div>
+            </div>
+        </section>
+        <!-- /Blog -->
+
+
+
+
+
         <!-- Gallery -->
         <section class="themesFlat">
             <div class="container">

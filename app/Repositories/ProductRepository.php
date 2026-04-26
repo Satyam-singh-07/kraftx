@@ -40,7 +40,7 @@ class ProductRepository implements ProductRepositoryInterface
         match ($sort) {
             'price_low_high' => $query->orderBy('price', 'asc'),
             'price_high_low' => $query->orderBy('price', 'desc'),
-            'popularity' => $query->orderBy('views_count', 'desc'), // Assuming views_count exists for popularity, fallback to latest if not.
+            'popularity' => $query->orderBy('is_trending', 'desc')->latest(),
             default => $query->latest(),
         };
 
@@ -105,5 +105,28 @@ class ProductRepository implements ProductRepositoryInterface
         foreach ($variants as $variant) {
             $product->variants()->create($variant);
         }
+    }
+
+    public function search(string $query, int $limit = 10)
+    {
+        return Product::with(['images', 'variants'])
+            ->where('status', true)
+            ->where(function($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                  ->orWhere('sku', 'like', "%{$query}%")
+                  ->orWhere('description', 'like', "%{$query}%");
+            })
+            ->limit($limit)
+            ->get();
+    }
+
+    public function getTrending(int $limit = 5)
+    {
+        return Product::with(['images', 'variants'])
+            ->where('status', true)
+            ->where('is_trending', true)
+            ->inRandomOrder()
+            ->limit($limit)
+            ->get();
     }
 }

@@ -29,6 +29,26 @@ class ProductController extends Controller
         return view('admin.products.index', compact('products', 'filters'));
     }
 
+    public function search(Request $request)
+    {
+        $query = $request->get('q');
+        $products = Product::with('images')
+            ->where('name', 'like', "%{$query}%")
+            ->orWhere('sku', 'like', "%{$query}%")
+            ->limit(20)
+            ->get()
+            ->map(function($p) {
+                return [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'price' => $p->sale_price ?? $p->price,
+                    'image' => $p->images->first() ? asset('storage/' . $p->images->first()->image_path) : asset('assets/images/product/product-placeholder.jpg'),
+                ];
+            });
+
+        return response()->json($products);
+    }
+
     public function create()
     {
         $collections = Collection::all();

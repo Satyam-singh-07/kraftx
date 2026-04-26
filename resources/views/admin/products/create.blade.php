@@ -221,7 +221,7 @@
                 </div>
             </x-admin.card>
 
-            <x-admin.card title="Organization">
+            <x-admin.card title="Organization & Visibility">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Collections</label>
@@ -230,6 +230,21 @@
                                 <option value="{{ $collection->id }}">{{ $collection->name }}</option>
                             @endforeach
                         </select>
+                        <p class="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple collections.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <input type="checkbox" name="status" id="status" value="1" checked class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="status" class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">Active (Visible on store)</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" name="featured" id="featured" value="1" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="featured" class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">Featured Product</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" name="is_trending" id="is_trending" value="1" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="is_trending" class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">Trending Product</label>
+                        </div>
                     </div>
                 </div>
             </x-admin.card>

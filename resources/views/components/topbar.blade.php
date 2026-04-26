@@ -15,17 +15,20 @@
                             <!-- slide 1 -->
                             <div class="swiper-slide">
                                 <div class="d-flex align-items-center justify-content-center gap-8">
-                                    <i class="icon icon-SealPercent text-primary fs-20"></i>
+                                      <i class="icon icon-Lightning" style="color: #b58b21; font-size: 20px;"></i>
                                     <p class="text-white text-start text-line-clamp-1">
-                                        Midseason Sale: 20% Off - Auto Applied at
-                                        Checkout - Limited Time Only
+                                    
+                                                <span class="text-caption-01 fw-medium" >Cash on Delivery available </span>
+
                                     </p>
                                 </div>
                             </div>
                             <!-- slide 2 -->
                             <div class="swiper-slide">
+                               
                                 <p class="text-white text-line-clamp-1">
-                                    20% Off - Auto Applied at Checkout - Limited Time Only
+                                       <i class="icon icon-Truck" style="color: #b58b21; font-size: 20px;"></i>
+                                                <span class="text-caption-01 fw-medium" >Free Shipping Available</span>
                                 </p>
                             </div>
                         </div>

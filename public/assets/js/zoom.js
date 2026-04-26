@@ -201,6 +201,14 @@ if ($(".product-thumbs-slider").length > 0) {
     };
 
     var lightBoxSwiper = function () {
+        if (
+            typeof PhotoSwipeLightbox === "undefined" ||
+            typeof PhotoSwipe === "undefined" ||
+            !document.querySelector("#gallery-swiper-started")
+        ) {
+            return;
+        }
+
         const lightbox = new PhotoSwipeLightbox({
             gallery: "#gallery-swiper-started",
             children: "a",
@@ -213,25 +221,49 @@ if ($(".product-thumbs-slider").length > 0) {
 
         lightbox.on("change", () => {
             const { pswp } = lightbox;
-            main.slideTo(pswp.currIndex, 0, false);
+            if (typeof main !== "undefined" && main && typeof main.slideTo === "function") {
+                main.slideTo(pswp.currIndex, 0, false);
+            }
         });
 
         lightbox.on("afterInit", () => {
-            if (main.params.autoplay.enabled) {
+            if (
+                typeof main !== "undefined" &&
+                main &&
+                main.params &&
+                main.params.autoplay &&
+                main.params.autoplay.enabled
+            ) {
                 main.autoplay.stop();
             }
         });
 
         lightbox.on("closingAnimationStart", () => {
             const { pswp } = lightbox;
-            main.slideTo(pswp.currIndex, 0, false);
-            if (main.params.autoplay.enabled) {
+            if (typeof main !== "undefined" && main && typeof main.slideTo === "function") {
+                main.slideTo(pswp.currIndex, 0, false);
+            }
+            if (
+                typeof main !== "undefined" &&
+                main &&
+                main.params &&
+                main.params.autoplay &&
+                main.params.autoplay.enabled
+            ) {
                 main.autoplay.start();
             }
         });
     };
 
     var lightBox = function () {
+        if (
+            typeof PhotoSwipeLightbox === "undefined" ||
+            typeof PhotoSwipe === "undefined" ||
+            !document.querySelector("#gallery-started")
+        ) {
+            return;
+        }
+
         const lightbox = new PhotoSwipeLightbox({
             gallery: "#gallery-started",
             children: "a",

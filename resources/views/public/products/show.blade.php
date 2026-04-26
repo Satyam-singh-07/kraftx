@@ -12,65 +12,148 @@
         $sizes = $product->variants->whereNotNull('size')->unique('size');
     @endphp
 
-    @push('styles')
-    <style>
-        .custom-accordion .accordion-item {
-            border: none;
-            border-bottom: 1px solid #ebebeb !important;
-            border-radius: 0 !important;
-        }
-        .custom-accordion .accordion-button {
-            padding: 18px 0;
-            font-weight: 700;
-            font-size: 16px;
-            color: #111;
-            background-color: transparent !important;
-            box-shadow: none !important;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .custom-accordion .accordion-button::after {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-size: 18px;
-            width: 18px;
-            height: 18px;
-            transition: transform 0.3s ease;
-        }
-        .custom-accordion .accordion-button:not(.collapsed)::after {
-            transform: rotate(-180deg);
-        }
-        .custom-accordion .accordion-body {
-            padding: 0 0 20px 0;
-            color: #666;
-            line-height: 1.6;
-            font-size: 14px;
-        }
-        .custom-accordion .accordion-body strong {
-            color: #333;
-        }
-    </style>
-    @endpush
+    <x-slot name="styles">
+        <link rel="stylesheet" href="{{ asset('assets/css/photoswipe.css') }}">
+        <style>
+            .custom-accordion .accordion-item {
+                border: none;
+                border-bottom: 1px solid #ebebeb !important;
+                border-radius: 0 !important;
+            }
+            .custom-accordion .accordion-button {
+                padding: 18px 0;
+                font-weight: 700;
+                font-size: 16px;
+                color: #111;
+                background-color: transparent !important;
+                box-shadow: none !important;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .custom-accordion .accordion-button::after {
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+                background-size: 18px;
+                width: 18px;
+                height: 18px;
+                transition: transform 0.3s ease;
+            }
+            .custom-accordion .accordion-button:not(.collapsed)::after {
+                transform: rotate(-180deg);
+            }
+            .custom-accordion .accordion-body {
+                padding: 0 0 20px 0;
+                color: #666;
+                line-height: 1.6;
+                font-size: 14px;
+            }
+            .custom-accordion .accordion-body strong {
+                color: #333;
+            }
+            .review-card-modern {
+                border: 1px solid #ececec;
+                border-radius: 18px;
+                padding: 22px;
+                background: #fff;
+                box-shadow: 0 14px 38px rgba(17, 17, 17, 0.06);
+            }
+            .review-summary-card {
+                border: 1px solid #ececec;
+                border-radius: 18px;
+                padding: 26px;
+                background:
+                    radial-gradient(120% 90% at 0% 0%, rgba(247, 186, 1, 0.16) 0%, rgba(255, 255, 255, 0) 60%),
+                    linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+            }
+            .rating-dot {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: #d9d9d9;
+            }
+            .rating-progress-row .progress {
+                height: 7px;
+                border-radius: 99px;
+                background: #f3f3f3;
+                overflow: hidden;
+            }
+            .rating-progress-row .progress-bar {
+                background: linear-gradient(90deg, #f7ba01 0%, #f2a900 100%);
+            }
+            .review-form-card {
+                border: 1px solid #ececec;
+                border-radius: 18px;
+                padding: 24px;
+                background: #fff;
+                box-shadow: 0 14px 38px rgba(17, 17, 17, 0.06);
+            }
+            .star-radio-wrap {
+                display: flex;
+                gap: 8px;
+                flex-direction: row-reverse;
+                justify-content: flex-end;
+            }
+            .star-radio-wrap input {
+                display: none;
+            }
+            .star-radio-wrap label {
+                cursor: pointer;
+                color: #c9c9c9;
+                font-size: 24px;
+                transition: color 0.2s ease;
+            }
+            .star-radio-wrap label::before {
+                content: "\2605";
+            }
+            .star-radio-wrap input:checked ~ label,
+            .star-radio-wrap label:hover,
+            .star-radio-wrap label:hover ~ label {
+                color: #f7ba01;
+            }
+            .review-image-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+                gap: 10px;
+            }
+            .review-image-grid img {
+                width: 100%;
+                height: 86px;
+                object-fit: cover;
+                border-radius: 10px;
+                border: 1px solid #ebebeb;
+            }
+            .review-image-input {
+                border: 1px dashed #d0d0d0;
+                border-radius: 12px;
+                padding: 12px;
+                background: #fafafa;
+            }
+            .review-trigger-card {
+                border: 1px solid #ececec;
+                border-radius: 18px;
+                padding: 20px;
+                background: #fff;
+                box-shadow: 0 14px 38px rgba(17, 17, 17, 0.06);
+            }
+            .review-modal .modal-content {
+                border: 0;
+                border-radius: 20px;
+                overflow: hidden;
+                box-shadow: 0 30px 80px rgba(17, 17, 17, 0.2);
+            }
+            .review-modal .modal-header {
+                border-bottom: 1px solid #f0f0f0;
+                padding: 20px 24px;
+                background: linear-gradient(180deg, #ffffff 0%, #fcfcfc 100%);
+            }
+            .review-modal .modal-body {
+                padding: 24px;
+            }
+        </style>
+    </x-slot>
 
     <main id="wrapper">
-        <!-- Breadcrumbs -->
-        <div class="section-page-title-single flat-spacing-3">
-            <div class="container">
-                <div class="main-page-title">
-                    <div class="breadcrumbs">
-                        <a href="{{ route('home') }}" class="text-caption-01 cl-text-3 link">Home</a>
-                        <i class="icon icon-CaretRightThin cl-text-3"></i>
-                        <a href="#" class="text-caption-01 cl-text-3 link">Shop</a>
-                        <i class="icon icon-CaretRightThin cl-text-3"></i>
-                        <P class="text-caption-01">
-                            {{ $product->name }}
-                        </P>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- /Breadcrumbs -->
-
+       
         <!-- Product Single -->
         <section class="section-product-single tf-main-product section-image-zoom pb-80">
             <div class="container">
@@ -139,15 +222,11 @@
                                     <div class="product-infor-meta mb-20">
                                         <div class="meta_rate">
                                             <div class="star-wrap normal d-flex align-items-center">
-                                                <i class="icon icon-Star"></i>
-                                                <i class="icon icon-Star"></i>
-                                                <i class="icon icon-Star"></i>
-                                                <i class="icon icon-Star"></i>
-                                                <i class="icon icon-Star"></i>
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    <i class="icon icon-Star {{ $i <= round($averageRating) ? '' : 'cl-text-4' }}"></i>
+                                                @endfor
                                             </div>
-                                            <span class="text-caption-01 cl-text-2">
-                                                (0 reviews)
-                                            </span>
+                                            <span class="text-caption-01 cl-text-2">({{ $totalReviews }} reviews)</span>
                                         </div>
                                         <div class="br-line type-vertical"></div>
                                         <div class="meta_sold text-caption-01 d-flex align-items-center gap-4">
@@ -155,10 +234,7 @@
                                             <span class="cl-text-2">{{ rand(51, 150) }} sold in last 48 hours</span>
                                         </div>
                                         <div class="br-line type-vertical"></div>
-                                        <div class="meta_prd_code text-caption-01">
-                                            <span class="cl-text-2">SKU:</span>
-                                            <span>{{ $product->sku }}</span>
-                                        </div>
+                                       
                                     </div>
                                     <div class="product-infor-price mb-12"> 
                                         @if($product->sale_price)
@@ -171,6 +247,14 @@
                                             <h4 class="price" data-price="{{ $product->price }}">₹{{ number_format($product->price, 0) }}</h4>
                                         @endif
                                     </div>
+
+                                    @if($product->tags->isNotEmpty())
+                                    <div class="product-infor-tags mb-20 d-flex flex-wrap gap-8">
+                                        @foreach($product->tags->take(5) as $tag)
+                                            <span class="text-caption-01 cl-text-2 bg-light px-10 py-4 rounded-pill border">#{{ $tag->name }}</span>
+                                        @endforeach
+                                    </div>
+                                    @endif
                                     
                                     <div class="product-infor-highlights mb-20">
                                         <!-- Top List Section -->
@@ -181,7 +265,7 @@
                                             </div>
                                             <div class="d-flex align-items-center gap-10 mb-8">
                                                 <i class="icon icon-Lightning" style="color: #b58b21; font-size: 20px;"></i>
-                                                <span class="text-caption-01 fw-medium" style="color: #111;">Cash on Delivery available (₹99 extra)</span>
+                                                <span class="text-caption-01 fw-medium" style="color: #111;">Cash on Delivery available </span>
                                             </div>
                                             <div class="d-flex align-items-center gap-10">
                                                 <i class="icon icon-Lightning" style="color: #2d4f1e; font-size: 20px;"></i>
@@ -221,7 +305,7 @@
                                     <div class="product-infor-view text-caption-01 d-flex align-items-center gap-4 mb-12">
                                         <i class="icon icon-Eye" style="color: #6c757d;"></i>
                                         <span class="cl-text-2 text-secondary">
-                                            <span id="viewing-count">{{ rand(101, 500) }}</span> people are viewing this item right now
+                                            <span id="viewing-count">{{ rand(101, 250) }}</span> people are viewing this item right now
                                         </span>
                                     </div>
                                 </div>
@@ -281,10 +365,36 @@
                                                 <span class="price-add d-none d-sm-block d-md-none d-lg-block">₹{{ number_format($product->sale_price ?? $product->price, 0) }}</span>
                                             </button>
                                         </div>
-                                        <a href="#" class="tf-btn type-xl btn-primary animate-btn w-100">
+                                        <button type="button" id="buy-now-btn" class="tf-btn type-xl btn-primary animate-btn w-100">
                                             Buy It Now
-                                        </a>
+                                        </button>
                                     </div>
+                                </div>
+
+                                 <div class="tf-product-trust-seal">
+                                    <p class="h6 text-seal">Guranteed Safe Checkout:</p>
+                                    <ul class="list-card">
+                                         <li class="card-item">
+                                            <img width="50" height="32" src="{{ asset('assets/images/payment/upi.svg') }}"
+                                                alt="card">
+                                        </li>
+                                        <li class="card-item">
+                                            <img width="50" height="32" src="{{ asset('assets/images/payment/visa.svg') }}" alt="card">
+                                        </li>
+                                        <li class="card-item">
+                                            <img width="50" height="32" src="{{ asset('assets/images/payment/master-card.svg') }}"
+                                                alt="card">
+                                        </li>
+                                        <li class="card-item">
+                                            <img width="50" height="32" src="{{ asset('assets/images/payment/amex.svg') }}" alt="card">
+                                        </li>
+                                        <li class="card-item">
+                                            <img width="50" height="32" src="{{ asset('assets/images/payment/paypal.svg') }}"
+                                                alt="card">
+                                        </li>
+                                       
+                                       
+                                    </ul>
                                 </div>
                                 
                                 <!-- Product Description Accordion -->
@@ -432,6 +542,186 @@
         </div>
         <!-- /Sticky ATC -->
 
+
+        <div class="flat-spacing flat-animate-tab mt-80">
+            <div class="container">
+                <div class="text-center mb-40">
+                    <h4 class="fw-medium">Customer Reviews</h4>
+                </div>
+                <div class="row g-4">
+                    <div class="col-lg-4">
+                        <div class="review-summary-card h-100">
+                            <p class="text-caption-01 cl-text-2 mb-8">Average Rating</p>
+                            <div class="d-flex align-items-end gap-8 mb-8">
+                                <p class="text-display fw-semibold mb-0">{{ number_format($averageRating, 1) }}</p>
+                                <p class="text-caption-01 cl-text-2 mb-2">/ 5</p>
+                            </div>
+                            <div class="star-wrap normal d-flex align-items-center mb-8">
+                                @for($i = 1; $i <= 5; $i++)
+                                    <i class="icon icon-Star fs-20 {{ $i <= round($averageRating) ? '' : 'cl-text-4' }}"></i>
+                                @endfor
+                            </div>
+                            <p class="cl-text-2 text-caption-01 mb-20">{{ $totalReviews }} {{ \Illuminate\Support\Str::plural('review', $totalReviews) }}</p>
+                            @for($star = 5; $star >= 1; $star--)
+                                <div class="rating-progress-row d-flex align-items-center gap-8 mb-10">
+                                    <span class="text-caption-01 fw-medium" style="min-width: 16px;">{{ $star }}</span>
+                                    <i class="icon icon-Star fs-14 cl-text-yellow"></i>
+                                    <div class="progress flex-grow-1">
+                                        <div class="progress-bar" style="width: {{ $ratingPercentages[$star] }}%"></div>
+                                    </div>
+                                    <span class="text-caption-01 cl-text-2" style="min-width: 40px;">{{ $ratingPercentages[$star] }}%</span>
+                                </div>
+                            @endfor
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        @if (session('success'))
+                            <div class="alert alert-success mb-20">{{ session('success') }}</div>
+                        @endif
+                        @if (session('error'))
+                            <div class="alert alert-danger mb-20">{{ session('error') }}</div>
+                        @endif
+                        @if ($errors->any())
+                            <div class="alert alert-danger mb-20">
+                                <ul class="mb-0 ps-3">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+                        <div class="review-trigger-card mb-20">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                <div>
+                                    <h5 class="mb-4">Share Your Experience</h5>
+                                    @auth
+                                        @if($hasPurchasedProduct)
+                                            <p class="text-caption-01 cl-text-2 mb-0">Verified buyers can submit a rating and review.</p>
+                                        @else
+                                            <p class="text-caption-01 cl-text-2 mb-0">Only customers who purchased this product can review it.</p>
+                                        @endif
+                                    @else
+                                        <p class="text-caption-01 cl-text-2 mb-0">Login with your purchase account to write a verified review.</p>
+                                    @endauth
+                                </div>
+                                @auth
+                                    @if($hasPurchasedProduct)
+                                        <button type="button" class="tf-btn animate-btn" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                                            Write a Review
+                                        </button>
+                                    @else
+                                        <button type="button" class="tf-btn animate-btn" disabled>
+                                            Purchase Required
+                                        </button>
+                                    @endif
+                                @else
+                                    <a href="#sign" data-bs-toggle="modal" class="tf-btn animate-btn">
+                                        Login to Review
+                                    </a>
+                                @endauth
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between mb-16">
+                            <h6 class="mb-0">Latest Reviews</h6>
+                            <p class="text-caption-01 cl-text-2 mb-0">{{ $totalReviews }} {{ \Illuminate\Support\Str::plural('review', $totalReviews) }}</p>
+                        </div>
+                        <div class="d-flex flex-column gap-3">
+                            @forelse($reviews as $review)
+                                <article class="review-card-modern">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-8">
+                                        <div class="d-flex align-items-center gap-8">
+                                            <h6 class="mb-0">{{ $review->name }}</h6>
+                                            <span class="rating-dot"></span>
+                                            <p class="text-caption-01 cl-text-2 mb-0">{{ $review->created_at->diffForHumans() }}</p>
+                                        </div>
+                                        <div class="star-wrap d-flex align-items-center">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                <i class="icon icon-Star {{ $i <= $review->rating ? '' : 'cl-text-4' }}"></i>
+                                            @endfor
+                                        </div>
+                                    </div>
+                                    <p class="text-body-1 mb-0">{{ $review->comment }}</p>
+                                    @if(!empty($review->images))
+                                        <div class="review-image-grid mt-12">
+                                            @foreach($review->images as $imagePath)
+                                                <a href="{{ asset('storage/' . $imagePath) }}" target="_blank" rel="noopener noreferrer">
+                                                    <img src="{{ asset('storage/' . $imagePath) }}" alt="Review image by {{ $review->name }}">
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </article>
+                            @empty
+                                <div class="review-card-modern text-center">
+                                    <h6 class="mb-8">No reviews yet</h6>
+                                    <p class="text-caption-01 cl-text-2 mb-0">Be the first customer to share your experience for this product.</p>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @auth
+            @if($hasPurchasedProduct)
+                <div class="modal fade review-modal" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="reviewModalLabel">Write a Review</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form action="{{ route('product.reviews.store', $product->slug) }}" method="POST" enctype="multipart/form-data">
+                                    @csrf
+                                    <div class="mb-16">
+                                        <label class="tf-lable fw-medium d-block mb-8">Your Rating</label>
+                                        <div class="star-radio-wrap">
+                                            @for($star = 5; $star >= 1; $star--)
+                                                <input type="radio" id="modal-rating-{{ $star }}" name="rating" value="{{ $star }}" {{ (int) old('rating', 5) === $star ? 'checked' : '' }}>
+                                                <label for="modal-rating-{{ $star }}" title="{{ $star }} stars"></label>
+                                            @endfor
+                                        </div>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <fieldset class="tf-field">
+                                                <label for="modal_review_name" class="tf-lable fw-medium">Your Name <span class="text-primary">*</span></label>
+                                                <input type="text" id="modal_review_name" name="name" value="{{ old('name', auth()->user()->name ?? '') }}" placeholder="Your name" required>
+                                            </fieldset>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <fieldset class="tf-field">
+                                                <label for="modal_review_email" class="tf-lable fw-medium">Your Email <span class="text-primary">*</span></label>
+                                                <input type="email" id="modal_review_email" name="email" value="{{ old('email', auth()->user()->email ?? '') }}" placeholder="you@example.com" required>
+                                            </fieldset>
+                                        </div>
+                                        <div class="col-12">
+                                            <fieldset class="tf-field d-flex flex-column">
+                                                <label for="modal_review_comment" class="tf-lable fw-medium">Your Review <span class="text-primary">*</span></label>
+                                                <textarea id="modal_review_comment" name="comment" placeholder="Write your review here" rows="5" required>{{ old('comment') }}</textarea>
+                                            </fieldset>
+                                        </div>
+                                        <div class="col-12">
+                                            <fieldset class="tf-field d-flex flex-column">
+                                                <label for="modal_review_images" class="tf-lable fw-medium">Add Photos (Optional)</label>
+                                                <div class="review-image-input">
+                                                    <input type="file" id="modal_review_images" name="images[]" accept=".jpg,.jpeg,.png,.webp,image/*" multiple>
+                                                    <p class="text-caption-01 cl-text-2 mt-8 mb-0">Upload up to 4 images (max 4MB each).</p>
+                                                </div>
+                                            </fieldset>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="tf-btn animate-btn mt-16">Submit Review</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @endauth
+
         <!-- Related Product -->
         @if($relatedProducts->isNotEmpty())
         <div class="flat-spacing flat-animate-tab mt-80">
@@ -478,7 +768,16 @@
 
             document.addEventListener('DOMContentLoaded', function() {
                 const addToCartBtn = document.getElementById('add-to-cart-btn');
+                const buyNowBtn = document.getElementById('buy-now-btn');
                 const stickyAddToCartBtn = document.getElementById('sticky-add-to-cart-btn');
+                const reviewModalElement = document.getElementById('reviewModal');
+
+                @if($errors->any() && auth()->check() && $hasPurchasedProduct)
+                    if (reviewModalElement && typeof bootstrap !== 'undefined') {
+                        const reviewModal = new bootstrap.Modal(reviewModalElement);
+                        reviewModal.show();
+                    }
+                @endif
                 
                 // Price Update Logic
                 const mainQtyContainer = document.getElementById('main-quantity-container');
@@ -563,12 +862,13 @@
                             count -= change;
                         }
                         // Cap between 100 and 500 for realism
-                        count = Math.max(100, Math.min(500, count));
+                        count = Math.max(100, Math.min(250, count));
                         viewingCountEl.textContent = count;
                     }, 2000);
                 }
                 
                 function handleAddToCart(event) {
+                    const isBuyNow = event.currentTarget.id === 'buy-now-btn';
                     const isSticky = event.currentTarget.id === 'sticky-add-to-cart-btn';
                     
                     const productId = document.querySelector('input[name="product_id"]').value;
@@ -589,6 +889,11 @@
                         size = activeSizeBtn ? activeSizeBtn.getAttribute('data-size') : null;
                     }
 
+                    if (isBuyNow) {
+                        buyNowBtn.disabled = true;
+                        buyNowBtn.textContent = 'Processing...';
+                    }
+
                     fetch('{{ route('cart.add') }}', {
                         method: 'POST',
                         headers: {
@@ -606,27 +911,42 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            // Open the drawer
-                            const cartDrawerEl = document.getElementById('shoppingCart');
-                            if (cartDrawerEl) {
-                                const bsOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(cartDrawerEl);
-                                bsOffcanvas.show();
+                            if (isBuyNow) {
+                                window.location.href = '/checkout';
+                            } else {
+                                // Open the drawer
+                                const cartDrawerEl = document.getElementById('shoppingCart');
+                                if (cartDrawerEl) {
+                                    const bsOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(cartDrawerEl);
+                                    bsOffcanvas.show();
+                                }
                             }
                         } else {
                             alert(data.message || 'Something went wrong. Please try again.');
+                            if (isBuyNow) {
+                                buyNowBtn.disabled = false;
+                                buyNowBtn.textContent = 'Buy It Now';
+                            }
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
                         alert('An error occurred. Please try again.');
+                        if (isBuyNow) {
+                            buyNowBtn.disabled = false;
+                            buyNowBtn.textContent = 'Buy It Now';
+                        }
                     });
                 }
 
                 if (addToCartBtn) addToCartBtn.addEventListener('click', handleAddToCart);
+                if (buyNowBtn) buyNowBtn.addEventListener('click', handleAddToCart);
                 if (stickyAddToCartBtn) stickyAddToCartBtn.addEventListener('click', handleAddToCart);
             });
         </script>
         <script src="{{ asset('assets/js/plugin/drift.min.js') }}"></script>
+        <script src="{{ asset('assets/js/plugin/photoswipe.umd.min.js') }}"></script>
+        <script src="{{ asset('assets/js/plugin/photoswipe-lightbox.umd.min.js') }}"></script>
         <script src="{{ asset('assets/js/zoom.js') }}"></script>
     </x-slot>
 

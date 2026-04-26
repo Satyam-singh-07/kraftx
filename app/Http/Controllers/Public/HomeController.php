@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use App\Models\Collection;
+use App\Models\BlogPost;
 use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
 
@@ -97,6 +98,12 @@ class HomeController extends Controller
             ->get()
             ->map($mapProduct);
 
-        return view('index', compact('banners', 'collections', 'topPicks', 'trendingProducts'));
+        $posts = BlogPost::where('status', 1)
+            ->where('is_home', 1)
+            ->latest('published_at')
+            ->take(3)
+            ->get();
+
+        return view('index', compact('banners', 'collections', 'topPicks', 'trendingProducts', 'posts'));
     }
 }

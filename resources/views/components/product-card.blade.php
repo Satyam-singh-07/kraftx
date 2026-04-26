@@ -22,7 +22,7 @@
                     <span class="tooltip">Add to Wishlist</span>
                 </a>
             </li>
-            <li class="compare">
+            {{-- <li class="compare">
                 <a href="#compare" data-bs-toggle="offcanvas"
                     class="hover-tooltip tooltip-left box-icon">
                     <span class="icon icon-ArrowsLeftRight"></span>
@@ -35,7 +35,7 @@
                     <span class="icon icon-Eye"></span>
                     <span class="tooltip">Quick view</span>
                 </a>
-            </li>
+            </li> --}}
         </ul>
         @if(isset($product['badges']))
             <ul class="product-badge_list">
@@ -55,7 +55,9 @@
         @endif
         <div class="product-action_bot">
             <button type="button" 
-                class="tf-btn btn-white small w-100 btn-quick-add" 
+                class="tf-btn btn-white small w-100" 
+                data-bs-toggle="modal" 
+                data-bs-target="#quickAdd"
                 data-product-id="{{ $product['id'] }}">
                 Quick Add
             </button>

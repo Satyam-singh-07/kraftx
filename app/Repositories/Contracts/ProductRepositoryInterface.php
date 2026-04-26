@@ -17,4 +17,6 @@ interface ProductRepositoryInterface
     public function createSeoMeta(Product $product, array $data): void;
     public function updateSeoMeta(Product $product, array $data): void;
     public function createVariants(Product $product, array $variants): void;
+    public function search(string $query, int $limit = 10);
+    public function getTrending(int $limit = 5);
 }

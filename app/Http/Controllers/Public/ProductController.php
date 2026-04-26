@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
+use App\Models\CartItem;
 use App\Models\Collection;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 
@@ -36,8 +36,45 @@ class ProductController extends Controller
                 ->get();
         }
 
-        // dd($relatedProducts);
-        return view('public.products.show', compact('product', 'breadcrumbs', 'relatedProducts'));
+        $reviews = $product->reviews()
+            ->where('status', 'approved')
+            ->latest()
+            ->get();
+
+        $totalReviews = $reviews->count();
+        $averageRating = $totalReviews > 0 ? round((float) $reviews->avg('rating'), 1) : 0;
+
+        $ratingCounts = collect([5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0]);
+        foreach ($reviews->countBy('rating') as $rating => $count) {
+            $ratingCounts[(int) $rating] = $count;
+        }
+
+        $ratingPercentages = $ratingCounts->map(function ($count) use ($totalReviews) {
+            return $totalReviews > 0 ? (int) round(($count / $totalReviews) * 100) : 0;
+        });
+
+        $user = auth()->user();
+        $hasPurchasedProduct = false;
+        if ($user) {
+            $hasPurchasedProduct = CartItem::where('product_id', $product->id)
+                ->whereHas('cart', function ($query) use ($user) {
+                    $query->where('user_id', $user->id)
+                        ->whereIn('status', ['completed', 'paid', 'delivered']);
+                })
+                ->exists();
+        }
+
+        return view('public.products.show', compact(
+            'product',
+            'breadcrumbs',
+            'relatedProducts',
+            'reviews',
+            'totalReviews',
+            'averageRating',
+            'ratingCounts',
+            'ratingPercentages',
+            'hasPurchasedProduct'
+        ));
     }
     
     public function collectionShow(string $slug)

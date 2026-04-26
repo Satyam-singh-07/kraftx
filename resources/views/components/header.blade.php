@@ -12,25 +12,25 @@
                     <ul class="box-nav-menu">
                         <li class="menu-item position-relative">
                             <a href="{{ route('home') }}" class="item-link">
-                                <span class="text cus-text">Car Dashboard</span>
+                                <span class="text cus-text">Home</span>
                             </a>
                             <!-- ... (Home Submenu) ... -->
                         </li>
                         <li class="menu-item">
                             <a href="#" class="item-link">
-                                <span class="text cus-text">Shop</span>
+                                <span class="text cus-text">God Idols</span>
 
                             </a>
                             <!-- ... (Shop Submenu) ... -->
                         </li>
                         <li class="menu-item">
-                            <a href="#" class="item-link">
-                                <span class="text cus-text">Product</span>
+                            <a href="{{ route('collection.show', ['slug' => 'car-dashboard-idols']) }}" class="item-link">
+                                <span class="text cus-text">Car Dashboard Idols</span>
                             </a>
                             <!-- ... (Product Submenu) ... -->
                         </li>
                         <li class="menu-item position-relative">
-                            <a href="#" class="item-link">
+                            <a href="{{ route('blog.index') }}" class="item-link">
                                 <span class="text cus-text">Blog</span>
 
                             </a>
