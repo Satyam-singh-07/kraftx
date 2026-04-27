@@ -221,7 +221,40 @@
                 </div>
             </x-admin.card>
 
-            <x-admin.card title="Organization & Visibility">
+            <x-admin.card title="Shipping Information (Shiprocket)">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Weight (Kg) *</label>
+                        <input type="number" step="0.001" name="weight" required value="{{ old('weight', 0) }}"
+                            class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                        <p class="text-xs text-gray-500 mt-1">Example: 0.500 for 500g</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">HSN Code</label>
+                        <input type="text" name="hsn_code" value="{{ old('hsn_code') }}"
+                            class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Length (Cm) *</label>
+                        <input type="number" step="0.1" name="length" required value="{{ old('length', 0) }}"
+                            class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Width (Cm) *</label>
+                        <input type="number" step="0.1" name="width" required value="{{ old('width', 0) }}"
+                            class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Height (Cm) *</label>
+                        <input type="number" step="0.1" name="height" required value="{{ old('height', 0) }}"
+                            class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                    </div>
+                </div>
+            </x-admin.card>
+
+            <x-admin.card title="Organization">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Collections</label>

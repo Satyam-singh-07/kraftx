@@ -31,4 +31,10 @@ return [
         ],
     ],
 
+    'shiprocket' => [
+        'key' => env('SHIPROCKET_API_KEY'),
+        'secret' => env('SHIPROCKET_API_SECRET'),
+        'catalog_token' => env('SHIPROCKET_CATALOG_TOKEN', 'kraftx_shiprocket_secure_sync_2026'),
+    ],
+
 ];
