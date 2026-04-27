@@ -45,36 +45,20 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Product Management
-    Route::get('products/search', [ProductController::class, 'search'])->name('products.search');
-    Route::post('products/bulk-delete', [ProductController::class, 'bulkDelete'])->name('products.bulk-delete');
-    Route::post('products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
-    Route::delete('products/images/{image}', [ProductController::class, 'deleteImage'])->name('products.delete-image');
-    Route::resource('products', ProductController::class);
-    Route::post('collections/{collection}/toggle-status', [CollectionController::class, 'toggleStatus'])->name('collections.toggle-status');
-    Route::resource('collections', CollectionController::class);
-    Route::resource('customers', CustomerController::class);
-    Route::resource('banners', BannerController::class);
-    Route::resource('reels', ReelController::class);
-    Route::resource('deals', DealController::class);
-    Route::resource('coupons', CouponController::class);
-    Route::resource('tags', TagController::class);
-    Route::resource('blog-categories', BlogCategoryController::class);
-    Route::resource('blog-posts', BlogPostController::class);
-    Route::get('blog-comments', [BlogCommentController::class, 'index'])->name('blog-comments.index');
-    Route::patch('blog-comments/{comment}/status', [BlogCommentController::class, 'updateStatus'])->name('blog-comments.status');
-    Route::delete('blog-comments/{comment}', [BlogCommentController::class, 'destroy'])->name('blog-comments.destroy');
-    Route::get('contact-messages', [ContactMessageController::class, 'index'])->name('contact-messages.index');
-    Route::patch('contact-messages/{message}/mark-read', [ContactMessageController::class, 'markRead'])->name('contact-messages.mark-read');
-    Route::delete('contact-messages/{message}', [ContactMessageController::class, 'destroy'])->name('contact-messages.destroy');
-    Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
-    Route::get('reviews/create', [ReviewController::class, 'create'])->name('reviews.create');
-    Route::post('reviews', [ReviewController::class, 'store'])->name('reviews.store');
-    Route::patch('reviews/{review}/status', [ReviewController::class, 'updateStatus'])->name('reviews.status');
-    Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
-    Route::resource('newsletters', AdminNewsletterController::class)->only(['index', 'destroy']);
-
-    Route::get('/orders', fn () => view('admin.dashboard', ['stats' => ['total_orders' => 0, 'total_revenue' => 0, 'total_products' => 0, 'total_customers' => 0, 'recent_orders' => [], 'sales_data' => ['labels' => [], 'data' => []], 'orders_data' => ['labels' => [], 'data' => []]]]))->name('orders.index');
-    Route::get('/settings', fn () => view('admin.dashboard', ['stats' => ['total_orders' => 0, 'total_revenue' => 0, 'total_products' => 0, 'total_customers' => 0, 'recent_orders' => [], 'sales_data' => ['labels' => [], 'data' => []], 'orders_data' => ['labels' => [], 'data' => []]]]))->name('settings.index');
+    Route::post('products/bulk-delete', [\App\Http\Controllers\Admin\ProductController::class, 'bulkDelete'])->name('products.bulk-delete');
+    Route::post('products/{product}/toggle-status', [\App\Http\Controllers\Admin\ProductController::class, 'toggleStatus'])->name('products.toggle-status');
+    Route::delete('products/images/{image}', [\App\Http\Controllers\Admin\ProductController::class, 'deleteImage'])->name('products.delete-image');
+    Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
+    Route::post('collections/{collection}/toggle-status', [\App\Http\Controllers\Admin\CollectionController::class, 'toggleStatus'])->name('collections.toggle-status');
+    Route::resource('collections', \App\Http\Controllers\Admin\CollectionController::class);
+    Route::resource('customers', \App\Http\Controllers\Admin\CustomerController::class);
+    Route::resource('banners', \App\Http\Controllers\Admin\BannerController::class);
+    Route::resource('reels', \App\Http\Controllers\Admin\ReelController::class);
+    Route::resource('deals', \App\Http\Controllers\Admin\DealController::class);
+    Route::resource('coupons', \App\Http\Controllers\Admin\CouponController::class);
+    
+    Route::get('/orders', fn() => view('admin.dashboard', ['stats' => ['total_orders' => 0, 'total_revenue' => 0, 'total_products' => 0, 'total_customers' => 0, 'recent_orders' => [], 'sales_data' => ['labels' => [], 'data' => []], 'orders_data' => ['labels' => [], 'data' => []]]]))->name('orders.index');
+    Route::get('/settings', fn() => view('admin.dashboard', ['stats' => ['total_orders' => 0, 'total_revenue' => 0, 'total_products' => 0, 'total_customers' => 0, 'recent_orders' => [], 'sales_data' => ['labels' => [], 'data' => []], 'orders_data' => ['labels' => [], 'data' => []]]]))->name('settings.index');
 });
 
 // Public Product Routes
