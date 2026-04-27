@@ -38,6 +38,44 @@ class ReviewController extends Controller
         return view('admin.reviews.index', compact('reviews', 'products', 'filters'));
     }
 
+    public function create()
+    {
+        $products = Product::orderBy('name')->get(['id', 'name']);
+        return view('admin.reviews.create', compact('products'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'required|string',
+            'status' => 'required|in:pending,approved,rejected',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
+
+        $imagePaths = [];
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $imagePaths[] = $image->store('reviews', 'public');
+            }
+        }
+
+        Review::create([
+            'product_id' => $validated['product_id'],
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'rating' => $validated['rating'],
+            'comment' => $validated['comment'],
+            'status' => $validated['status'],
+            'images' => $imagePaths,
+        ]);
+
+        return redirect()->route('admin.reviews.index')->with('success', 'Review created successfully.');
+    }
+
     public function updateStatus(Request $request, Review $review)
     {
         $validated = $request->validate([

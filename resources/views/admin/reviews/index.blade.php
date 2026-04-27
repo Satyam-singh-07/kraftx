@@ -2,8 +2,13 @@
     <div class="space-y-6">
         <div class="flex items-center justify-between">
             <h2 class="text-xl font-bold text-gray-800 dark:text-white">Product Reviews</h2>
-            <div class="text-sm text-gray-500 dark:text-gray-400">
-                Total: {{ $reviews->total() }}
+            <div class="flex items-center gap-4">
+                <a href="{{ route('admin.reviews.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm">
+                    Add New Review
+                </a>
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                    Total: {{ $reviews->total() }}
+                </div>
             </div>
         </div>
 

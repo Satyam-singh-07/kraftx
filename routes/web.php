@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\NewsletterController as AdminNewsletterController
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReelController;
 use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Public\BlogController;
 use App\Http\Controllers\Public\CartController;
 use App\Http\Controllers\Public\ContactController;
@@ -66,6 +67,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::patch('contact-messages/{message}/mark-read', [ContactMessageController::class, 'markRead'])->name('contact-messages.mark-read');
     Route::delete('contact-messages/{message}', [ContactMessageController::class, 'destroy'])->name('contact-messages.destroy');
     Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
+    Route::get('reviews/create', [ReviewController::class, 'create'])->name('reviews.create');
+    Route::post('reviews', [ReviewController::class, 'store'])->name('reviews.store');
     Route::patch('reviews/{review}/status', [ReviewController::class, 'updateStatus'])->name('reviews.status');
     Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
     Route::resource('newsletters', AdminNewsletterController::class)->only(['index', 'destroy']);
