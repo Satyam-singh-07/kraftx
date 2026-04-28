@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Helpers\SeoHelper;
 use App\Http\Controllers\Controller;
 use App\Models\CartItem;
 use App\Models\Collection;
@@ -40,6 +41,7 @@ class ProductController extends Controller
             ->where('status', 'approved')
             ->latest()
             ->get();
+        $product->setRelation('reviews', $reviews);
 
         $totalReviews = $reviews->count();
         $averageRating = $totalReviews > 0 ? round((float) $reviews->avg('rating'), 1) : 0;
@@ -64,6 +66,25 @@ class ProductController extends Controller
                 ->exists();
         }
 
+        $seo = SeoHelper::forModel($product, [
+            'title' => ($product->seoMeta?->meta_title ?: $product->name) . ' | ' . config('app.name', 'KraftX'),
+            'canonical' => route('product.show', $product->slug),
+            'type' => 'product',
+            'preload' => $product->images->first()?->image_path ? [[
+                'href' => asset('storage/' . $product->images->first()->image_path),
+                'as' => 'image',
+                'fetchpriority' => 'high',
+            ]] : [],
+            'json_ld' => [
+                SeoHelper::breadcrumbSchema([
+                    ['name' => 'Home', 'url' => route('home')],
+                    ['name' => $product->collections->first()->name ?? 'Collection', 'url' => $product->collections->first()?->slug ? route('collection.show', $product->collections->first()->slug) : route('home')],
+                    ['name' => $product->name, 'url' => route('product.show', $product->slug)],
+                ]),
+                SeoHelper::productSchema($product, $averageRating, $totalReviews),
+            ],
+        ]);
+
         return view('public.products.show', compact(
             'product',
             'breadcrumbs',
@@ -73,7 +94,8 @@ class ProductController extends Controller
             'averageRating',
             'ratingCounts',
             'ratingPercentages',
-            'hasPurchasedProduct'
+            'hasPurchasedProduct',
+            'seo'
         ));
     }
     
@@ -110,6 +132,26 @@ class ProductController extends Controller
         // Replace the collection in the paginator with the mapped one
         $productsModel->setCollection($products);
 
-        return view('public.collections.show', ['collection' => $collection, 'products' => $productsModel]);
+        $seo = SeoHelper::forModel($collection, [
+            'title' => ($collection->seoMeta?->meta_title ?: $collection->name) . ' Collection | ' . config('app.name', 'KraftX'),
+            'description' => $collection->seoMeta?->meta_description
+                ?? $collection->description
+                ?? 'Browse products from the ' . $collection->name . ' collection at ' . config('app.name', 'KraftX') . '.',
+            'canonical' => route('collection.show', $collection->slug),
+            'type' => 'website',
+            'preload' => $collection->image ? [[
+                'href' => asset('storage/' . $collection->image),
+                'as' => 'image',
+            ]] : [],
+            'json_ld' => [
+                SeoHelper::breadcrumbSchema([
+                    ['name' => 'Home', 'url' => route('home')],
+                    ['name' => $collection->name, 'url' => route('collection.show', $collection->slug)],
+                ]),
+                SeoHelper::collectionSchema($collection, $collection->products()->where('status', true)->take(16)->get()),
+            ],
+        ]);
+
+        return view('public.collections.show', ['collection' => $collection, 'products' => $productsModel, 'seo' => $seo]);
     }
 }

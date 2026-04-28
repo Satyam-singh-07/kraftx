@@ -1,4 +1,4 @@
-<x-layout title="KraftX - Privacy Policy">
+<x-layout :seo="$seo" title="KraftX - Privacy Policy">
     <section class="section-page-title text-center flat-spacing-2 pb-0">
         <div class="container">
             <div class="main-page-title">
@@ -138,7 +138,7 @@
                     <div class="text-wrap">
                         <p class="term-text cl-text-2">Your feedback helps us improve.</p>
                         <p class="term-text cl-text-2">For any questions regarding this Privacy Policy or your data, you can contact us at:</p>
-                        <a href="mailto:support@kraftx.com" class="link fw-medium">support@kraftx.com</a>
+                        <a href="mailto:{{ config('seo.support_email') }}" class="link fw-medium">{{ config('seo.support_email') }}</a>
                     </div>
                 </div>
 

@@ -1,15 +1,18 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="{{ str_replace('_', '-', config('app.locale', 'en')) }}"
+    lang="{{ str_replace('_', '-', config('app.locale', 'en')) }}">
 
 <head>
+    @php
+        $seoData = \App\Helpers\SeoHelper::build($seo ?? [
+            'title' => $title ?? config('app.name', 'KraftX'),
+        ]);
+    @endphp
     <meta charset="utf-8">
-    <title>{{ $title ?? 'Amerce - Multipurpose eCommerce HTML Template' }}</title>
-    <meta name="author" content="themesflat.com">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="author" content="{{ config('app.name', 'KraftX') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="description"
-        content="Themesflat Amerce - A modern and elegant Multipurpose eCommerce HTML Template, perfect for online stores selling rings, necklaces, watches, and other accessories. SEO-optimized, fast-loading, and fully customizable.">
-
-
+    {!! \App\Helpers\SeoHelper::renderMetaTags($seoData) !!}
 
     <!-- font -->
     <link rel="stylesheet" href="{{ asset('assets/fonts/fonts.css') }}">
@@ -24,14 +27,14 @@
     <!-- Favicon and Touch Icons  -->
     <link rel="shortcut icon" href="{{ asset('assets/images/logo/favicon.svg') }}">
     <link rel="apple-touch-icon-precomposed" href="{{ asset('assets/images/logo/favicon.svg') }}">
+    @foreach(($seoData['preload'] ?? []) as $preload)
+        <link rel="preload" href="{{ $preload['href'] ?? '' }}" as="{{ $preload['as'] ?? 'image' }}"
+            @if(!empty($preload['type'])) type="{{ $preload['type'] }}" @endif
+            @if(!empty($preload['fetchpriority'])) fetchpriority="{{ $preload['fetchpriority'] }}" @endif>
+    @endforeach
     {{ $head ?? '' }}
-
-    <!-- SEO Tags Output via Helper -->
-
-
-
+    {!! \App\Helpers\SeoHelper::renderJsonLd($seoData['json_ld'] ?? []) !!}
     @yield('seo')
-
 
 </head>
 

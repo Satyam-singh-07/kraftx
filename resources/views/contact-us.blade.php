@@ -1,4 +1,4 @@
-<x-layout title="KraftX - Contact Us">
+<x-layout :seo="$seo" title="KraftX - Contact Us">
     <x-slot name="styles">
         <style>
             .contact-hero-modern {
@@ -55,6 +55,11 @@
         </style>
     </x-slot>
 
+    @php
+        $supportPhone = config('seo.support_phone');
+        $supportEmail = config('seo.support_email');
+        $supportAddress = config('seo.address');
+    @endphp
     <section class="contact-hero-modern">
         <div class="container">
             <div class="main-page-title text-center">
@@ -80,22 +85,22 @@
                     <ul class="contact-info-list">
                         <li>
                             <p class="text-caption-01 cl-text-2 mb-4">Phone</p>
-                            <a href="tel:+919990010933" class="h6 fw-medium">+91 99900 10933</a>
+                            <a href="tel:{{ preg_replace('/[^0-9+]/', '', $supportPhone) }}" class="h6 fw-medium">{{ $supportPhone }}</a>
                         </li>
                         <li>
                             <p class="text-caption-01 cl-text-2 mb-4">Email</p>
-                            <a href="mailto:thekraftx@gmail.com" class="h6 fw-medium">thekraftx@gmail.com</a>
+                            <a href="mailto:{{ $supportEmail }}" class="h6 fw-medium">{{ $supportEmail }}</a>
                         </li>
                         <li>
                             <p class="text-caption-01 cl-text-2 mb-4">Address</p>
-                            <a href="https://www.google.com/maps?q=Gaur+City+Center,+Gaur+City+West,+Greater+Noida,+UP,+India,+201308" target="_blank" rel="noopener noreferrer">
-                                Gaur City Center, Gaur City West, Greater Noida, UP, India, 201308
+                            <a href="https://www.google.com/maps?q={{ urlencode($supportAddress) }}" target="_blank" rel="noopener noreferrer">
+                                {{ $supportAddress }}
                             </a>
                         </li>
                     </ul>
                     <div class="mt-20">
                         <iframe class="contact-map-modern" loading="lazy"
-                            src="https://www.google.com/maps?q=Gaur+City+Center,+Gaur+City+West,+Greater+Noida,+UP,+India,+201308&output=embed"
+                            src="https://www.google.com/maps?q={{ urlencode($supportAddress) }}&output=embed"
                             referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
                     </div>
                 </div>

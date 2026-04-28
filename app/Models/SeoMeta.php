@@ -18,6 +18,7 @@ class SeoMeta extends Model
         'meta_keywords',
         'og_image',
         'canonical_url',
+        'meta_robots',
     ];
 
     public function metaable(): MorphTo

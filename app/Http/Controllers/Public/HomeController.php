@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Helpers\SeoHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use App\Models\Collection;
@@ -104,6 +105,36 @@ class HomeController extends Controller
             ->take(3)
             ->get();
 
-        return view('index', compact('banners', 'collections', 'topPicks', 'trendingProducts', 'posts'));
+        $seo = [
+            'title' => config('app.name', 'KraftX') . ' | Handcrafted Decor, Spiritual Art & Gifts',
+            'description' => 'Shop handcrafted wall decor, spiritual art, trending home accents, and unique gift ideas at KraftX.',
+            'canonical' => route('home'),
+            'type' => 'website',
+            'image' => $banners->first()?->image ? Storage::url($banners->first()->image) : asset('assets/images/logo/logo.png'),
+            'preload' => $banners->first()?->image ? [[
+                'href' => Storage::url($banners->first()->image),
+                'as' => 'image',
+                'fetchpriority' => 'high',
+            ]] : [],
+            'json_ld' => [
+                SeoHelper::organizationSchema(),
+                SeoHelper::websiteSchema(),
+                SeoHelper::webPageSchema([
+                    'title' => config('app.name', 'KraftX') . ' | Handcrafted Decor, Spiritual Art & Gifts',
+                    'description' => 'Shop handcrafted wall decor, spiritual art, trending home accents, and unique gift ideas at KraftX.',
+                    'canonical' => route('home'),
+                ]),
+                SeoHelper::itemListSchema('Top Picks', $topPicks, fn ($product) => [
+                    'url' => $product['url'],
+                    'name' => $product['name'],
+                ]),
+                SeoHelper::itemListSchema('Trending Products', $trendingProducts, fn ($product) => [
+                    'url' => $product['url'],
+                    'name' => $product['name'],
+                ]),
+            ],
+        ];
+
+        return view('index', compact('banners', 'collections', 'topPicks', 'trendingProducts', 'posts', 'seo'));
     }
 }

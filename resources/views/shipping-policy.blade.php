@@ -1,4 +1,4 @@
-<x-layout title="KraftX - Shipping & Cancellation Policy">
+<x-layout :seo="$seo" title="KraftX - Shipping & Cancellation Policy">
 
 
   <style>
@@ -86,8 +86,7 @@
                         <li>Orders can be cancelled within 24 hours of placing the order</li>
                         <li>To cancel, contact us at:</li>
                     </ul>
-                    <p class="term-text cl-text-2 mb-1">Email: <a href="mailto:support@kraftx.com" class="link fw-medium">support@kraftx.com</a></p>
-                    <p class="term-text cl-text-2 mb-1">(update if needed)</p>
+                    <p class="term-text cl-text-2 mb-1">Email: <a href="mailto:{{ config('seo.support_email') }}" class="link fw-medium">{{ config('seo.support_email') }}</a></p>
                     <p class="term-text cl-text-2">Once the order is processed or shipped, cancellation is not possible</p>
                 </div>
 

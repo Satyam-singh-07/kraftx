@@ -10,10 +10,10 @@
 <div class="card-product {{ $product['hasSize'] ? 'has-size' : '' }}">
     <div class="card-product_wrapper">
         <a href="{{ $product['url'] }}" class="product-img">
-            <img class="img-product" loading="lazy" width="330" height="440"
-                src="{{ $imageSrc }}" alt="{{ $product['name'] }}">
-            <img class="img-hover" loading="lazy" width="330" height="440"
-                src="{{ $hoverSrc }}" alt="{{ $product['name'] }}">
+            <img class="img-product" loading="lazy" decoding="async" width="330" height="440"
+                src="{{ $imageSrc }}" alt="{{ $product['name'] }} primary image">
+            <img class="img-hover" loading="lazy" decoding="async" width="330" height="440"
+                src="{{ $hoverSrc }}" alt="{{ $product['name'] }} alternate view">
         </a>
         <ul class="product-action_list">
             <li class="wishlist">
@@ -93,7 +93,7 @@
                         <span class="tooltip color-filter">{{ $color['name'] }}</span>
                         <span class="swatch-value {{ $color['class'] }}"></span>
                         <img src="{{ asset($color['image']) }}"
-                            data-src="{{ asset($color['image']) }}" alt="Image">
+                            data-src="{{ asset($color['image']) }}" alt="{{ $product['name'] }} in {{ $color['name'] }}">
                     </li>
                 @endforeach
             </ul>

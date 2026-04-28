@@ -1,7 +1,4 @@
-<x-layout>
-    <x-slot name="seo">
-        {!! \App\Helpers\SeoHelper::getSeoTags($post) !!}
-    </x-slot>
+<x-layout :seo="$seo">
 
     <style>
         .blog-single-hero { padding: 80px 0; background: #fbf8f4; margin-bottom: 60px; }
@@ -129,7 +126,7 @@
                         <div class="blog-image">
                             <a href="{{ route('blog.show', $rel->slug) }}">
                                 @if($rel->featured_image)
-                                    <img src="{{ Storage::url($rel->featured_image) }}" alt="" style="width: 100%; aspect-ratio: 16/10; object-fit: cover;">
+                                    <img src="{{ Storage::url($rel->featured_image) }}" alt="{{ $rel->title }}" style="width: 100%; aspect-ratio: 16/10; object-fit: cover;">
                                 @endif
                             </a>
                         </div>

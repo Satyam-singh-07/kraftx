@@ -1,5 +1,7 @@
 <?php
 
+use App\Helpers\SeoHelper;
+use App\Http\Controllers\SeoController;
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\BlogCategoryController;
 use App\Http\Controllers\Admin\BlogCommentController;
@@ -28,16 +30,186 @@ use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::view('/term-and-condition', 'term-and-condition')->name('terms.conditions');
-Route::view('/privacy-policy', 'privacy-policy')->name('privacy.policy');
-Route::view('/return-and-refund', 'return-and-refund')->name('return.refund');
-Route::view('/shipping-policy', 'shipping-policy')->name('shipping.policy');
-Route::view('/contact-us', 'contact-us')->name('contact.us');
+Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');
+Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
+Route::get('/term-and-condition', function () {
+    $seo = [
+        'title' => 'Terms & Conditions | ' . config('app.name', 'KraftX'),
+        'description' => 'Read the terms and conditions for using the KraftX website, products, and services.',
+        'canonical' => route('terms.conditions'),
+        'type' => 'article',
+        'json_ld' => [
+            SeoHelper::webPageSchema([
+                'title' => 'Terms & Conditions | ' . config('app.name', 'KraftX'),
+                'description' => 'Read the terms and conditions for using the KraftX website, products, and services.',
+                'canonical' => route('terms.conditions'),
+            ]),
+            SeoHelper::breadcrumbSchema([
+                ['name' => 'Home', 'url' => route('home')],
+                ['name' => 'Terms & Conditions', 'url' => route('terms.conditions')],
+            ]),
+            SeoHelper::faqSchema([
+                [
+                    'question' => 'Can KraftX update its terms and conditions?',
+                    'answer' => 'Yes. KraftX may update the terms at any time, and continued use of the site means you accept the revised terms.',
+                ],
+                [
+                    'question' => 'Are users allowed to use the website for unlawful activity?',
+                    'answer' => 'No. The website and services may not be used for any illegal, abusive, or unauthorized purpose.',
+                ],
+            ]),
+        ],
+    ];
+
+    return view('term-and-condition', compact('seo'));
+})->name('terms.conditions');
+Route::get('/privacy-policy', function () {
+    $seo = [
+        'title' => 'Privacy Policy | ' . config('app.name', 'KraftX'),
+        'description' => 'Review how KraftX collects, uses, stores, and protects customer information.',
+        'canonical' => route('privacy.policy'),
+        'type' => 'article',
+        'json_ld' => [
+            SeoHelper::webPageSchema([
+                'title' => 'Privacy Policy | ' . config('app.name', 'KraftX'),
+                'description' => 'Review how KraftX collects, uses, stores, and protects customer information.',
+                'canonical' => route('privacy.policy'),
+            ]),
+            SeoHelper::breadcrumbSchema([
+                ['name' => 'Home', 'url' => route('home')],
+                ['name' => 'Privacy Policy', 'url' => route('privacy.policy')],
+            ]),
+            SeoHelper::faqSchema([
+                [
+                    'question' => 'What customer information does KraftX collect?',
+                    'answer' => 'KraftX may collect details such as name, address, email, and phone number for order processing, delivery, and support.',
+                ],
+                [
+                    'question' => 'Does KraftX store payment card details?',
+                    'answer' => 'No. Payment information is handled by trusted third-party gateways and is not stored by KraftX.',
+                ],
+            ]),
+        ],
+    ];
+
+    return view('privacy-policy', compact('seo'));
+})->name('privacy.policy');
+Route::get('/return-and-refund', function () {
+    $seo = [
+        'title' => 'Return & Refund Policy | ' . config('app.name', 'KraftX'),
+        'description' => 'Understand KraftX return, replacement, and refund rules for eligible orders and products.',
+        'canonical' => route('return.refund'),
+        'type' => 'article',
+        'json_ld' => [
+            SeoHelper::webPageSchema([
+                'title' => 'Return & Refund Policy | ' . config('app.name', 'KraftX'),
+                'description' => 'Understand KraftX return, replacement, and refund rules for eligible orders and products.',
+                'canonical' => route('return.refund'),
+            ]),
+            SeoHelper::breadcrumbSchema([
+                ['name' => 'Home', 'url' => route('home')],
+                ['name' => 'Return & Refund Policy', 'url' => route('return.refund')],
+            ]),
+            SeoHelper::faqSchema([
+                [
+                    'question' => 'When should a return request be raised?',
+                    'answer' => 'Return or refund issues should be reported within the policy window after delivery, along with proof such as an unboxing video where required.',
+                ],
+                [
+                    'question' => 'Does KraftX refund the original payment method?',
+                    'answer' => 'Refund and replacement eligibility depends on the policy and product condition. Refer to the return page for the exact rules that apply.',
+                ],
+            ]),
+        ],
+    ];
+
+    return view('return-and-refund', compact('seo'));
+})->name('return.refund');
+Route::get('/shipping-policy', function () {
+    $seo = [
+        'title' => 'Shipping Policy | ' . config('app.name', 'KraftX'),
+        'description' => 'Learn about KraftX shipping timelines, delivery expectations, and cancellation policy details.',
+        'canonical' => route('shipping.policy'),
+        'type' => 'article',
+        'json_ld' => [
+            SeoHelper::webPageSchema([
+                'title' => 'Shipping Policy | ' . config('app.name', 'KraftX'),
+                'description' => 'Learn about KraftX shipping timelines, delivery expectations, and cancellation policy details.',
+                'canonical' => route('shipping.policy'),
+            ]),
+            SeoHelper::breadcrumbSchema([
+                ['name' => 'Home', 'url' => route('home')],
+                ['name' => 'Shipping Policy', 'url' => route('shipping.policy')],
+            ]),
+            SeoHelper::faqSchema([
+                [
+                    'question' => 'How long does KraftX take to process an order?',
+                    'answer' => 'Orders are typically processed within one to two business days, though high-demand periods may require additional time.',
+                ],
+                [
+                    'question' => 'Can I cancel an order after placing it?',
+                    'answer' => 'Orders can usually be cancelled only within the allowed cancellation window and before they have been processed or shipped.',
+                ],
+            ]),
+        ],
+    ];
+
+    return view('shipping-policy', compact('seo'));
+})->name('shipping.policy');
+Route::get('/contact-us', function () {
+    $seo = [
+        'title' => 'Contact Us | ' . config('app.name', 'KraftX'),
+        'description' => 'Contact KraftX for order support, shipping help, and product-related questions.',
+        'canonical' => route('contact.us'),
+        'type' => 'website',
+        'json_ld' => [
+            SeoHelper::webPageSchema([
+                'title' => 'Contact Us | ' . config('app.name', 'KraftX'),
+                'description' => 'Contact KraftX for order support, shipping help, and product-related questions.',
+                'canonical' => route('contact.us'),
+            ]),
+            SeoHelper::breadcrumbSchema([
+                ['name' => 'Home', 'url' => route('home')],
+                ['name' => 'Contact Us', 'url' => route('contact.us')],
+            ]),
+            array_merge(SeoHelper::organizationSchema(), [
+                'contactPoint' => [[
+                    '@type' => 'ContactPoint',
+                    'telephone' => config('seo.support_phone'),
+                    'contactType' => 'customer support',
+                    'email' => config('seo.support_email'),
+                    'areaServed' => config('seo.country_code', 'IN'),
+                    'availableLanguage' => ['en', 'hi'],
+                ]],
+            ]),
+        ],
+    ];
+
+    return view('contact-us', compact('seo'));
+})->name('contact.us');
 Route::post('/contact-us', [ContactController::class, 'store'])->name('contact.us.store');
 Route::post('/newsletter', [PublicNewsletterController::class, 'store'])->name('newsletter.store');
 
 Route::get('/track-order', function () {
-    return view('track-order');
+    $seo = [
+        'title' => 'Track Your Order | ' . config('app.name', 'KraftX'),
+        'description' => 'Track your KraftX order status using your order ID and billing email address.',
+        'canonical' => route('track.order'),
+        'robots' => 'noindex,follow',
+        'json_ld' => [
+            SeoHelper::webPageSchema([
+                'title' => 'Track Your Order | ' . config('app.name', 'KraftX'),
+                'description' => 'Track your KraftX order status using your order ID and billing email address.',
+                'canonical' => route('track.order'),
+            ]),
+            SeoHelper::breadcrumbSchema([
+                ['name' => 'Home', 'url' => route('home')],
+                ['name' => 'Track Your Order', 'url' => route('track.order')],
+            ]),
+        ],
+    ];
+
+    return view('track-order', compact('seo'));
 })->name('track.order');
 
 // Admin Routes
@@ -106,7 +278,21 @@ Route::get('/search', [SearchController::class, 'results'])->name('search.result
 Route::get('/api/search/suggestions', [SearchController::class, 'suggestions'])->name('api.search.suggestions');
 
 Route::get('/checkout', function () {
-    return 'Checkout Page Placeholder';
+    $seo = [
+        'title' => 'Checkout | ' . config('app.name', 'KraftX'),
+        'description' => 'Secure checkout for your KraftX order.',
+        'canonical' => route('checkout'),
+        'robots' => 'noindex,follow',
+        'json_ld' => [
+            SeoHelper::webPageSchema([
+                'title' => 'Checkout | ' . config('app.name', 'KraftX'),
+                'description' => 'Secure checkout for your KraftX order.',
+                'canonical' => route('checkout'),
+            ]),
+        ],
+    ];
+
+    return view('checkout', compact('seo'));
 })->name('checkout');
 
 // Public Deals & Coupons

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Helpers\SeoHelper;
 use App\Http\Controllers\Controller;
 use App\Models\BlogPost;
 use App\Models\BlogCategory;
@@ -32,7 +33,29 @@ class BlogController extends Controller
         $tags = Tag::all();
         $recentPosts = BlogPost::where('status', true)->latest('published_at')->take(5)->get();
 
-        return view('public.blog.index', compact('posts', 'categories', 'tags', 'recentPosts'));
+        $filterLabel = $request->category ?: $request->tag;
+        $title = $filterLabel
+            ? 'Blog: ' . str_replace('-', ' ', $filterLabel) . ' | ' . config('app.name', 'KraftX')
+            : config('app.name', 'KraftX') . ' Blog | Stories, Guides & Inspiration';
+        $description = $filterLabel
+            ? 'Browse KraftX blog posts related to ' . str_replace('-', ' ', $filterLabel) . '.'
+            : 'Read stories, decor guides, gifting ideas, and product insights from the ' . config('app.name', 'KraftX') . ' blog.';
+
+        $seo = [
+            'title' => $title,
+            'description' => $description,
+            'canonical' => $request->fullUrl(),
+            'type' => 'website',
+            'json_ld' => [
+                SeoHelper::breadcrumbSchema([
+                    ['name' => 'Home', 'url' => route('home')],
+                    ['name' => 'Blog', 'url' => route('blog.index')],
+                ]),
+                SeoHelper::blogSchema($posts->getCollection()),
+            ],
+        ];
+
+        return view('public.blog.index', compact('posts', 'categories', 'tags', 'recentPosts', 'seo'));
     }
 
     public function show($slug)
@@ -48,7 +71,25 @@ class BlogController extends Controller
             ->take(3)
             ->get();
 
-        return view('public.blog.show', compact('post', 'relatedPosts'));
+        $seo = SeoHelper::forModel($post, [
+            'title' => ($post->seoMeta?->meta_title ?: $post->title) . ' | ' . config('app.name', 'KraftX') . ' Blog',
+            'canonical' => route('blog.show', $post->slug),
+            'type' => 'article',
+            'preload' => $post->featured_image ? [[
+                'href' => asset('storage/' . $post->featured_image),
+                'as' => 'image',
+            ]] : [],
+            'json_ld' => [
+                SeoHelper::breadcrumbSchema([
+                    ['name' => 'Home', 'url' => route('home')],
+                    ['name' => 'Blog', 'url' => route('blog.index')],
+                    ['name' => $post->title, 'url' => route('blog.show', $post->slug)],
+                ]),
+                SeoHelper::blogPostingSchema($post),
+            ],
+        ]);
+
+        return view('public.blog.show', compact('post', 'relatedPosts', 'seo'));
     }
 
     public function storeComment(Request $request, BlogPost $post)

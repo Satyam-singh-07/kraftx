@@ -1,4 +1,4 @@
-<x-layout title="KraftX - Terms & Conditions">
+<x-layout :seo="$seo" title="KraftX - Terms & Conditions">
     <section class="section-page-title text-center flat-spacing-2 pb-0">
         <div class="container">
             <div class="main-page-title">

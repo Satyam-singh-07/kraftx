@@ -224,6 +224,14 @@
                                 class="block w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
                         </div>
                         <div>
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Meta Robots</label>
+                            <select name="seo[meta_robots]" class="block w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                                <option value="index,follow">index,follow</option>
+                                <option value="noindex,follow" {{ old('seo.meta_robots') === 'noindex,follow' ? 'selected' : '' }}>noindex,follow</option>
+                                <option value="noindex,nofollow" {{ old('seo.meta_robots') === 'noindex,nofollow' ? 'selected' : '' }}>noindex,nofollow</option>
+                            </select>
+                        </div>
+                        <div>
                             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">OG Image</label>
                             <input type="file" name="seo[og_image]" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                         </div>

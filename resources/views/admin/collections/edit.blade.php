@@ -87,6 +87,44 @@
                 </div>
             </x-admin.card>
 
+            <x-admin.card title="Advanced SEO">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Meta Title</label>
+                        <input type="text" name="seo[meta_title]" value="{{ old('seo.meta_title', $collection->seoMeta->meta_title ?? '') }}" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Canonical URL</label>
+                        <input type="url" name="seo[canonical_url]" value="{{ old('seo.canonical_url', $collection->seoMeta->canonical_url ?? '') }}" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Meta Description</label>
+                        <textarea name="seo[meta_description]" rows="3" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">{{ old('seo.meta_description', $collection->seoMeta->meta_description ?? '') }}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Meta Keywords</label>
+                        <input type="text" name="seo[meta_keywords]" value="{{ old('seo.meta_keywords', $collection->seoMeta->meta_keywords ?? '') }}" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Meta Robots</label>
+                        <select name="seo[meta_robots]" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                            <option value="index,follow" {{ old('seo.meta_robots', $collection->seoMeta->meta_robots ?? 'index,follow') === 'index,follow' ? 'selected' : '' }}>index,follow</option>
+                            <option value="noindex,follow" {{ old('seo.meta_robots', $collection->seoMeta->meta_robots ?? '') === 'noindex,follow' ? 'selected' : '' }}>noindex,follow</option>
+                            <option value="noindex,nofollow" {{ old('seo.meta_robots', $collection->seoMeta->meta_robots ?? '') === 'noindex,nofollow' ? 'selected' : '' }}>noindex,nofollow</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Open Graph Image</label>
+                        @if($collection->seoMeta?->og_image)
+                            <div class="mb-2">
+                                <img src="{{ Storage::url($collection->seoMeta->og_image) }}" alt="{{ $collection->name }} SEO image" class="w-20 h-20 object-cover rounded">
+                            </div>
+                        @endif
+                        <input type="file" name="seo[og_image]" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    </div>
+                </div>
+            </x-admin.card>
+
             <div class="flex justify-end pt-4">
                 <button type="submit" class="px-8 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-md hover:shadow-lg font-bold">
                     Update Collection

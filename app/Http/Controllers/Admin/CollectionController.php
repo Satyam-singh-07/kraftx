@@ -33,6 +33,12 @@ class CollectionController extends Controller
             'status' => 'boolean',
             'show_on_home' => 'boolean',
             'sort_order' => 'integer',
+            'seo.meta_title' => 'nullable|string|max:255',
+            'seo.meta_description' => 'nullable|string',
+            'seo.meta_keywords' => 'nullable|string',
+            'seo.canonical_url' => 'nullable|url',
+            'seo.meta_robots' => 'nullable|string|max:50',
+            'seo.og_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['name']);
@@ -43,13 +49,22 @@ class CollectionController extends Controller
             $validated['image'] = $this->uploadImage($request->file('image'));
         }
 
-        Collection::create($validated);
+        $collection = Collection::create($validated);
+
+        if ($request->has('seo')) {
+            $seoData = $request->input('seo');
+            if ($request->hasFile('seo.og_image')) {
+                $seoData['og_image'] = $request->file('seo.og_image')->store('seo', 'public');
+            }
+            $collection->seoMeta()->create($seoData);
+        }
 
         return redirect()->route('admin.collections.index')->with('success', 'Collection created successfully.');
     }
 
     public function edit(Collection $collection)
     {
+        $collection->load('seoMeta');
         return view('admin.collections.edit', compact('collection'));
     }
 
@@ -63,6 +78,12 @@ class CollectionController extends Controller
             'status' => 'boolean',
             'show_on_home' => 'boolean',
             'sort_order' => 'integer',
+            'seo.meta_title' => 'nullable|string|max:255',
+            'seo.meta_description' => 'nullable|string',
+            'seo.meta_keywords' => 'nullable|string',
+            'seo.canonical_url' => 'nullable|url',
+            'seo.meta_robots' => 'nullable|string|max:50',
+            'seo.og_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         $validated['slug'] = $validated['slug'] ?? Str::slug($validated['name']);
@@ -78,6 +99,20 @@ class CollectionController extends Controller
 
         $collection->update($validated);
 
+        if ($request->has('seo')) {
+            $seoData = $request->input('seo');
+            if ($request->hasFile('seo.og_image')) {
+                if ($collection->seoMeta?->og_image) {
+                    Storage::disk('public')->delete($collection->seoMeta->og_image);
+                }
+                $seoData['og_image'] = $request->file('seo.og_image')->store('seo', 'public');
+            }
+            $collection->seoMeta()->updateOrCreate(
+                ['metaable_id' => $collection->id, 'metaable_type' => Collection::class],
+                $seoData
+            );
+        }
+
         return redirect()->route('admin.collections.index')->with('success', 'Collection updated successfully.');
     }
 
@@ -85,6 +120,9 @@ class CollectionController extends Controller
     {
         if ($collection->image) {
             Storage::disk('public')->delete($collection->image);
+        }
+        if ($collection->seoMeta?->og_image) {
+            Storage::disk('public')->delete($collection->seoMeta->og_image);
         }
         $collection->delete();
         return back()->with('success', 'Collection deleted successfully.');

@@ -1,4 +1,4 @@
-<x-layout title="{{ $collection->name }} - Collection">
+<x-layout :seo="$seo" title="{{ $collection->name }} - Collection">
     <style>
         .collection-hero {
             padding-top: 36px;

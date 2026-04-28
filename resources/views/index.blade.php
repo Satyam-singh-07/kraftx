@@ -1,4 +1,4 @@
-<x-layout title="Home - TheKraftX">
+<x-layout :seo="$seo" title="Home - TheKraftX">
     <!-- Slide Show -->
     <div class="tf-slideshow tf-btn-swiper-main hover-sw-nav">
         <div dir="ltr" class="swiper tf-swiper sw-slide-show slider_effect_fade" data-loop="true" data-effect="fade"
@@ -32,10 +32,10 @@
                             @if($mobileUrl)
                             <picture>
                                 <source media="(max-width: 767px)" srcset="{{ $mobileSrcset }}" sizes="100vw">
-                                <img loading="lazy" fetchpriority="low" width="1920" height="730" src="{{ $bannerSrc }}" srcset="{{ $bannerSrcset }}" sizes="100vw" alt="{{ $banner->title ?? 'Banner' }}">
+                                <img loading="{{ $loop->first ? 'eager' : 'lazy' }}" fetchpriority="{{ $loop->first ? 'high' : 'low' }}" width="1920" height="730" src="{{ $bannerSrc }}" srcset="{{ $bannerSrcset }}" sizes="100vw" alt="{{ $banner->title ?? 'KraftX banner' }}">
                             </picture>
                             @else
-                            <img loading="lazy" fetchpriority="low" width="1920" height="730" src="{{ $bannerSrc }}" srcset="{{ $bannerSrcset }}" sizes="100vw" alt="{{ $banner->title ?? 'Banner' }}">
+                            <img loading="{{ $loop->first ? 'eager' : 'lazy' }}" fetchpriority="{{ $loop->first ? 'high' : 'low' }}" width="1920" height="730" src="{{ $bannerSrc }}" srcset="{{ $bannerSrcset }}" sizes="100vw" alt="{{ $banner->title ?? 'KraftX banner' }}">
                             @endif
                         </div>
                         <div class="sld_content pst-5">
@@ -69,7 +69,7 @@
                 <div class="swiper-slide">
                     <div class="slideshow-wrap">
                         <div class="sld_image">
-                            <img loading="lazy" width="1920" height="730" src="{{ asset('assets/images/slider/'.$slide['img']) }}" alt="Image">
+                            <img loading="{{ $loop->first ? 'eager' : 'lazy' }}" fetchpriority="{{ $loop->first ? 'high' : 'low' }}" width="1920" height="730" src="{{ asset('assets/images/slider/'.$slide['img']) }}" alt="{{ strip_tags($slide['title']) }}">
                         </div>
                         <div class="sld_content pst-5">
                             <div class="container">

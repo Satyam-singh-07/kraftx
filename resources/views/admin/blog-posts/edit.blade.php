@@ -207,6 +207,14 @@
                                 class="block w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
                         </div>
                         <div>
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Meta Robots</label>
+                            <select name="seo[meta_robots]" class="block w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                                <option value="index,follow" {{ old('seo.meta_robots', $blogPost->seoMeta->meta_robots ?? 'index,follow') === 'index,follow' ? 'selected' : '' }}>index,follow</option>
+                                <option value="noindex,follow" {{ old('seo.meta_robots', $blogPost->seoMeta->meta_robots ?? '') === 'noindex,follow' ? 'selected' : '' }}>noindex,follow</option>
+                                <option value="noindex,nofollow" {{ old('seo.meta_robots', $blogPost->seoMeta->meta_robots ?? '') === 'noindex,nofollow' ? 'selected' : '' }}>noindex,nofollow</option>
+                            </select>
+                        </div>
+                        <div>
                             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">OG Image</label>
                             @if(isset($blogPost->seoMeta->og_image))
                                 <div class="mb-2">

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Helpers\SeoHelper;
 use App\Http\Controllers\Controller;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use Illuminate\Http\Request;
@@ -28,6 +29,7 @@ class SearchController extends Controller
 
             return [
                 'id' => $product->id,
+                'slug' => $product->slug,
                 'name' => $product->name,
                 'url' => route('product.show', $product->slug),
                 'image' => $image,
@@ -49,9 +51,25 @@ class SearchController extends Controller
 
         $productsModel->setCollection($products);
 
+        $seo = [
+            'title' => 'Search results for "' . $query . '" | ' . config('app.name', 'KraftX'),
+            'description' => 'Browse KraftX search results for "' . $query . '" across products and collections.',
+            'canonical' => $request->fullUrl(),
+            'type' => 'website',
+            'robots' => 'noindex,follow',
+            'json_ld' => [
+                SeoHelper::breadcrumbSchema([
+                    ['name' => 'Home', 'url' => route('home')],
+                    ['name' => 'Search', 'url' => $request->fullUrl()],
+                ]),
+                SeoHelper::searchResultsSchema($query, $productsModel->getCollection()),
+            ],
+        ];
+
         return view('public.search.results', [
             'query' => $query,
-            'products' => $productsModel
+            'products' => $productsModel,
+            'seo' => $seo,
         ]);
     }
 
@@ -65,7 +83,7 @@ class SearchController extends Controller
                 'success' => true,
                 'type' => 'trending',
                 'products' => $this->mapSuggestions($trending)
-            ]);
+            ])->header('X-Robots-Tag', 'noindex, nofollow');
         }
 
         $products = $this->productRepository->search($query, 6);
@@ -74,7 +92,7 @@ class SearchController extends Controller
             'success' => true,
             'type' => 'results',
             'products' => $this->mapSuggestions($products)
-        ]);
+        ])->header('X-Robots-Tag', 'noindex, nofollow');
     }
 
     protected function mapSuggestions($products)

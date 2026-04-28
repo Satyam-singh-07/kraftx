@@ -1,4 +1,4 @@
-<x-layout title="Our Blog">
+<x-layout :seo="$seo" title="Our Blog">
     <style>
         .blog-hero { padding: 60px 0; background: #fbf8f4; margin-bottom: 60px; }
         .blog-card { border-radius: 20px; overflow: hidden; background: #fff; transition: all 0.3s ease; height: 100%; border: 1px solid #eee; }
@@ -104,9 +104,9 @@
                                 <div class="recent-post-img">
                                     <a href="{{ route('blog.show', $recent->slug) }}">
                                         @if($recent->featured_image)
-                                            <img src="{{ Storage::url($recent->featured_image) }}" alt="">
+                                            <img src="{{ Storage::url($recent->featured_image) }}" alt="{{ $recent->title }}">
                                         @else
-                                            <img src="{{ asset('assets/images/blog/blog-placeholder.jpg') }}" alt="">
+                                            <img src="{{ asset('assets/images/blog/blog-placeholder.jpg') }}" alt="{{ $recent->title }}">
                                         @endif
                                     </a>
                                 </div>

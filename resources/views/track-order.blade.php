@@ -1,4 +1,4 @@
-<x-layout title="Track Your Order - TheKraftX">
+<x-layout :seo="$seo" title="Track Your Order - TheKraftX">
     <!-- Page Title -->
     <section class="section-page-title text-center flat-spacing-2 bg-main-2">
         <div class="container">

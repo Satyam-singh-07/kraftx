@@ -42,7 +42,7 @@
             <div class="header-center ">
                 <a href="{{ route('home') }}" class="logo-site">
                     <img loading="lazy" width="150" height="30" src="{{ asset('assets/images/logo/logo.png') }}"
-                        alt="Image">
+                        alt="{{ config('seo.site_name', config('app.name', 'KraftX')) }} logo">
                 </a>
             </div>
             <div class="header-right">

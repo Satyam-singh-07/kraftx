@@ -1,11 +1,4 @@
-<x-layout>
-
-    <x-slot name="seo">
-        <script type="application/ld+json">
-            {!! json_encode(\App\Helpers\SeoHelper::generateJsonLdProduct($product)) !!}
-        </script>
-        {!! \App\Helpers\SeoHelper::getSeoTags($product) !!}
-    </x-slot>
+<x-layout :seo="$seo">
 
     @php
         $colors = $product->variants->whereNotNull('color')->unique('color');

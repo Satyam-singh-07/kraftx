@@ -31,7 +31,7 @@ class CartController extends Controller
             'items' => $items,
             'cart_count' => $items->sum('quantity'),
             'total' => $items->sum(fn($item) => $item->price * $item->quantity),
-        ]);
+        ])->header('X-Robots-Tag', 'noindex, nofollow');
     }
 
     /**
@@ -129,6 +129,6 @@ class CartController extends Controller
         return response()->json([
             'success' => true,
             'products' => $products
-        ]);
+        ])->header('X-Robots-Tag', 'noindex, nofollow');
     }
 }

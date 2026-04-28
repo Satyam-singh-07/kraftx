@@ -1,4 +1,4 @@
-<x-layout title="Search results for '{{ $query }}'">
+<x-layout :seo="$seo" title="Search results for '{{ $query }}'">
     <style>
         .search-hero {
             padding-top: 36px;

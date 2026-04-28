@@ -1,4 +1,4 @@
-<x-layout title="KraftX - Return & Refund Policy">
+<x-layout :seo="$seo" title="KraftX - Return & Refund Policy">
 
         <style>
 
@@ -37,9 +37,8 @@
                 <div class="term-item">
                     <h5 class="term-title">Contact Us</h5>
                     <p class="term-text cl-text-2">For any return or refund requests, please contact us within 24 hours of delivery:</p>
-                    <p class="term-text cl-text-2 mb-1">Email: <a href="mailto:support@kraftx.com" class="link fw-medium">support@kraftx.com</a></p>
-                    <p class="term-text cl-text-2 mb-1">(update if needed)</p>
-                    <p class="term-text cl-text-2">Phone: +91-XXXXXXXXXX (update your number)</p>
+                    <p class="term-text cl-text-2 mb-1">Email: <a href="mailto:{{ config('seo.support_email') }}" class="link fw-medium">{{ config('seo.support_email') }}</a></p>
+                    <p class="term-text cl-text-2">Phone: {{ config('seo.support_phone') }}</p>
                 </div>
 
                 <div class="term-item">

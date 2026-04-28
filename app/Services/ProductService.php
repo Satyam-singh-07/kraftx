@@ -81,13 +81,18 @@ class ProductService
                     'meta_description' => $dto->seo_meta['meta_description'] ?? $dto->short_description,
                     'meta_keywords' => $dto->seo_meta['meta_keywords'] ?? null,
                     'canonical_url' => $dto->seo_meta['canonical_url'] ?? url('/product/' . $dto->slug),
+                    'meta_robots' => $dto->seo_meta['meta_robots'] ?? 'index,follow',
                 ];
+                if (!empty($dto->seo_meta['og_image'])) {
+                    $seoData['og_image'] = $this->uploadSeoImage($dto->seo_meta['og_image']);
+                }
                 $this->productRepository->createSeoMeta($product, $seoData);
             } else {
                 $this->productRepository->createSeoMeta($product, [
                     'meta_title' => $dto->name,
                     'meta_description' => $dto->short_description,
                     'canonical_url' => url('/product/' . $dto->slug),
+                    'meta_robots' => 'index,follow',
                 ]);
             }
 
@@ -162,7 +167,22 @@ class ProductService
             }
 
             if (!empty($dto->seo_meta)) {
-                $this->productRepository->updateSeoMeta($product, $dto->seo_meta);
+                $seoData = [
+                    'meta_title' => $dto->seo_meta['meta_title'] ?? $dto->name,
+                    'meta_description' => $dto->seo_meta['meta_description'] ?? $dto->short_description,
+                    'meta_keywords' => $dto->seo_meta['meta_keywords'] ?? null,
+                    'canonical_url' => $dto->seo_meta['canonical_url'] ?? url('/product/' . $dto->slug),
+                    'meta_robots' => $dto->seo_meta['meta_robots'] ?? 'index,follow',
+                ];
+
+                if (!empty($dto->seo_meta['og_image'])) {
+                    if ($product->seoMeta?->og_image) {
+                        Storage::disk('public')->delete($product->seoMeta->og_image);
+                    }
+                    $seoData['og_image'] = $this->uploadSeoImage($dto->seo_meta['og_image']);
+                }
+
+                $this->productRepository->updateSeoMeta($product, $seoData);
             }
 
             DB::commit();
@@ -206,6 +226,20 @@ class ProductService
             'image_path' => $path,
             'is_primary' => $isPrimary
         ]);
+    }
+
+    protected function uploadSeoImage($imageFile): string
+    {
+        $filename = time() . '_' . uniqid() . '.' . $imageFile->getClientOriginalExtension();
+        $path = 'seo/' . $filename;
+        $img = Image::decode($imageFile);
+
+        Storage::disk('public')->put(
+            $path,
+            (string) $img->encodeUsingFileExtension($imageFile->getClientOriginalExtension(), quality: 82)
+        );
+
+        return $path;
     }
 
     public function toggleStatus(int $id)

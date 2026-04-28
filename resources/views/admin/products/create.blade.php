@@ -282,6 +282,45 @@
                 </div>
             </x-admin.card>
 
+            <x-admin.card title="Advanced SEO">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Meta Title</label>
+                        <input type="text" name="seo_meta[meta_title]" value="{{ old('seo_meta.meta_title') }}"
+                            class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Canonical URL</label>
+                        <input type="url" name="seo_meta[canonical_url]" value="{{ old('seo_meta.canonical_url') }}"
+                            class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Meta Description</label>
+                        <textarea name="seo_meta[meta_description]" rows="3"
+                            class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">{{ old('seo_meta.meta_description') }}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Meta Keywords</label>
+                        <input type="text" name="seo_meta[meta_keywords]" value="{{ old('seo_meta.meta_keywords') }}"
+                            placeholder="keyword1, keyword2"
+                            class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Meta Robots</label>
+                        <select name="seo_meta[meta_robots]" class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                            <option value="">Default</option>
+                            <option value="index,follow" {{ old('seo_meta.meta_robots') === 'index,follow' ? 'selected' : '' }}>index,follow</option>
+                            <option value="noindex,follow" {{ old('seo_meta.meta_robots') === 'noindex,follow' ? 'selected' : '' }}>noindex,follow</option>
+                            <option value="noindex,nofollow" {{ old('seo_meta.meta_robots') === 'noindex,nofollow' ? 'selected' : '' }}>noindex,nofollow</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Open Graph Image</label>
+                        <input type="file" name="seo_meta[og_image]" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    </div>
+                </div>
+            </x-admin.card>
+
             <div class="flex justify-end pt-4 pb-12">
                 <button type="submit" class="px-10 py-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-bold text-lg">
                     Create Product

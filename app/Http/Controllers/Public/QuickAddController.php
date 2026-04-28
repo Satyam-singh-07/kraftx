@@ -33,6 +33,6 @@ class QuickAddController extends Controller
                 'sizes' => $product->variants->pluck('size')->unique()->filter()->values(),
                 'colors' => $product->variants->pluck('color')->unique()->filter()->values(),
             ]
-        ]);
+        ])->header('X-Robots-Tag', 'noindex, nofollow');
     }
 }

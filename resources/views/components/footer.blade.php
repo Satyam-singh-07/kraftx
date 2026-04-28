@@ -1,3 +1,14 @@
+@php
+    $supportPhone = config('seo.support_phone');
+    $supportEmail = config('seo.support_email');
+    $supportAddress = config('seo.address');
+    $phoneLink = preg_replace('/[^0-9+]/', '', $supportPhone);
+    $socialLinks = collect([
+        ['key' => 'facebook', 'icon' => 'FacebookLogo', 'label' => 'Facebook'],
+        ['key' => 'instagram', 'icon' => 'InstagramLogo', 'label' => 'Instagram'],
+        ['key' => 'x', 'icon' => 'XLogo', 'label' => 'X'],
+    ])->filter(fn ($item) => filled(config('seo.social.' . $item['key'])));
+@endphp
 <!-- Footer -->
 <footer class="tf-footer footer-s5 type-2 bg-dark">
     <div class="position-relative">
@@ -12,45 +23,27 @@
                             <p class="cl-text-3 mb-4">
                                 Support Center:
                             </p>
-                            <a href="tel:9990010933" class="text-white link h4 fw-medium mb-12">
-                                (+91) 9990010933
+                            <a href="tel:{{ $phoneLink }}" class="text-white link h4 fw-medium mb-12">
+                                {{ $supportPhone }}
                             </a>
-                            <a href="https://www.google.com/maps?q=600+N+Michigan+Ave+Chicago,+IL+60611+USA"
+                            <a href="https://www.google.com/maps?q={{ urlencode($supportAddress) }}"
                                 target="_blank" class="cl-text-3 link mb-4">
-                                Gaur City Center, Gaur City West, Greater Noida, UP, India, 201308
+                                {{ $supportAddress }}
                             </a>
-                            <a href="mailto:thekraftx@gmail.com" class="cl-text-3 link">
-                                thekraftx@gmail.com
+                            <a href="mailto:{{ $supportEmail }}" class="cl-text-3 link">
+                                {{ $supportEmail }}
                             </a>
 
                             <div class="footer-social-modern-wrap ">
                 <div class="footer-social ">
                     <ul class="social-modern-list">
+                        @foreach($socialLinks as $social)
                         <li>
-                            <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-                                <i class="icon icon-FacebookLogo"></i>
+                            <a href="{{ config('seo.social.' . $social['key']) }}" target="_blank" rel="noopener noreferrer" aria-label="{{ $social['label'] }}">
+                                <i class="icon icon-{{ $social['icon'] }}"></i>
                             </a>
                         </li>
-                        <li>
-                            <a href="https://x.com/" target="_blank" rel="noopener noreferrer" aria-label="X">
-                                <i class="icon icon-XLogo"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                                <i class="icon icon-InstagramLogo"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
-                                <i class="icon icon-TiktokLogo"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="https://www.snapchat.com/" target="_blank" rel="noopener noreferrer" aria-label="Snapchat">
-                                <i class="icon icon-SnapchatLogo"></i>
-                            </a>
-                        </li>
+                        @endforeach
                     </ul>
                 </div>
             </div>
@@ -68,13 +61,12 @@
                             <p class="footer-heading footer-heading-mobile text-white">QUICK LINKS</p>
                             <div class="tf-collapse-content">
                                 <ul class="footer-menu-list">
-                                    <li><a href="about.html" class="cl-text-3 link">Return & Refund Policy</a></li>
-                                    <li><a href="our-store.html" class="cl-text-3 link">Shipping & Cancellation Policy</a></li>
-                                     <li><a href="{{ route('privacy.policy') }}" class="cl-text-3 link">Privacy Policy</a>
-                                         <li><a href="{{ route('terms.conditions') }}" class="cl-text-3 link">Terms &
-                                            Conditions</a></li>
-                                    </li>
-                                     <li>
+                                    <li><a href="{{ route('return.refund') }}" class="cl-text-3 link">Return & Refund Policy</a></li>
+                                    <li><a href="{{ route('shipping.policy') }}" class="cl-text-3 link">Shipping & Cancellation Policy</a></li>
+                                    <li><a href="{{ route('privacy.policy') }}" class="cl-text-3 link">Privacy Policy</a></li>
+                                    <li><a href="{{ route('terms.conditions') }}" class="cl-text-3 link">Terms & Conditions</a></li>
+                                    <li><a href="{{ route('deals.index') }}" class="cl-text-3 link">Deals & Offers</a></li>
+                                    <li>
                                         <a href="{{ route('track.order') }}" class="cl-text-3 link">Track Your Order</a>
                                     </li>
                                     <li><a href="{{ route('contact.us') }}" class="cl-text-3 link">Contact us</a></li>
