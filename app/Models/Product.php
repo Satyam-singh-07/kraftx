@@ -38,6 +38,11 @@ class Product extends Model
         'is_trending',
     ];
 
+    public function wishlists(): HasMany
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
     public function deals(): BelongsToMany
     {
         return $this->belongsToMany(Deal::class, 'deal_product');

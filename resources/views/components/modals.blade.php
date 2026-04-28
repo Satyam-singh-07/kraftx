@@ -53,6 +53,7 @@
         <a href="#">
             <span class="toolbar-icon">
                 <i class="icon icon-HeartStraight"></i>
+                <span class="toolbar-count wishlist-count" style="display: none;">0</span>
             </span>
             <span class="toolbar-label">Wishlist</span>
         </a>

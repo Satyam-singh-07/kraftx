@@ -16,7 +16,7 @@
                 src="{{ $hoverSrc }}" alt="{{ $product['name'] }} alternate view">
         </a>
         <ul class="product-action_list">
-            <li class="wishlist">
+            <li class="wishlist" data-product-id="{{ $product['id'] }}">
                 <a href="#" class="hover-tooltip tooltip-left box-icon">
                     <span class="icon icon-heart"></span>
                     <span class="tooltip">Add to Wishlist</span>

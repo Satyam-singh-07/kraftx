@@ -2042,7 +2042,7 @@
         handleProgress();
         handleFooter();
         infiniteSlide();
-        addWishList();
+        // addWishList();
         handleSidebarFilter();
         estimateShipping();
         textCopy();

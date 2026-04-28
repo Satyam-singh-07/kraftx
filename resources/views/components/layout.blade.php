@@ -87,6 +87,7 @@
 
     <script src="{{ asset('assets/js/carousel.js') }}"></script>
     <script src="{{ asset('assets/js/main.js') }}"></script>
+    <script src="{{ asset('assets/js/wishlist.js') }}"></script>
     {{ $scripts ?? '' }}
 
     <x-login />

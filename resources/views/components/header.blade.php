@@ -62,6 +62,7 @@
                     <li class="d-none d-sm-block">
                         <a href="#" class="nav-icon-item link">
                             <i class="icon icon-HeartStraight"></i>
+                            <span class="count wishlist-count" style="display: none;">0</span>
                         </a>
                     </li>
                     <li>

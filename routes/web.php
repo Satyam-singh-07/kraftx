@@ -250,6 +250,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.update-status');
 
+    // Inventory Management
+    Route::get('/inventory', [\App\Http\Controllers\Admin\InventoryController::class, 'index'])->name('inventory.index');
+    Route::post('/inventory/update', [\App\Http\Controllers\Admin\InventoryController::class, 'update'])->name('inventory.update');
+
     Route::get('/settings', fn () => view('admin.dashboard', ['stats' => ['total_orders' => 0, 'total_revenue' => 0, 'total_products' => 0, 'total_customers' => 0, 'recent_orders' => [], 'sales_data' => ['labels' => [], 'data' => []], 'orders_data' => ['labels' => [], 'data' => []]]]))->name('settings.index');
 });
 
@@ -304,3 +308,8 @@ Route::post('/coupon/apply', [App\Http\Controllers\Public\CouponController::clas
 Route::post('/logout', function () {
     return redirect('/');
 })->name('logout');
+
+// Wishlist Routes
+Route::get('/wishlist/fetch', [App\Http\Controllers\Public\WishlistController::class, 'index'])->name('wishlist.fetch');
+Route::get('/wishlist/count', [App\Http\Controllers\Public\WishlistController::class, 'count'])->name('wishlist.count');
+Route::post('/wishlist/toggle', [App\Http\Controllers\Public\WishlistController::class, 'toggle'])->name('wishlist.toggle');
