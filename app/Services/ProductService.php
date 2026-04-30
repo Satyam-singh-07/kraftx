@@ -108,9 +108,15 @@ class ProductService
 
     public function updateProduct(int $id, ProductDTO $dto)
     {
+        Log::info('ProductService@updateProduct started for ID: ' . $id);
+        $filesToDelete = [];
         DB::beginTransaction();
         try {
             $product = $this->productRepository->findById($id);
+            if (!$product) {
+                Log::error('Product not found in ProductService: ' . $id);
+                throw new Exception('Product not found.');
+            }
             
             $productData = [
                 'name' => $dto->name,
@@ -134,9 +140,9 @@ class ProductService
             ];
 
             if ($dto->size_weight_image) {
-                // Remove old size_weight image if exists
+                Log::info('Updating size_weight_image');
                 if ($product->size_weight_image) {
-                    Storage::disk('public')->delete($product->size_weight_image);
+                    $filesToDelete[] = $product->size_weight_image;
                 }
                 $productData['size_weight_image'] = $this->uploadSimpleImage($dto->size_weight_image);
             }
@@ -146,17 +152,20 @@ class ProductService
 
             // Handle Media Updates
             if ($dto->main_image) {
-                // Remove old primary image
-                $oldPrimary = $product->images()->where('is_primary', true)->first();
-                if ($oldPrimary) {
-                    Storage::disk('public')->delete($oldPrimary->image_path);
+                Log::info('Updating main_image');
+                $oldPrimaries = $product->images()->where('is_primary', true)->get();
+                foreach ($oldPrimaries as $oldPrimary) {
+                    $filesToDelete[] = $oldPrimary->image_path;
                     $oldPrimary->delete();
                 }
                 $this->uploadImage($product, $dto->main_image, true);
             }
 
-            foreach ($dto->gallery_images as $image) {
-                $this->uploadImage($product, $image, false);
+            if (!empty($dto->gallery_images)) {
+                Log::info('Adding gallery images: ' . count($dto->gallery_images));
+                foreach ($dto->gallery_images as $image) {
+                    $this->uploadImage($product, $image, false);
+                }
             }
 
             $this->productRepository->syncRelations($product, 'collections', $dto->collection_ids);
@@ -177,7 +186,7 @@ class ProductService
 
                 if (!empty($dto->seo_meta['og_image'])) {
                     if ($product->seoMeta?->og_image) {
-                        Storage::disk('public')->delete($product->seoMeta->og_image);
+                        $filesToDelete[] = $product->seoMeta->og_image;
                     }
                     $seoData['og_image'] = $this->uploadSeoImage($dto->seo_meta['og_image']);
                 }
@@ -186,10 +195,19 @@ class ProductService
             }
 
             DB::commit();
+            Log::info('Product update transaction committed successfully for ID: ' . $id);
+
+            // Delete old files only AFTER successful commit
+            foreach ($filesToDelete as $file) {
+                if ($file && !str_starts_with($file, 'assets/')) {
+                    Storage::disk('public')->delete($file);
+                }
+            }
+
             return $product;
         } catch (Exception $e) {
             DB::rollBack();
-            Log::error('Product update failed: ' . $e->getMessage());
+            Log::error('Product update failed in ProductService: ' . $e->getMessage());
             throw $e;
         }
     }

@@ -45,11 +45,11 @@ class ProductRequest extends FormRequest
             'seo_meta.meta_keywords' => ['nullable', 'string'],
             'seo_meta.canonical_url' => ['nullable', 'url'],
             'seo_meta.meta_robots' => ['nullable', 'string', 'max:50'],
-            'seo_meta.og_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
-            'main_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
-            'size_weight_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'seo_meta.og_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'main_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'size_weight_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
             'gallery_images' => ['nullable', 'array'],
-            'gallery_images.*' => ['image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'gallery_images.*' => ['image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
         ];
     }
 }

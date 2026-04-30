@@ -12,6 +12,7 @@ Route::get('/user', function (Request $request) {
 // Shiprocket Catalog Sync Routes
 Route::prefix('shiprocket')->group(function () {
     Route::get('/products', [ShiprocketCatalogController::class, 'fetchProducts']);
+    Route::get('/products-by-collection', [ShiprocketCatalogController::class, 'fetchProductsByCollection']);
     Route::get('/collections', [ShiprocketCatalogController::class, 'fetchCollections']);
     
     // Webhook for Order Placement

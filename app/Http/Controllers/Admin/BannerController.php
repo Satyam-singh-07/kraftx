@@ -65,23 +65,30 @@ class BannerController extends Controller
             'placement' => 'required|string',
         ]);
 
+        $filesToDelete = [];
         if ($request->hasFile('image')) {
             if ($banner->image) {
-                Storage::disk('public')->delete($banner->image);
+                $filesToDelete[] = $banner->image;
             }
             $validated['image'] = $this->uploadImage($request->file('image'));
         }
         if ($request->hasFile('mobile_image')) {
             if ($banner->mobile_image) {
-                Storage::disk('public')->delete($banner->mobile_image);
+                $filesToDelete[] = $banner->mobile_image;
             }
             $validated['mobile_image'] = $this->uploadImage($request->file('mobile_image'));
         }
 
         $validated['status'] = $request->boolean('status');
-        $banner->update($validated);
+        
+        if ($banner->update($validated)) {
+            foreach ($filesToDelete as $file) {
+                Storage::disk('public')->delete($file);
+            }
+            return redirect()->route('admin.banners.index')->with('success', 'Banner updated successfully.');
+        }
 
-        return redirect()->route('admin.banners.index')->with('success', 'Banner updated successfully.');
+        return back()->with('error', 'Failed to update banner.');
     }
 
     public function destroy(Banner $banner)

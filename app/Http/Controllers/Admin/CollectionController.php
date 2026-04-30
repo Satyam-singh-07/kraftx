@@ -90,9 +90,10 @@ class CollectionController extends Controller
         $validated['status'] = $request->boolean('status');
         $validated['show_on_home'] = $request->boolean('show_on_home');
 
+        $filesToDelete = [];
         if ($request->hasFile('image')) {
             if ($collection->image) {
-                Storage::disk('public')->delete($collection->image);
+                $filesToDelete[] = $collection->image;
             }
             $validated['image'] = $this->uploadImage($request->file('image'));
         }
@@ -103,7 +104,7 @@ class CollectionController extends Controller
             $seoData = $request->input('seo');
             if ($request->hasFile('seo.og_image')) {
                 if ($collection->seoMeta?->og_image) {
-                    Storage::disk('public')->delete($collection->seoMeta->og_image);
+                    $filesToDelete[] = $collection->seoMeta->og_image;
                 }
                 $seoData['og_image'] = $request->file('seo.og_image')->store('seo', 'public');
             }
@@ -111,6 +112,12 @@ class CollectionController extends Controller
                 ['metaable_id' => $collection->id, 'metaable_type' => Collection::class],
                 $seoData
             );
+        }
+
+        foreach ($filesToDelete as $file) {
+            if ($file) {
+                Storage::disk('public')->delete($file);
+            }
         }
 
         return redirect()->route('admin.collections.index')->with('success', 'Collection updated successfully.');

@@ -9,7 +9,7 @@ return [
     ),
     'default_image' => env('SEO_DEFAULT_IMAGE', 'assets/images/logo/logo.png'),
     'support_phone' => env('SEO_SUPPORT_PHONE', '+91 99900 10933'),
-    'support_email' => env('SEO_SUPPORT_EMAIL', 'thekraftx@gmail.com'),
+    'support_email' => env('SEO_SUPPORT_EMAIL', 'thekraftxofficial@gmail.com'),
     'address' => env('SEO_ADDRESS', 'Gaur City Center, Gaur City West, Greater Noida, UP, India, 201308'),
     'country_code' => env('SEO_COUNTRY_CODE', 'IN'),
     'social' => [

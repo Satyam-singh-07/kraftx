@@ -121,10 +121,11 @@ class BlogPostController extends Controller
             $blogPost->published_at = $request->published_at;
         }
 
+        $filesToDelete = [];
         if ($request->hasFile('featured_image')) {
-            // Delete old image
-            if ($blogPost->featured_image && Storage::disk('public')->exists($blogPost->featured_image)) {
-                Storage::disk('public')->delete($blogPost->featured_image);
+            // Collect old image for deletion
+            if ($blogPost->featured_image) {
+                $filesToDelete[] = $blogPost->featured_image;
             }
             // Store new image
             $path = $request->file('featured_image')->store('blog/posts', 'public');
@@ -152,8 +153,8 @@ class BlogPostController extends Controller
         if ($request->has('seo')) {
             $seoData = $request->input('seo');
             if ($request->hasFile('seo.og_image')) {
-                if ($blogPost->seoMeta && $blogPost->seoMeta->og_image && Storage::disk('public')->exists($blogPost->seoMeta->og_image)) {
-                    Storage::disk('public')->delete($blogPost->seoMeta->og_image);
+                if ($blogPost->seoMeta && $blogPost->seoMeta->og_image) {
+                    $filesToDelete[] = $blogPost->seoMeta->og_image;
                 }
                 $seoData['og_image'] = $request->file('seo.og_image')->store('seo', 'public');
             }
@@ -161,6 +162,13 @@ class BlogPostController extends Controller
                 ['metaable_id' => $blogPost->id, 'metaable_type' => BlogPost::class],
                 $seoData
             );
+        }
+
+        // Delete old files only AFTER successful save
+        foreach ($filesToDelete as $file) {
+            if ($file && Storage::disk('public')->exists($file)) {
+                Storage::disk('public')->delete($file);
+            }
         }
 
         return redirect()->route('admin.blog-posts.index')->with('success', 'Post updated successfully.');

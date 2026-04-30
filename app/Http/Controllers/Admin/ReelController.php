@@ -61,17 +61,24 @@ class ReelController extends Controller
             'status' => 'boolean',
         ]);
 
+        $filesToDelete = [];
         if ($request->hasFile('thumbnail')) {
             if ($reel->thumbnail) {
-                Storage::disk('public')->delete($reel->thumbnail);
+                $filesToDelete[] = $reel->thumbnail;
             }
             $validated['thumbnail'] = $this->uploadThumbnail($request->file('thumbnail'));
         }
 
         $validated['status'] = $request->boolean('status');
-        $reel->update($validated);
+        
+        if ($reel->update($validated)) {
+            foreach ($filesToDelete as $file) {
+                Storage::disk('public')->delete($file);
+            }
+            return redirect()->route('admin.reels.index')->with('success', 'Reel updated successfully.');
+        }
 
-        return redirect()->route('admin.reels.index')->with('success', 'Reel updated successfully.');
+        return back()->with('error', 'Failed to update reel.');
     }
 
     public function destroy(Reel $reel)

@@ -94,6 +94,11 @@ class ProductController extends Controller
 
     public function update(ProductRequest $request, $id)
     {
+        \Illuminate\Support\Facades\Log::info('Product update initiated for ID: ' . $id);
+        if ($request->hasFile('main_image')) {
+            \Illuminate\Support\Facades\Log::info('Main image received: ' . $request->file('main_image')->getClientOriginalName());
+        }
+
         try {
             $dto = ProductDTO::fromRequest(
                 $request->validated(),
@@ -105,7 +110,7 @@ class ProductController extends Controller
 
             return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
         } catch (\Exception $e) {
-            
+            \Illuminate\Support\Facades\Log::error('Product update controller error: ' . $e->getMessage());
             return back()->withInput()->with('error', $e->getMessage());
         }
     }
