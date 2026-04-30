@@ -1,6 +1,7 @@
 <?php
 
 use App\Helpers\SeoHelper;
+use App\Http\Controllers\Auth\OtpAuthController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\BlogCategoryController;
@@ -190,6 +191,11 @@ Route::get('/contact-us', function () {
 Route::post('/contact-us', [ContactController::class, 'store'])->name('contact.us.store');
 Route::post('/newsletter', [PublicNewsletterController::class, 'store'])->name('newsletter.store');
 
+Route::middleware('guest')->group(function () {
+    Route::post('/auth/send-otp', [OtpAuthController::class, 'sendOtp'])->name('auth.otp.send');
+    Route::post('/auth/verify-otp', [OtpAuthController::class, 'verifyOtp'])->name('auth.otp.verify');
+});
+
 Route::get('/track-order', function () {
     $seo = [
         'title' => 'Track Your Order | ' . config('app.name', 'KraftX'),
@@ -304,10 +310,7 @@ Route::get('/deals', [App\Http\Controllers\Public\DealController::class, 'index'
 Route::get('/deals/{slug}', [App\Http\Controllers\Public\DealController::class, 'show'])->name('deals.show');
 Route::post('/coupon/apply', [App\Http\Controllers\Public\CouponController::class, 'apply'])->name('coupon.apply');
 
-// Logout route (dummy for now)
-Route::post('/logout', function () {
-    return redirect('/');
-})->name('logout');
+Route::post('/logout', [OtpAuthController::class, 'logout'])->name('logout');
 
 // Wishlist Routes
 Route::get('/wishlist/fetch', [App\Http\Controllers\Public\WishlistController::class, 'index'])->name('wishlist.fetch');

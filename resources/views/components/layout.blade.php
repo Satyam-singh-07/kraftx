@@ -3,10 +3,24 @@
     lang="{{ str_replace('_', '-', config('app.locale', 'en')) }}">
 
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5ZHLTDJD5Q"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
+
+        gtag('config', 'G-5ZHLTDJD5Q');
+    </script>
     @php
-        $seoData = \App\Helpers\SeoHelper::build($seo ?? [
-            'title' => $title ?? config('app.name', 'KraftX'),
-        ]);
+        $seoData = \App\Helpers\SeoHelper::build(
+            $seo ?? [
+                'title' => $title ?? config('app.name', 'KraftX'),
+            ],
+        );
     @endphp
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -27,10 +41,10 @@
     <!-- Favicon and Touch Icons  -->
     <link rel="shortcut icon" href="{{ asset('assets/images/logo/favicon.svg') }}">
     <link rel="apple-touch-icon-precomposed" href="{{ asset('assets/images/logo/favicon.svg') }}">
-    @foreach(($seoData['preload'] ?? []) as $preload)
+    @foreach ($seoData['preload'] ?? [] as $preload)
         <link rel="preload" href="{{ $preload['href'] ?? '' }}" as="{{ $preload['as'] ?? 'image' }}"
-            @if(!empty($preload['type'])) type="{{ $preload['type'] }}" @endif
-            @if(!empty($preload['fetchpriority'])) fetchpriority="{{ $preload['fetchpriority'] }}" @endif>
+            @if (!empty($preload['type'])) type="{{ $preload['type'] }}" @endif
+            @if (!empty($preload['fetchpriority'])) fetchpriority="{{ $preload['fetchpriority'] }}" @endif>
     @endforeach
     {{ $head ?? '' }}
     {!! \App\Helpers\SeoHelper::renderJsonLd($seoData['json_ld'] ?? []) !!}
@@ -91,8 +105,18 @@
     {{ $scripts ?? '' }}
 
     <x-login />
-    <x-register />
 
+    @if (session('auth_modal'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var modalEl = document.getElementById(@json(session('auth_modal')));
+
+                if (modalEl && window.bootstrap) {
+                    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                }
+            });
+        </script>
+    @endif
 
 
 </body>
