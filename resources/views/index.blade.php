@@ -251,6 +251,20 @@
             </div>
         </section>
         <!-- /Top Pick -->
+
+        <!-- Static Banner -->
+        <section class="flat-spacing pt-0">
+            <div class="container">
+                <div class="banner-image-text type-abs style-2">
+                    <div class="bn-image">
+                        <img loading="lazy" width="1600" height="500" src="assets/images/banners/banner2.png"
+                            alt="Static Banner">
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- /Static Banner -->
+
         <!-- Lookbook -->
         <div class="themesFlat">
             <div class="tf-grid-layout xl-col-2 gap-10 mb-10">
