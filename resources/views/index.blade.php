@@ -376,6 +376,7 @@
         </div>
         <!-- /Lookbook -->
         <!-- Testimonial -->
+        @if(isset($homeReviews) && $homeReviews->isNotEmpty())
         <section class="flat-spacing">
             <div class="container">
                 <div class="sect-heading type-2 text-center wow fadeInUp">
@@ -390,23 +391,27 @@
                     data-mobile="1" data-space-lg="60" data-space-md="30" data-space="15" data-pagination="1"
                     data-pagination-sm="2" data-pagination-md="2" data-pagination-lg="2">
                     <div class="swiper-wrapper">
-                        <!-- slide 1 -->
+                        @foreach($homeReviews as $review)
                         <div class="swiper-slide">
-                            <div class="testimonial-v01 style-1 style-def wow fadeInLeft">
+                            <div class="testimonial-v01 style-1 style-def wow fadeInLeft" data-wow-delay="{{ $loop->index * 0.1 }}s">
                                 <div class="tes-image">
+                                    @php
+                                        $reviewImg = asset('assets/images/testimonial/tes-1.jpg');
+                                        if(!empty($review->images) && isset($review->images[0])) {
+                                            $reviewImg = Storage::url($review->images[0]);
+                                        }
+                                    @endphp
                                     <img loading="lazy" width="285" height="380"
-                                        src="assets/images/testimonial/tes-1.jpg" alt="Image">
+                                        src="{{ $reviewImg }}" alt="{{ $review->name }}">
                                 </div>
                                 <div class="tes-content">
                                     <div class="star-wrap d-flex align-items-center">
-                                        <i class="icon icon-Star-thin fs-24"></i>
-                                        <i class="icon icon-Star-thin fs-24"></i>
-                                        <i class="icon icon-Star-thin fs-24"></i>
-                                        <i class="icon icon-Star-thin fs-24"></i>
-                                        <i class="icon icon-Star-thin fs-24"></i>
+                                        @for($i = 0; $i < 5; $i++)
+                                            <i class="icon {{ $i < $review->rating ? 'icon-Star' : 'icon-Star-thin' }} fs-24" style="{{ $i < $review->rating ? 'color: #f5a623;' : '' }}"></i>
+                                        @endfor
                                     </div>
                                     <div class="tes_author">
-                                        <p class="author-name h5">Emma Collins</p>
+                                        <p class="author-name h5">{{ $review->name }}</p>
                                         <div class="br-line"></div>
                                         <div class="author-verified">
                                             <i class="icon icon-CheckCircle1"></i>
@@ -416,77 +421,38 @@
                                         </div>
                                     </div>
                                     <p class="tes_text h6">
-                                        “Totally obsessed with this outfit! The fit is perfect, the fabric feels
-                                        premium,
-                                        and I’ve been getting compliments non-stop. It instantly lifts my confidence —
-                                        such
-                                        a great find!”
+                                        “{{ $review->comment }}”
                                     </p>
+                                    @if($review->product)
                                     <div class="tes_product">
                                         <div class="product-image">
+                                            @php
+                                                $prodImg = asset('assets/images/product/product-4.jpg');
+                                                if($review->product->images->isNotEmpty()) {
+                                                    $prodImg = Storage::url($review->product->images->first()->image_path);
+                                                }
+                                            @endphp
                                             <img class="aspect-ratio-1 object-fit-cover" loading="lazy" width="60"
-                                                height="60" src="assets/images/product/product-4.jpg" alt="Image">
+                                                height="60" src="{{ $prodImg }}" alt="{{ $review->product->name }}">
                                         </div>
                                         <div class="product-infor">
-                                            <a href="product-detail.html" class="link fw-medium lh-24">
-                                                High neck midi wool coat
+                                            <a href="{{ route('product.show', $review->product->slug) }}" class="link fw-medium lh-24">
+                                                {{ $review->product->name }}
                                             </a>
-                                            <p class="prd_price fw-semibold text-primary">₹29.99</p>
+                                            <p class="prd_price fw-semibold text-primary">₹{{ number_format($review->product->sale_price ?? $review->product->price, 2) }}</p>
                                         </div>
                                     </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
-                        <!-- slide 2 -->
-                        <div class="swiper-slide">
-                            <div class="testimonial-v01 style-1 style-def wow fadeInLeft" data-wow-delay="0.1s">
-                                <div class="tes-image">
-                                    <img loading="lazy" width="285" height="380"
-                                        src="assets/images/testimonial/tes-2.jpg" alt="Image">
-                                </div>
-                                <div class="tes-content">
-                                    <div class="star-wrap d-flex align-items-center">
-                                        <i class="icon icon-Star-thin fs-24"></i>
-                                        <i class="icon icon-Star-thin fs-24"></i>
-                                        <i class="icon icon-Star-thin fs-24"></i>
-                                        <i class="icon icon-Star-thin fs-24"></i>
-                                        <i class="icon icon-Star-thin fs-24"></i>
-                                    </div>
-                                    <div class="tes_author">
-                                        <p class="author-name h5">Sophia Ramirez</p>
-                                        <div class="br-line"></div>
-                                        <div class="author-verified">
-                                            <i class="icon icon-CheckCircle1"></i>
-                                            <span class="cl-text-2">
-                                                Verified Buyer
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <p class="tes_text h6">
-                                        “I’m amazed by how comfortable yet stylish this piece is. It pairs effortlessly
-                                        with everything, and the quality really stands out. Definitely becoming my go-to
-                                        for everyday looks!”
-                                    </p>
-                                    <div class="tes_product">
-                                        <div class="product-image">
-                                            <img class="aspect-ratio-1 object-fit-cover" loading="lazy" width="60"
-                                                height="60" src="assets/images/product/product-6.jpg" alt="Image">
-                                        </div>
-                                        <div class="product-infor">
-                                            <a href="product-detail.html" class="link fw-medium lh-24">
-                                                Square metallic frame sunglasses
-                                            </a>
-                                            <p class="prd_price fw-semibold text-primary">₹29.99</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        @endforeach
                     </div>
                     <div class="sw-line-default style-2 tf-sw-pagination"></div>
                 </div>
             </div>
         </section>
+        @endif
         <!-- /Testimonial -->
 
 

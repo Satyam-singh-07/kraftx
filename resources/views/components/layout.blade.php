@@ -15,6 +15,12 @@
 
         gtag('config', 'G-5ZHLTDJD5Q');
     </script>
+    <link rel="icon" type="image/png" href="{{asset('assets/images/logo/favicon-96x96.png')}}" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="{{asset('assets/images/logo/favicon.svg')}}" />
+    <link rel="shortcut icon" href="{{asset('assets/images/logo/favicon.ico')}}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{{asset('assets/images/logo/apple-touch-icon.png')}}" />
+    <meta name="apple-mobile-web-app-title" content="KraftX" />
+    <link rel="manifest" href="{{asset('assets/images/logo/site.webmanifest')}}" />
     @php
         $seoData = \App\Helpers\SeoHelper::build(
             $seo ?? [
@@ -40,8 +46,6 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/styles.css') }}">
 
     <!-- Favicon and Touch Icons  -->
-    <link rel="shortcut icon" href="{{ asset('assets/images/logo/favicon.svg') }}">
-    <link rel="apple-touch-icon-precomposed" href="{{ asset('assets/images/logo/favicon.svg') }}">
     @foreach ($seoData['preload'] ?? [] as $preload)
         <link rel="preload" href="{{ $preload['href'] ?? '' }}" as="{{ $preload['as'] ?? 'image' }}"
             @if (!empty($preload['type'])) type="{{ $preload['type'] }}" @endif

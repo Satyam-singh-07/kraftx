@@ -49,6 +49,7 @@
                         <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">Comment</th>
                         <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">Images</th>
                         <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">Status</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">Home Visibility</th>
                         <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">Action</th>
                     </tr>
                 </thead>
@@ -100,6 +101,14 @@
                                         <option value="approved" {{ $review->status === 'approved' ? 'selected' : '' }}>Approved</option>
                                         <option value="rejected" {{ $review->status === 'rejected' ? 'selected' : '' }}>Rejected</option>
                                     </select>
+                                </form>
+                            </td>
+                            <td class="px-6 py-4 align-top">
+                                <form method="POST" action="{{ route('admin.reviews.toggle-home', $review->id) }}">
+                                    @csrf
+                                    <button type="submit" class="px-2 py-1 rounded-full text-xs font-semibold {{ $review->show_on_home ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400' }}">
+                                        {{ $review->show_on_home ? 'Showing' : 'Hidden' }}
+                                    </button>
                                 </form>
                             </td>
                             <td class="px-6 py-4 align-top">

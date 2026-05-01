@@ -18,11 +18,13 @@ class Review extends Model
         'images',
         'comment',
         'status',
+        'show_on_home',
     ];
 
     protected $casts = [
         'rating' => 'integer',
         'images' => 'array',
+        'show_on_home' => 'boolean',
     ];
 
     public function product(): BelongsTo

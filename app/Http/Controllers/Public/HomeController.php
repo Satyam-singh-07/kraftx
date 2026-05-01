@@ -8,6 +8,7 @@ use App\Models\Banner;
 use App\Models\Collection;
 use App\Models\BlogPost;
 use App\Models\Product;
+use App\Models\Review;
 use Illuminate\Support\Facades\Storage;
 
 class HomeController extends Controller
@@ -117,6 +118,12 @@ class HomeController extends Controller
             ->take(3)
             ->get();
 
+        $homeReviews = Review::with('product')
+            ->where('status', 'approved')
+            ->where('show_on_home', 1)
+            ->latest()
+            ->get();
+
         $seo = [
             'title' => config('app.name', 'KraftX') . ' | Handcrafted Decor, Spiritual Art & Gifts',
             'description' => 'Shop handcrafted wall decor, spiritual art, trending home accents, and unique gift ideas at KraftX.',
@@ -147,6 +154,6 @@ class HomeController extends Controller
             ],
         ];
 
-        return view('index', compact('banners', 'collections', 'topPicks', 'trendingProducts', 'posts', 'seo', 'lookbook1', 'lookbook2', 'lookbook3'));
+        return view('index', compact('banners', 'collections', 'topPicks', 'trendingProducts', 'posts', 'seo', 'lookbook1', 'lookbook2', 'lookbook3', 'homeReviews'));
     }
 }

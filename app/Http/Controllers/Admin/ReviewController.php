@@ -53,6 +53,7 @@ class ReviewController extends Controller
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'required|string',
             'status' => 'required|in:pending,approved,rejected',
+            'show_on_home' => 'boolean',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
@@ -70,10 +71,20 @@ class ReviewController extends Controller
             'rating' => $validated['rating'],
             'comment' => $validated['comment'],
             'status' => $validated['status'],
+            'show_on_home' => $request->boolean('show_on_home'),
             'images' => $imagePaths,
         ]);
 
         return redirect()->route('admin.reviews.index')->with('success', 'Review created successfully.');
+    }
+
+    public function toggleHome(Review $review)
+    {
+        $review->update([
+            'show_on_home' => !$review->show_on_home,
+        ]);
+
+        return back()->with('success', 'Review home visibility updated successfully.');
     }
 
     public function updateStatus(Request $request, Review $review)
