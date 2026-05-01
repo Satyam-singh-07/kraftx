@@ -48,13 +48,16 @@ const Wishlist = {
             success: (response) => {
                 if (response.success) {
                     if (response.added) {
-                        this.items.push(parseInt(productId));
+                        if (!this.items.includes(parseInt(productId))) {
+                            this.items.push(parseInt(productId));
+                        }
                         this.showNotification('Added to wishlist', 'success');
                     } else {
                         this.items = this.items.filter(id => id !== parseInt(productId));
                         this.showNotification('Removed from wishlist', 'info');
                     }
                     this.updateUI();
+                    this.updateWishlistPage(productId, response.added);
                 }
             },
             error: (xhr) => {
@@ -97,6 +100,20 @@ const Wishlist = {
             $('.wishlist-count').show();
         } else {
             $('.wishlist-count').hide();
+        }
+    },
+
+    updateWishlistPage: function(productId, added) {
+        if (added) return;
+
+        const $row = $(`.wishlist-row[data-product-id="${productId}"], .wishlist-card[data-product-id="${productId}"]`);
+        if (!$row.length) return;
+
+        $row.remove();
+
+        if (!$('.wishlist-row, .wishlist-card').length) {
+            $('.wishlist-content').addClass('d-none');
+            $('.wishlist-empty').removeClass('d-none');
         }
     },
 

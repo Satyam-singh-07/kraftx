@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReelController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\TagController;
+use App\Http\Controllers\Public\AccountController;
 use App\Http\Controllers\Public\BlogController;
 use App\Http\Controllers\Public\CartController;
 use App\Http\Controllers\Public\ContactController;
@@ -196,16 +197,14 @@ Route::middleware('guest')->group(function () {
     Route::post('/auth/verify-otp', [OtpAuthController::class, 'verifyOtp'])->name('auth.otp.verify');
 });
 
-Route::get('/account', function () {
-    $seo = [
-        'title' => 'Account | '.config('app.name', 'KraftX'),
-        'description' => 'View your KraftX account details.',
-        'canonical' => route('account'),
-        'robots' => 'noindex,follow',
-    ];
-
-    return view('account', compact('seo'));
-})->middleware('customer.auth')->name('account');
+Route::middleware('customer.auth')->group(function () {
+    Route::get('/account', [AccountController::class, 'dashboard'])->name('account');
+    Route::get('/account/orders', [AccountController::class, 'orders'])->name('account.orders');
+    Route::get('/account/addresses', [AccountController::class, 'addresses'])->name('account.addresses');
+    Route::patch('/account/addresses', [AccountController::class, 'updateAddress'])->name('account.addresses.update');
+    Route::get('/account/settings', [AccountController::class, 'settings'])->name('account.settings');
+    Route::patch('/account/settings', [AccountController::class, 'updateSettings'])->name('account.settings.update');
+});
 
 Route::get('/track-order', function () {
     $seo = [
@@ -324,6 +323,9 @@ Route::post('/coupon/apply', [App\Http\Controllers\Public\CouponController::clas
 Route::post('/logout', [OtpAuthController::class, 'logout'])->name('logout');
 
 // Wishlist Routes
+Route::get('/wishlist', [App\Http\Controllers\Public\WishlistController::class, 'page'])
+    ->middleware('customer.auth')
+    ->name('wishlist.page');
 Route::get('/wishlist/fetch', [App\Http\Controllers\Public\WishlistController::class, 'index'])->name('wishlist.fetch');
 Route::get('/wishlist/count', [App\Http\Controllers\Public\WishlistController::class, 'count'])->name('wishlist.count');
 Route::post('/wishlist/toggle', [App\Http\Controllers\Public\WishlistController::class, 'toggle'])

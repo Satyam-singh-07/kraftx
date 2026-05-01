@@ -42,15 +42,24 @@
         </a>
     </div>
     <div class="toolbar-item">
-        <a href="#sign" data-bs-toggle="modal">
-            <span class="toolbar-icon">
-                <i class="icon icon-User"></i>
-            </span>
-            <span class="toolbar-label">Account</span>
-        </a>
+        @auth
+            <a href="{{ route('account') }}">
+                <span class="toolbar-icon">
+                    <i class="icon icon-User"></i>
+                </span>
+                <span class="toolbar-label">Account</span>
+            </a>
+        @else
+            <a href="#sign" data-bs-toggle="modal">
+                <span class="toolbar-icon">
+                    <i class="icon icon-User"></i>
+                </span>
+                <span class="toolbar-label">Account</span>
+            </a>
+        @endauth
     </div>
     <div class="toolbar-item">
-        <a href="#">
+        <a href="{{ route('wishlist.page') }}">
             <span class="toolbar-icon">
                 <i class="icon icon-HeartStraight"></i>
                 <span class="toolbar-count wishlist-count" style="display: none;">0</span>
