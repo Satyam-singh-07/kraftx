@@ -18158,9 +18158,9 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
   margin-bottom: 24px;
 }
 
-.banner-image-text.style-2 .bn-image img {
+/* .banner-image-text.style-2 .bn-image img {
   min-height: 400px;
-}
+} */
 
 .banner-image-text.style-3 .bn-image {
   border-radius: 0px;
@@ -18826,7 +18826,6 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
     position: absolute;
     inset: 0;
     z-index: 0;
-    background: linear-gradient(270deg, rgba(6, 6, 11, 0.3) 50%, rgba(6, 6, 11, 0.7019607843) 80%);
   }
 
   .banner-image-text.style-4 .bn-image img,

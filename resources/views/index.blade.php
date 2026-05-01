@@ -373,66 +373,6 @@
                     </div>
                 </div>
             </div>
-            <div class="bg-main-2">
-                <div class="infiniteSlide-cls wow fadeInUp">
-                    <div class="infiniteSlide infiniteSlide-wrapper" data-clone="3">
-                        <div class="infiniteSlide-item">
-                            <a href="shop-default.html" class="cls-wrap">
-                                <h4>Style in Motion</h4>
-                                <div class="img-cls">
-                                    <img loading="lazy" width="80" height="80" src="assets/images/collection/cls-1.jpg"
-                                        alt="Image">
-                                </div>
-                            </a>
-                        </div>
-                        <div class="infiniteSlide-item">
-                            <a href="shop-default.html" class="cls-wrap">
-                                <h4>Own Your Look</h4>
-                                <div class="img-cls">
-                                    <img loading="lazy" width="80" height="80" src="assets/images/collection/cls-2.jpg"
-                                        alt="Image">
-                                </div>
-                            </a>
-                        </div>
-                        <div class="infiniteSlide-item">
-                            <a href="shop-default.html" class="cls-wrap">
-                                <h4>Chic by Nature</h4>
-                                <div class="img-cls">
-                                    <img loading="lazy" width="80" height="80" src="assets/images/collection/cls-3.jpg"
-                                        alt="Image">
-                                </div>
-                            </a>
-                        </div>
-                        <div class="infiniteSlide-item">
-                            <a href="shop-default.html" class="cls-wrap">
-                                <h4>Effortless Elegance</h4>
-                                <div class="img-cls">
-                                    <img loading="lazy" width="80" height="80" src="assets/images/collection/cls-4.jpg"
-                                        alt="Image">
-                                </div>
-                            </a>
-                        </div>
-                        <div class="infiniteSlide-item">
-                            <a href="shop-default.html" class="cls-wrap">
-                                <h4>Made to Stand Out</h4>
-                                <div class="img-cls">
-                                    <img loading="lazy" width="80" height="80" src="assets/images/collection/cls-5.jpg"
-                                        alt="Image">
-                                </div>
-                            </a>
-                        </div>
-                        <div class="infiniteSlide-item">
-                            <a href="shop-default.html" class="cls-wrap">
-                                <h4>Confidence in Every Step</h4>
-                                <div class="img-cls">
-                                    <img loading="lazy" width="80" height="80" src="assets/images/collection/cls-3.jpg"
-                                        alt="Image">
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
         <!-- /Lookbook -->
         <!-- Testimonial -->
