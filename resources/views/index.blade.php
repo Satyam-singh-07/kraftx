@@ -279,20 +279,26 @@
                             </div>
                             <div class="dropdown-menu">
                                 <div class="lookbook-product">
-                                    <a href="product-detail.html" class="image">
-                                        <img width="88" height="88" src="assets/images/product/square/product-10.jpg"
-                                            alt="Product">
+                                    @if(isset($lookbook1))
+                                    <a href="{{ $lookbook1['url'] }}" class="image">
+                                        <img width="88" height="88" src="{{ $lookbook1['image'] }}"
+                                            alt="{{ $lookbook1['name'] }}">
                                     </a>
                                     <div class="content">
-                                        <a href="product-detail.html"
+                                        <a href="{{ $lookbook1['url'] }}"
                                             class="name-prd link fw-medium lh-24 text-line-clamp-2">
-                                            High neck midi wool coat
+                                            {{ $lookbook1['name'] }}
                                         </a>
                                         <div class="price-wrap">
-                                            <span class="price-new text-primary fw-semibold">₹29,99</span>
-                                            <span class="price-old text-caption-01 cl-text-3">₹39.99</span>
+                                            <span class="price-new text-primary fw-semibold">{{ $lookbook1['price'] }}</span>
+                                            @if($lookbook1['oldPrice'])
+                                                <span class="price-old text-caption-01 cl-text-3">{{ $lookbook1['oldPrice'] }}</span>
+                                            @endif
                                         </div>
                                     </div>
+                                    @else
+                                    <div class="p-3 text-center">Product not found</div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -305,20 +311,26 @@
                             </div>
                             <div class="dropdown-menu">
                                 <div class="lookbook-product">
-                                    <a href="product-detail.html" class="image">
-                                        <img width="88" height="88" src="assets/images/product/square/product-3_3.jpg"
-                                            alt="Product">
+                                    @if(isset($lookbook2))
+                                    <a href="{{ $lookbook2['url'] }}" class="image">
+                                        <img width="88" height="88" src="{{ $lookbook2['image'] }}"
+                                            alt="{{ $lookbook2['name'] }}">
                                     </a>
                                     <div class="content">
-                                        <a href="product-detail.html"
+                                        <a href="{{ $lookbook2['url'] }}"
                                             class="name-prd link fw-medium lh-24 text-line-clamp-2">
-                                            High neck midi wool coat
+                                            {{ $lookbook2['name'] }}
                                         </a>
                                         <div class="price-wrap">
-                                            <span class="price-new text-primary fw-semibold">₹49,99</span>
-                                            <span class="price-old text-caption-01 cl-text-3">₹59.99</span>
+                                            <span class="price-new text-primary fw-semibold">{{ $lookbook2['price'] }}</span>
+                                            @if($lookbook2['oldPrice'])
+                                                <span class="price-old text-caption-01 cl-text-3">{{ $lookbook2['oldPrice'] }}</span>
+                                            @endif
                                         </div>
                                     </div>
+                                    @else
+                                    <div class="p-3 text-center">Product not found</div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -335,20 +347,26 @@
                             </div>
                             <div class="dropdown-menu">
                                 <div class="lookbook-product">
-                                    <a href="product-detail.html" class="image">
-                                        <img width="88" height="88" src="assets/images/product/square/product-11.jpg"
-                                            alt="Product">
+                                    @if(isset($lookbook3))
+                                    <a href="{{ $lookbook3['url'] }}" class="image">
+                                        <img width="88" height="88" src="{{ $lookbook3['image'] }}"
+                                            alt="{{ $lookbook3['name'] }}">
                                     </a>
                                     <div class="content">
-                                        <a href="product-detail.html"
+                                        <a href="{{ $lookbook3['url'] }}"
                                             class="name-prd link fw-medium lh-24 text-line-clamp-2">
-                                            High neck midi wool coat
+                                            {{ $lookbook3['name'] }}
                                         </a>
                                         <div class="price-wrap">
-                                            <span class="price-new text-primary fw-semibold">₹69,99</span>
-                                            <span class="price-old text-caption-01 cl-text-3">₹79.99</span>
+                                            <span class="price-new text-primary fw-semibold">{{ $lookbook3['price'] }}</span>
+                                            @if($lookbook3['oldPrice'])
+                                                <span class="price-old text-caption-01 cl-text-3">{{ $lookbook3['oldPrice'] }}</span>
+                                            @endif
                                         </div>
                                     </div>
+                                    @else
+                                    <div class="p-3 text-center">Product not found</div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -585,7 +603,7 @@
 
 
         <!-- Gallery -->
-        <section class="themesFlat">
+        {{-- <section class="themesFlat">
             <div class="container">
                 <div class="sect-heading type-2 text-center wow fadeInUp">
                     <h3 class="s-title">
@@ -668,7 +686,7 @@
                     <div class="sw-dot-default tf-sw-pagination"></div>
                 </div>
             </div>
-        </section>
+        </section> --}}
         <!-- /Gallery -->
         <!-- Box Icon -->
         <div class="flat-spacing">

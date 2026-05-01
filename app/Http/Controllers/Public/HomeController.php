@@ -99,6 +99,18 @@ class HomeController extends Controller
             ->get()
             ->map($mapProduct);
 
+        // Define Lookbook Product IDs here (easily editable)
+        $lookbookProductIds = [7, 7, 13]; 
+
+        $lookbookItems = Product::with(['images'])
+            ->whereIn('id', $lookbookProductIds)
+            ->get()
+            ->keyBy('id');
+            
+        $lookbook1 = isset($lookbookItems[$lookbookProductIds[0]]) ? $mapProduct($lookbookItems[$lookbookProductIds[0]]) : null;
+        $lookbook2 = isset($lookbookItems[$lookbookProductIds[1]]) ? $mapProduct($lookbookItems[$lookbookProductIds[1]]) : null;
+        $lookbook3 = isset($lookbookItems[$lookbookProductIds[2]]) ? $mapProduct($lookbookItems[$lookbookProductIds[2]]) : null;
+
         $posts = BlogPost::where('status', 1)
             ->where('is_home', 1)
             ->latest('published_at')
@@ -135,6 +147,6 @@ class HomeController extends Controller
             ],
         ];
 
-        return view('index', compact('banners', 'collections', 'topPicks', 'trendingProducts', 'posts', 'seo'));
+        return view('index', compact('banners', 'collections', 'topPicks', 'trendingProducts', 'posts', 'seo', 'lookbook1', 'lookbook2', 'lookbook3'));
     }
 }
