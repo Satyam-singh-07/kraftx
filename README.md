@@ -1,66 +1,262 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+📄 KRAFTX E-Commerce Website – Developer README
+🧭 Project Overview
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Brand Name: KRAFTX
+Business Type: E-commerce (Religious Idols + Handicrafts + Spiritual Gifts)
+Primary Market: India (Phase 1), Global (Phase 2)
 
-## About Laravel
+🎯 Website Goal
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Build a conversion-focused e-commerce website that:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Generates direct sales
+Collects customer data
+Supports marketing & retargeting
+Builds a premium spiritual lifestyle brand
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+This is NOT just a product website — it must be built as a brand + sales funnel.
 
-## Learning Laravel
+👥 Target Customers
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Primary buyers:
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Women age 25–45
+Married couples / homeowners
+Gift buyers (weddings, housewarming, festivals)
+Spiritual & home decor audience
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Key buying motivations:
 
-## Laravel Sponsors
+Faith & positivity
+Premium gifting
+Home temple decoration
+Festivals
+🛍️ Product Categories (Initial)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Developer must build scalable category system.
 
-### Premium Partners
+Core Categories
+God Idols
+Shiv Ji
+Ganpati Ji
+Ram Ji
+Bajrangbali
+Lakshmi Ganesh
+Radha Krishna
+Saraswati
+Home Temple Decor
+Diyas
+Incense holders
+Pooja accessories
+Gift Collections
+Housewarming gifts
+Wedding gifts
+Festival gift boxes
+Future Category (Phase 2)
+Handicrafts
+Home decor items
+🧱 TECH STACK (Recommended)
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+Developer can choose but must support:
 
-## Contributing
+Shopify / WooCommerce / Next.js + Headless CMS
+Razorpay + COD integration
+Meta Pixel + Google Analytics integration
+Fast mobile performance
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+⚠️ Mobile-first design is mandatory (80% traffic mobile).
 
-## Code of Conduct
+🎯 CORE WEBSITE GOAL: CONVERSION
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Every page must push users toward Add to Cart → Checkout.
 
-## Security Vulnerabilities
+🏠 REQUIRED WEBSITE PAGES
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+1. Homepage (MOST IMPORTANT PAGE)
 
-## License
+Sections required:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Hero banner
+Tagline: “Modern Spiritual Decor for Your Home”
+Featured products
+Festival banner support
+Shop by Category
+Best Sellers
+Gift Section Highlight
+Why Choose KRAFTX
+Customer Reviews
+Instagram Feed Integration
+Email/WhatsApp Signup 2) Category Pages
+
+Must include:
+
+Filters (price, deity, size, material)
+Sorting (price, popularity, newest)
+Quick add-to-cart option 3) Product Page (HIGH CONVERSION PAGE)
+
+Each product page must include:
+
+Product Media
+High-quality images
+Short product video support
+Conversion Elements
+Product title
+Price
+Discount badge
+COD available badge
+Stock urgency message:
+“Only few left in stock”
+Delivery estimate
+Trust Builders
+Customer reviews
+FAQ accordion
+Return & replacement policy
+Upsell Section
+“Frequently bought together”
+“You may also like” 4) Gift Section Page
+
+Special page dedicated to:
+
+Wedding gifts
+Housewarming gifts
+Festival gifts
+Corporate gifting
+
+This page is critical for conversions.
+
+5. About Us Page
+
+Must include:
+
+Brand story
+Mission
+Handcrafted positioning
+Emotional connection with spirituality 6) Contact Page
+
+Include:
+
+WhatsApp button
+Email form
+Social links
+🛒 CHECKOUT REQUIREMENTS
+
+Checkout must be:
+
+Simple
+Fast
+Mobile optimized
+Payment options:
+Razorpay
+UPI
+Cards
+Net banking
+Cash on Delivery (MANDATORY)
+📦 SHIPPING & OFFERS LOGIC
+
+Implement:
+
+Free shipping above ₹999
+COD available badge
+Delivery estimate on product page
+📈 MARKETING & TRACKING (CRITICAL)
+
+Developer MUST integrate:
+
+Meta Pixel
+
+For:
+
+Retargeting ads
+Conversion tracking
+Google Analytics 4
+
+For:
+
+Traffic tracking
+Conversion tracking
+Google Search Console
+💬 LEAD CAPTURE SYSTEM
+
+Must implement:
+
+Popup system:
+
+Capture:
+
+Email
+Phone number
+
+Offer:
+“Get ₹100 OFF on first order”
+
+This is critical for remarketing.
+
+📱 WHATSAPP INTEGRATION
+
+Floating WhatsApp button:
+
+“Chat with us”
+“Order assistance”
+⭐ REVIEW SYSTEM
+
+Customers must be able to:
+
+Leave reviews
+Upload photos
+
+Reviews increase trust and conversions.
+
+🎁 UPSELL & CROSS-SELL FEATURES
+
+Must include:
+
+Bundle product support
+“Buy together & save” section
+Related products carousel
+⚡ PERFORMANCE REQUIREMENTS
+
+Page load speed:
+
+Under 3 seconds
+Optimized images
+Lazy loading
+🔍 SEO REQUIREMENTS
+
+Must support:
+
+SEO friendly URLs
+Meta title/description editing
+Schema markup
+Blog section (future marketing)
+🧠 FUTURE FEATURES (Phase 2)
+
+Prepare architecture for:
+
+International shipping
+Multi-currency
+Corporate bulk orders
+Subscription gifting
+Mobile app integration
+🎯 SUCCESS METRICS (KPIs)
+
+Developer should optimize for:
+
+Conversion rate: 2–3%
+Add to cart rate: 6–8%
+Page load speed < 3s
+Mobile usability score high
+❤️ FINAL NOTE FOR DEVELOPER
+
+This website must be built as:
+
+A brand experience
+A sales funnel
+A marketing engine
+
+Not just a simple product catalogue.
+
+Focus on:
+👉 Trust
+👉 Speed
+👉 Mobile UX
+👉 Conversion optimization

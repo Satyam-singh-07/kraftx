@@ -196,6 +196,17 @@ Route::middleware('guest')->group(function () {
     Route::post('/auth/verify-otp', [OtpAuthController::class, 'verifyOtp'])->name('auth.otp.verify');
 });
 
+Route::get('/account', function () {
+    $seo = [
+        'title' => 'Account | '.config('app.name', 'KraftX'),
+        'description' => 'View your KraftX account details.',
+        'canonical' => route('account'),
+        'robots' => 'noindex,follow',
+    ];
+
+    return view('account', compact('seo'));
+})->middleware('customer.auth')->name('account');
+
 Route::get('/track-order', function () {
     $seo = [
         'title' => 'Track Your Order | ' . config('app.name', 'KraftX'),
@@ -266,7 +277,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 // Public Product Routes
 Route::get('/product/{slug}', [App\Http\Controllers\Public\ProductController::class, 'show'])->name('product.show');
 Route::post('/product/{product:slug}/reviews', [App\Http\Controllers\Public\ReviewController::class, 'store'])
-    ->middleware('auth')
+    ->middleware('customer.auth')
     ->name('product.reviews.store');
 Route::get('/collection/{slug}', [App\Http\Controllers\Public\ProductController::class, 'collectionShow'])->name('collection.show');
 
@@ -303,7 +314,7 @@ Route::get('/checkout', function () {
     ];
 
     return view('checkout', compact('seo'));
-})->name('checkout');
+})->middleware('customer.auth')->name('checkout');
 
 // Public Deals & Coupons
 Route::get('/deals', [App\Http\Controllers\Public\DealController::class, 'index'])->name('deals.index');
@@ -315,4 +326,6 @@ Route::post('/logout', [OtpAuthController::class, 'logout'])->name('logout');
 // Wishlist Routes
 Route::get('/wishlist/fetch', [App\Http\Controllers\Public\WishlistController::class, 'index'])->name('wishlist.fetch');
 Route::get('/wishlist/count', [App\Http\Controllers\Public\WishlistController::class, 'count'])->name('wishlist.count');
-Route::post('/wishlist/toggle', [App\Http\Controllers\Public\WishlistController::class, 'toggle'])->name('wishlist.toggle');
+Route::post('/wishlist/toggle', [App\Http\Controllers\Public\WishlistController::class, 'toggle'])
+    ->middleware('customer.auth')
+    ->name('wishlist.toggle');

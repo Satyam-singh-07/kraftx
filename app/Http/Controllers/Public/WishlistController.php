@@ -37,7 +37,7 @@ class WishlistController extends Controller
         if (!Auth::check()) {
             return response()->json([
                 'success' => false, 
-                'message' => 'Please login to manage your wishlist',
+                'message' => 'Please verify your email to manage your wishlist',
                 'login_required' => true
             ], 401);
         }

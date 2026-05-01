@@ -55,9 +55,15 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#sign" data-bs-toggle="modal" class="nav-icon-item link">
-                            <i class="icon icon-User"></i>
-                        </a>
+                        @auth
+                            <a href="{{ route('account') }}" class="nav-icon-item link" title="Account">
+                                <i class="icon icon-User"></i>
+                            </a>
+                        @else
+                            <a href="#sign" data-bs-toggle="modal" class="nav-icon-item link" title="Continue with email">
+                                <i class="icon icon-User"></i>
+                            </a>
+                        @endauth
                     </li>
                     <li class="d-none d-sm-block">
                         <a href="#" class="nav-icon-item link">

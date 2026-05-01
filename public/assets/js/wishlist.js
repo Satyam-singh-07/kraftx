@@ -59,8 +59,7 @@ const Wishlist = {
             },
             error: (xhr) => {
                 if (xhr.status === 401 && xhr.responseJSON.login_required) {
-                    this.showNotification('Please login to use wishlist', 'warning');
-                    // Optional: Show login modal
+                    this.showNotification('Please verify your email to use wishlist', 'warning');
                     if ($('#sign').length) {
                         const modal = new bootstrap.Modal(document.getElementById('sign'));
                         modal.show();

@@ -13,7 +13,7 @@ class ReviewController extends Controller
     {
         $user = $request->user();
         if (!$user) {
-            return back()->with('error', 'Please login to submit a review.');
+            return back()->with('error', 'Please verify your email to submit a review.');
         }
 
         $hasPurchasedProduct = CartItem::where('product_id', $product->id)

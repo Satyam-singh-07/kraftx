@@ -10,6 +10,9 @@
                 <p class="desc-pop cl-text-2">Enter your email and verify the OTP we send.</p>
             </div>
             <div class="modal-main">
+                @if (session('auth_modal') === 'sign' && session('auth_notice'))
+                    <div class="alert alert-warning mb-3">{{ session('auth_notice') }}</div>
+                @endif
                 @if (session('auth_modal') === 'sign' && session('success'))
                     <div class="alert alert-success mb-3">{{ session('success') }}</div>
                 @endif

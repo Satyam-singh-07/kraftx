@@ -594,7 +594,7 @@
                                             <p class="text-caption-01 cl-text-2 mb-0">Only customers who purchased this product can review it.</p>
                                         @endif
                                     @else
-                                        <p class="text-caption-01 cl-text-2 mb-0">Login with your purchase account to write a verified review.</p>
+                                        <p class="text-caption-01 cl-text-2 mb-0">Verify your email with the purchase account to write a review.</p>
                                     @endauth
                                 </div>
                                 @auth
@@ -609,7 +609,7 @@
                                     @endif
                                 @else
                                     <a href="#sign" data-bs-toggle="modal" class="tf-btn animate-btn">
-                                        Login to Review
+                                        Verify Email to Review
                                     </a>
                                 @endauth
                             </div>
