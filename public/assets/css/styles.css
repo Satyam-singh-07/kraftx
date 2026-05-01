@@ -16969,13 +16969,14 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .banner-lookbook .position1 {
-  top: 39.5%;
-  left: 28%;
+  top: 52.5%;
+  left: 43%;
 }
 
 .banner-lookbook .position2 {
   top: 38.8%;
   left: 83.6%;
+  display: none;
 }
 
 .banner-lookbook .position3 {
