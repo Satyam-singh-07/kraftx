@@ -59,14 +59,22 @@
                     @error('comment') <p class="text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
 
-                <div class="space-y-1">
-                    <label for="status" class="text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
-                    <select name="status" id="status" required
-                        class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                        <option value="approved" {{ old('status') == 'approved' ? 'selected' : '' }}>Approved</option>
-                        <option value="pending" {{ old('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="rejected" {{ old('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
-                    </select>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label for="status" class="text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                        <select name="status" id="status" required
+                            class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value="approved" {{ old('status') == 'approved' ? 'selected' : '' }}>Approved</option>
+                            <option value="pending" {{ old('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="rejected" {{ old('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-2 pt-6">
+                        <input type="checkbox" name="show_on_home" id="show_on_home" value="1" {{ old('show_on_home') ? 'checked' : '' }}
+                            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-600">
+                        <label for="show_on_home" class="text-sm font-medium text-gray-700 dark:text-gray-300">Show on Home Page</label>
+                    </div>
                 </div>
 
                 <div class="space-y-1">

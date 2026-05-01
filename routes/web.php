@@ -228,8 +228,15 @@ Route::get('/track-order', function () {
     return view('track-order', compact('seo'));
 })->name('track.order');
 
-// Admin Routes
+// Admin Authentication Routes
 Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/login', [App\Http\Controllers\Admin\Auth\LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [App\Http\Controllers\Admin\Auth\LoginController::class, 'login'])->name('login.submit');
+    Route::post('/logout', [App\Http\Controllers\Admin\Auth\LoginController::class, 'logout'])->name('logout');
+});
+
+// Admin Routes (Protected)
+Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Product Management
