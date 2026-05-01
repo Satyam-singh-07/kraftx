@@ -184,8 +184,8 @@
                 
                 <div class="tf-grid-layout sm-col-2 gap-10">
                     <div class="box-image_v01">
-                        <a href="{{ isset($collections) && $collections->where('name', 'Banners')->first() ? route('collection.show', $collections->where('name', 'Banners')->first()->slug) : '#' }}" class="box-image_img img-style">
-                            <img loading="lazy" width="700" height="933" src="assets/images/bahubali-hanuman.png"
+                        <a href="#" class="box-image_img img-style">
+                            <img loading="lazy" width="700" height="933" src="assets/images/collage/collage1.webp"
                                 alt="Image">
                         </a>
                         <div class="box-image_content">
@@ -197,8 +197,8 @@
                     </div>
                     <div class="d-flex flex-column gap-10">
                         <div class="box-image_v01 h-100">
-                            <a href="{{ isset($collections) && $collections->where('name', 'New Arrival')->first() ? route('collection.show', $collections->where('name', 'New Arrival')->first()->slug) : '#' }}" class="box-image_img img-style">
-                                <img loading="lazy" width="700" height="461" src="assets/images/hanuman.png"
+                            <a href="#" class="box-image_img img-style">
+                                <img loading="lazy" width="700" height="461" src="assets/images/collage/collage2.webp"
                                     alt="Image">
                             </a>
                             <div class="box-image_content">
@@ -209,8 +209,8 @@
                             </div>
                         </div>
                         <div class="box-image_v01 h-100">
-                            <a href="{{ isset($collections) && $collections->where('name', 'Best Seller')->first() ? route('collection.show', $collections->where('name', 'Best Seller')->first()->slug) : '#' }}" class="box-image_img img-style">
-                                <img loading="lazy" width="700" height="461" src="assets/images/ganesh-ji.png"
+                            <a href="#" class="box-image_img img-style">
+                                <img loading="lazy" width="700" height="461" src="assets/images/collage/collage3.webp"
                                     alt="Image">
                             </a>
                             <div class="box-image_content">
