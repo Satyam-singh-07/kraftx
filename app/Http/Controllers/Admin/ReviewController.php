@@ -78,6 +78,46 @@ class ReviewController extends Controller
         return redirect()->route('admin.reviews.index')->with('success', 'Review created successfully.');
     }
 
+    public function edit(Review $review)
+    {
+        $products = Product::orderBy('name')->get(['id', 'name']);
+        return view('admin.reviews.edit', compact('review', 'products'));
+    }
+
+    public function update(Request $request, Review $review)
+    {
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'required|string',
+            'status' => 'required|in:pending,approved,rejected',
+            'show_on_home' => 'boolean',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
+
+        $imagePaths = $review->images ?? [];
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $imagePaths[] = $image->store('reviews', 'public');
+            }
+        }
+
+        $review->update([
+            'product_id' => $validated['product_id'],
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'rating' => $validated['rating'],
+            'comment' => $validated['comment'],
+            'status' => $validated['status'],
+            'show_on_home' => $request->boolean('show_on_home'),
+            'images' => $imagePaths,
+        ]);
+
+        return redirect()->route('admin.reviews.index')->with('success', 'Review updated successfully.');
+    }
+
     public function toggleHome(Review $review)
     {
         $review->update([

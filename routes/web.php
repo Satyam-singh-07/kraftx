@@ -257,6 +257,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('reviews', [ReviewController::class, 'index'])->name('reviews.index');
     Route::get('reviews/create', [ReviewController::class, 'create'])->name('reviews.create');
     Route::post('reviews', [ReviewController::class, 'store'])->name('reviews.store');
+    Route::get('reviews/{review}/edit', [ReviewController::class, 'edit'])->name('reviews.edit');
+    Route::put('reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
     Route::patch('reviews/{review}/status', [ReviewController::class, 'updateStatus'])->name('reviews.status');
     Route::post('reviews/{review}/toggle-home', [ReviewController::class, 'toggleHome'])->name('reviews.toggle-home');
     Route::delete('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
