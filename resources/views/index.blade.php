@@ -2,7 +2,7 @@
     <!-- Slide Show -->
     <div class="tf-slideshow tf-btn-swiper-main hover-sw-nav">
         <div dir="ltr" class="swiper tf-swiper sw-slide-show slider_effect_fade" data-loop="true" data-effect="fade"
-            data-delay="3000">
+            data-auto="true" data-delay="2000">
             <div class="swiper-wrapper">
                 @if(isset($banners) && $banners->isNotEmpty())
                 @php
@@ -270,7 +270,7 @@
             <div class="tf-grid-layout xl-col-2 gap-10 mb-10">
                 <div class="banner-lookbook wrap-lookbook_hover">
                     <img class="img-banner" loading="lazy" width="955" height="640"
-                        src="assets/images/section/banner-lookbook-1.jpg" alt="Image">
+                        src="assets/images/banners/lookbook.webp" alt="Image">
                     <div class="lookbook-item position1">
                         <div class="dropdown dropup-center dropdown-custom dropend">
                             <div role="dialog" class="tf-pin-btn bundle-pin-item swiper-button" data-slide="0"
@@ -326,7 +326,7 @@
                 </div>
                 <div class="banner-lookbook wrap-lookbook_hover">
                     <img class="img-banner" loading="lazy" width="955" height="640"
-                        src="assets/images/section/banner-lookbook-2.jpg" alt="Image">
+                        src="assets/images/banners/lookbook1.webp" alt="Image">
                     <div class="lookbook-item position3">
                         <div class="dropdown dropup-center dropdown-custom dropstart">
                             <div role="dialog" class="tf-pin-btn bundle-pin-item swiper-button" data-slide="0"
