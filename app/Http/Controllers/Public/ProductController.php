@@ -154,4 +154,30 @@ class ProductController extends Controller
 
         return view('public.collections.show', ['collection' => $collection, 'products' => $productsModel, 'seo' => $seo]);
     }
+
+    public function collectionIndex()
+    {
+        $collections = Collection::where('status', 1)
+            ->orderBy('sort_order')
+            ->paginate(10);
+
+        if (request()->ajax()) {
+            return view('public.collections._list', compact('collections'))->render();
+        }
+
+        $seo = [
+            'title' => 'All Collections | ' . config('app.name', 'KraftX'),
+            'description' => 'Browse all our collections at ' . config('app.name', 'KraftX') . '.',
+            'canonical' => route('collections.index'),
+            'type' => 'website',
+            'json_ld' => [
+                SeoHelper::breadcrumbSchema([
+                    ['name' => 'Home', 'url' => route('home')],
+                    ['name' => 'All Collections', 'url' => route('collections.index')],
+                ]),
+            ],
+        ];
+
+        return view('public.collections.index', compact('collections', 'seo'));
+    }
 }

@@ -284,6 +284,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
 });
 
 // Public Product Routes
+Route::get('/collections', [App\Http\Controllers\Public\ProductController::class, 'collectionIndex'])->name('collections.index');
 Route::get('/product/{slug}', [App\Http\Controllers\Public\ProductController::class, 'show'])->name('product.show');
 Route::post('/product/{product:slug}/reviews', [App\Http\Controllers\Public\ReviewController::class, 'store'])
     ->middleware('customer.auth')
