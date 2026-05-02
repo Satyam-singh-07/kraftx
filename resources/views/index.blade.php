@@ -223,6 +223,18 @@
                             </div>
                         @endforeach
 
+                        <div class="swiper-slide wow fadeInUp" data-wow-delay="0.1s">
+                            <a href="{{ route('products.index') }}" class="category-v01 hover-img">
+                                <div class="cate-image img-style rounded-circle overflow-hidden d-flex align-items-center justify-content-center"
+                                    style="aspect-ratio: 1/1; background: #faf8f4; border: 1px dashed var(--line);">
+                                    <div class="text-center">
+                                        <i class="icon icon-CaretRightThin h3 mb-0 cl-text-2"></i>
+                                        <p class="mb-0 text-caption-1 cl-text-2 fw-6">View All</p>
+                                    </div>
+                                </div>
+                                <p class="cate-name h5 text-center link link-underline">All Products</p>
+                            </a>
+                        </div>
                     @endif
                 </div>
                 <div class="sw-dot-default tf-sw-pagination"></div>

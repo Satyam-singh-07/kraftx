@@ -17,6 +17,16 @@
                             <!-- ... (Home Submenu) ... -->
                         </li>
                         <li class="menu-item">
+                            <a href="{{ route('collections.index') }}" class="item-link">
+                                <span class="text cus-text">All Collections</span>
+                            </a>
+                        </li>
+                        <li class="menu-item">
+                            <a href="{{ route('products.index') }}" class="item-link">
+                                <span class="text cus-text">Shop</span>
+                            </a>
+                        </li>
+                        <li class="menu-item">
                             <a href="#" class="item-link">
                                 <span class="text cus-text">God Idols</span>
 

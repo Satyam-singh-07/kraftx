@@ -6,13 +6,103 @@ use App\Helpers\SeoHelper;
 use App\Http\Controllers\Controller;
 use App\Models\CartItem;
 use App\Models\Collection;
+use App\Models\Product;
 use App\Repositories\Contracts\ProductRepositoryInterface;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
     public function __construct(
         protected ProductRepositoryInterface $productRepository
     ) {}
+
+    public function index()
+    {
+        $productsModel = Product::with(['images', 'variants'])
+            ->where('status', true)
+            ->latest()
+            ->paginate(12);
+
+        $resolveImageUrl = function($path) {
+            if (!$path) return null;
+            if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, '/')) {
+                return $path;
+            }
+            if (str_starts_with($path, 'assets/')) {
+                return asset($path);
+            }
+            return Storage::url($path);
+        };
+
+        $mapProduct = function(Product $product) use ($resolveImageUrl) {
+            $primary = $product->images->firstWhere('is_primary', true) ?? $product->images->first();
+            $secondary = $product->images->first(function ($image) use ($primary) {
+                return !$primary || $image->id !== $primary->id;
+            });
+
+            $fallbackImage = asset('assets/images/product/product-1.jpg');
+            $imageUrl = $primary ? $resolveImageUrl($primary->image_path) : $fallbackImage;
+            $hoverUrl = $secondary ? $resolveImageUrl($secondary->image_path) : $imageUrl;
+
+            $price = (float) ($product->price ?? 0);
+            $salePrice = $product->sale_price !== null ? (float) $product->sale_price : null;
+            $isOnSale = $salePrice !== null && $salePrice > 0 && $price > 0 && $salePrice < $price;
+
+            $displayPrice = $isOnSale ? $salePrice : $price;
+            $oldPrice = $isOnSale ? $price : null;
+
+            $badges = [];
+            if ($isOnSale) {
+                $percent = (int) round(100 * (1 - ($salePrice / $price)));
+                $badges[] = ['type' => 'sale', 'text' => '-' . $percent . '%'];
+            }
+            if ($product->created_at && $product->created_at->gt(now()->subDays(30))) {
+                $badges[] = ['type' => 'new', 'text' => 'NEW'];
+            }
+
+            $sizes = $product->variants
+                ->pluck('size')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'url' => route('product.show', $product->slug),
+                'image' => $imageUrl,
+                'hoverImage' => $hoverUrl,
+                'price' => '₹' . number_format($displayPrice, 0),
+                'oldPrice' => $oldPrice !== null ? '₹' . number_format($oldPrice, 0) : null,
+                'hasSize' => !empty($sizes),
+                'sizes' => $sizes,
+                'badges' => !empty($badges) ? $badges : null,
+            ];
+        };
+
+        $products = $productsModel->getCollection()->map($mapProduct);
+        $productsModel->setCollection($products);
+
+        if (request()->ajax()) {
+            return view('public.products._list', ['products' => $productsModel])->render();
+        }
+
+        $seo = [
+            'title' => 'All Products | ' . config('app.name', 'KraftX'),
+            'description' => 'Browse all our handcrafted products at ' . config('app.name', 'KraftX') . '.',
+            'canonical' => route('products.index'),
+            'type' => 'website',
+            'json_ld' => [
+                SeoHelper::breadcrumbSchema([
+                    ['name' => 'Home', 'url' => route('home')],
+                    ['name' => 'All Products', 'url' => route('products.index')],
+                ]),
+            ],
+        ];
+
+        return view('public.products.index', ['products' => $productsModel, 'seo' => $seo]);
+    }
 
     public function show(string $slug)
     {

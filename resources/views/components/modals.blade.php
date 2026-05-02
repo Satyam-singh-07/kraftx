@@ -26,7 +26,7 @@
 <!-- Toolbar -->
 <div class="tf-toolbar tf-toolbar-bottom">
     <div class="toolbar-item">
-        <a href="{{ route('home') }}">
+        <a href="{{ route('products.index') }}">
             <span class="toolbar-icon">
                 <i class="icon icon-storefront"></i>
             </span>
