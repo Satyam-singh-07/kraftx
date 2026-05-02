@@ -1,17 +1,27 @@
 <x-layout :seo="$seo" title="All Collections">
     <style>
         .collection-hero {
-            padding-top: 36px;
+            padding-top: 20px !important;
+            padding-bottom: 20px !important;
+        }
+        .collection-hero h3 {
+            font-size: 28px;
+            margin-bottom: 10px;
         }
         .collection-item-v2 {
             display: block;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         .collection-image {
             transition: transform 0.3s ease;
         }
         .collection-item-v2:hover .collection-image {
             transform: scale(1.05);
+        }
+        .collection-title {
+            font-size: 14px;
+            line-height: 1.4;
+            margin-top: 8px;
         }
         .loading-spinner {
             display: none;
@@ -38,9 +48,9 @@
     </section>
     <!-- /Page Title -->
 
-    <section class="flat-spacing pt-40">
+    <section class="flat-spacing pt-0">
         <div class="container">
-            <div class="row" id="collections-container">
+            <div class="row g-3 g-md-4" id="collections-container">
                 @include('public.collections._list', ['collections' => $collections])
             </div>
             
