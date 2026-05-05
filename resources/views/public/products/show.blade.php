@@ -358,8 +358,13 @@
                                                 <span class="price-add d-none d-sm-block d-md-none d-lg-block">₹{{ number_format($product->sale_price ?? $product->price, 0) }}</span>
                                             </button>
                                         </div>
-                                        <button type="button" id="buy-now-btn" class="tf-btn type-xl btn-primary animate-btn w-100">
+                                        <button type="button" id="buy-now-btn" class="tf-btn type-xl btn-primary animate-btn w-100 mb-10">
                                             Buy It Now
+                                        </button>
+                                        
+                                        <!-- Shiprocket One-Click Checkout Button -->
+                                        <button type="button" onclick="triggerShiprocketCheckout({{ $product->id }})" class="tf-btn type-xl btn-fill animate-btn w-100" style="background-color: #5e17eb; border-color: #5e17eb; color: white;">
+                                            <i class="icon icon-Lightning me-2"></i> One-Click Checkout
                                         </button>
                                     </div>
                                 </div>
@@ -936,6 +941,74 @@
                 if (buyNowBtn) buyNowBtn.addEventListener('click', handleAddToCart);
                 if (stickyAddToCartBtn) stickyAddToCartBtn.addEventListener('click', handleAddToCart);
             });
+
+            /**
+             * Shiprocket Headless Checkout Trigger
+             */
+            @php
+                $shiprocketProductCheckoutData = [
+                    'id' => $product->id,
+                    'title' => $product->name,
+                    'price' => (float) ($product->sale_price ?? $product->price),
+                    'image' => $product->primary_image ? asset('storage/' . $product->primary_image->image_path) : '',
+                    'default_variant_id' => (int) ($product->id + 900000000),
+                    'variants' => $product->variants->map(function ($variant) use ($product) {
+                        return [
+                            'id' => (int) $variant->id,
+                            'color' => $variant->color,
+                            'size' => $variant->size,
+                            'title' => trim(($variant->color ?: '') . ($variant->size ? ' / ' . $variant->size : '')) ?: 'Default Title',
+                            'price' => (float) ($variant->price ?? $product->sale_price ?? $product->price),
+                        ];
+                    })->values(),
+                ];
+            @endphp
+            const shiprocketProductCheckoutData = {{ \Illuminate\Support\Js::from($shiprocketProductCheckoutData) }};
+
+            function triggerShiprocketCheckout(productId) {
+                const quantity = document.querySelector('input[name="quantity"]')?.value || 1;
+                const activeColorBtn = document.querySelector('.variant-color .color-btn.active');
+                const color = activeColorBtn ? activeColorBtn.getAttribute('data-color') : null;
+                const activeSizeBtn = document.querySelector('.variant-size .size-btn.active');
+                const size = activeSizeBtn ? activeSizeBtn.getAttribute('data-size') : null;
+                const matchingVariant = shiprocketProductCheckoutData.variants.find((variant) => {
+                    return (!color || variant.color === color) && (!size || variant.size === size);
+                });
+
+                console.log('--- Shiprocket Debug Info ---');
+                console.log('Product ID:', productId);
+                console.log('Quantity:', quantity);
+                console.log('window.SRCheckout:', window.SRCheckout);
+                console.log('window.ShiprocketCheckout:', window.ShiprocketCheckout);
+                console.log('window.SR_CHECKOUT_CONFIG:', window.SR_CHECKOUT_CONFIG);
+                console.log('SDK Script Element:', document.getElementById('shiprocket-checkout-sdk'));
+                console.log('------------------------------');
+
+                if (typeof window.SRCheckout === 'undefined') {
+                    console.error('Shiprocket SDK (SRCheckout) is missing. Check if the script loaded successfully and the token is valid.');
+                    alert('Checkout system is still loading. Please try again in a moment.');
+                    return;
+                }
+
+                const checkoutData = {
+                    type: 'product',
+                    items: [{
+                        id: productId,
+                        product_id: productId,
+                        title: shiprocketProductCheckoutData.title,
+                        quantity: parseInt(quantity),
+                        variant_id: matchingVariant ? matchingVariant.id : shiprocketProductCheckoutData.default_variant_id,
+                        variant_title: matchingVariant ? matchingVariant.title : 'Default Title',
+                        price: matchingVariant ? matchingVariant.price : shiprocketProductCheckoutData.price,
+                        image: shiprocketProductCheckoutData.image,
+                    }]
+                };
+
+                window.SRCheckout.open(checkoutData).catch((error) => {
+                    console.error('Shiprocket checkout failed:', error);
+                    alert('Could not start checkout. Please try again.');
+                });
+            }
         </script>
         <script src="{{ asset('assets/js/plugin/drift.min.js') }}"></script>
         <script src="{{ asset('assets/js/plugin/photoswipe.umd.min.js') }}"></script>

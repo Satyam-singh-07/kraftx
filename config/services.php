@@ -32,6 +32,8 @@ return [
     ],
 
     'shiprocket' => [
+        'email' => env('SHIPROCKET_EMAIL'),
+        'password' => env('SHIPROCKET_PASSWORD'),
         'key' => env('SHIPROCKET_API_KEY'),
         'secret' => env('SHIPROCKET_API_SECRET'),
         'catalog_token' => env('SHIPROCKET_CATALOG_TOKEN', 'kraftx_shiprocket_secure_sync_2026'),

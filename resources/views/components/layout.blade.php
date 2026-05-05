@@ -55,9 +55,71 @@
     {!! \App\Helpers\SeoHelper::renderJsonLd($seoData['json_ld'] ?? []) !!}
     @yield('seo')
 
+    <!-- Shiprocket/Fastrr Headless Checkout -->
+    <link rel="stylesheet" href="https://fastrr-boost-ui.pickrr.com/assets/styles/shopify.css">
+    <script>
+        window.checkoutBuyer = "https://fastrr-boost-ui.pickrr.com/";
+        window.SR_CHECKOUT_CONFIG = {
+            storeToken: "{{ config('services.shiprocket.key') }}", 
+            api_url: "{{ url('/api/shiprocket') }}",
+            seller_domain: "{{ request()->getHost() }}"
+        };
+
+        window.SRCheckout = window.SRCheckout || {
+            open(checkoutData) {
+                return new Promise((resolve, reject) => {
+                    const startedAt = Date.now();
+                    const timeoutMs = 10000;
+
+                    const openWhenReady = () => {
+                        if (window.HeadlessCheckout && typeof window.HeadlessCheckout.buyDirect === 'function') {
+                            const products = (checkoutData.items || []).map((item) => ({
+                                productId: item.product_id || item.id,
+                                title: item.title || '',
+                                variantId: item.variant_id || item.id,
+                                variantTitle: item.variant_title || '',
+                                price: item.price ? Number(item.price) : 0,
+                                quantity: parseInt(item.quantity || 1, 10),
+                                image: item.image || '',
+                                customAttributes: item.customAttributes || {},
+                            }));
+
+                            if (!products.length) {
+                                reject(new Error('Shiprocket checkout requires at least one item.'));
+                                return;
+                            }
+
+                            window.HeadlessCheckout.buyDirect({
+                                type: checkoutData.type || (products.length > 1 ? 'cart' : 'product'),
+                                products,
+                                couponCode: checkoutData.couponCode || null,
+                            });
+                            resolve();
+                            return;
+                        }
+
+                        if (Date.now() - startedAt > timeoutMs) {
+                            reject(new Error('Shiprocket HeadlessCheckout SDK did not finish loading.'));
+                            return;
+                        }
+
+                        window.setTimeout(openWhenReady, 100);
+                    };
+
+                    openWhenReady();
+                });
+            }
+        };
+    </script>
+    <script src="https://fastrr-boost-ui.pickrr.com/assets/js/channels/shopify.js" id="shiprocket-checkout-sdk" defer></script>
+    <script src="https://fastrr-boost-ui.pickrr.com/assets/js/channels/shiprocket-login.js" defer></script>
+    <script src="https://shiprocket-sns.pickrr.com/script.js" defer></script>
+    <link rel="stylesheet" href="https://shiprocket-sns.pickrr.com/styles.css">
 </head>
 
 <body>
+    <input type="hidden" value="{{ request()->getHost() }}" id="sellerDomain" />
+
     <!-- Scroll Top -->
     <button id="goTop">
         <span class="border-progress"></span>
@@ -107,6 +169,7 @@
     <script src="{{ asset('assets/js/carousel.js') }}"></script>
     <script src="{{ asset('assets/js/main.js') }}"></script>
     <script src="{{ asset('assets/js/wishlist.js') }}"></script>
+
     {{ $scripts ?? '' }}
 
     <x-login />

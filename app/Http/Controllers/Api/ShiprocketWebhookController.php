@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -23,10 +24,10 @@ class ShiprocketWebhookController extends Controller
         // Validate the request (You can add signature verification here)
         
         $data = $request->all();
-        $orderData = $data['order'] ?? null;
+        $orderData = $data['order'] ?? $data; // Handle both nested and flat structures if they vary
 
-        if (!$orderData) {
-            return response()->json(['message' => 'Invalid data'], 400);
+        if (!isset($orderData['id'])) {
+            return response()->json(['message' => 'Invalid data: Missing order ID'], 400);
         }
 
         // Check if order already exists
@@ -35,49 +36,55 @@ class ShiprocketWebhookController extends Controller
             return response()->json(['message' => 'Order already processed'], 200);
         }
 
+        // Find user by email to link the order
+        $user = null;
+        if (!empty($orderData['customer_email'])) {
+            $user = User::where('email', $orderData['customer_email'])->first();
+        }
+
         DB::beginTransaction();
         try {
             // Create the Order
             $order = Order::create([
+                'user_id' => $user?->id,
                 'shiprocket_order_id' => $orderData['id'],
                 'order_number' => 'KRAFTX-' . strtoupper(Str::random(8)),
                 'total_amount' => $orderData['total'],
-                'subtotal' => $orderData['subtotal'],
+                'subtotal' => $orderData['subtotal'] ?? $orderData['total'],
                 'tax_amount' => $orderData['tax'] ?? 0,
                 'shipping_amount' => $orderData['shipping_charges'] ?? 0,
                 'discount_amount' => $orderData['discount'] ?? 0,
                 'status' => 'processing',
-                'payment_method' => $orderData['payment_method'],
+                'payment_method' => $orderData['payment_method'] ?? 'COD',
                 'payment_status' => ($orderData['payment_status'] ?? '') === 'captured' ? 'paid' : 'pending',
-                'customer_name' => $orderData['customer_name'],
-                'customer_email' => $orderData['customer_email'],
-                'customer_phone' => $orderData['customer_phone'],
-                'shipping_address' => $orderData['shipping_address'],
-                'shipping_city' => $orderData['shipping_city'],
-                'shipping_state' => $orderData['shipping_state'],
-                'shipping_pincode' => $orderData['shipping_pincode'],
+                'customer_name' => $orderData['customer_name'] ?? 'N/A',
+                'customer_email' => $orderData['customer_email'] ?? 'N/A',
+                'customer_phone' => $orderData['customer_phone'] ?? 'N/A',
+                'shipping_address' => $orderData['shipping_address'] ?? 'N/A',
+                'shipping_city' => $orderData['shipping_city'] ?? 'N/A',
+                'shipping_state' => $orderData['shipping_state'] ?? 'N/A',
+                'shipping_pincode' => $orderData['shipping_pincode'] ?? 'N/A',
                 'shipping_country' => $orderData['shipping_country'] ?? 'India',
             ]);
 
             // Create Order Items
-            if (isset($orderData['line_items'])) {
-                foreach ($orderData['line_items'] as $item) {
-                    $product = Product::where('sku', $item['sku'])->first();
-                    
-                    OrderItem::create([
-                        'order_id' => $order->id,
-                        'product_id' => $product?->id,
-                        'sku' => $item['sku'],
-                        'name' => $item['name'],
-                        'quantity' => $item['quantity'],
-                        'price' => $item['price'],
-                        'total' => $item['price'] * $item['quantity'],
-                    ]);
+            $lineItems = $orderData['line_items'] ?? $orderData['items'] ?? [];
+            foreach ($lineItems as $item) {
+                $product = Product::where('sku', $item['sku'])->first();
+                
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $product?->id,
+                    'sku' => $item['sku'],
+                    'name' => $item['name'],
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'total' => $item['price'] * $item['quantity'],
+                ]);
 
-                    // Reduce Stock
-                    if ($product) {
-                        $product->decrement('stock', $item['quantity']);
-                    }
+                // Reduce Stock
+                if ($product) {
+                    $product->decrement('stock', $item['quantity']);
                 }
             }
 
@@ -87,7 +94,7 @@ class ShiprocketWebhookController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Shiprocket Webhook Error: ' . $e->getMessage());
-            return response()->json(['message' => 'Internal Server Error'], 500);
+            return response()->json(['message' => 'Internal Server Error: ' . $e->getMessage()], 500);
         }
     }
 }

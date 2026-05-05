@@ -29,9 +29,9 @@ class ShiprocketCatalogController extends Controller
      */
     public function fetchProducts(Request $request)
     {
-        // if (!$this->validateToken($request)) {
-        //     return response()->json(['message' => 'Unauthorized'], 401);
-        // }
+        if (!$this->validateToken($request)) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
 
         $page = $request->input('page', 1);
         $limit = $request->input('limit', 100);
@@ -55,9 +55,9 @@ class ShiprocketCatalogController extends Controller
      */
     public function fetchProductsByCollection(Request $request)
     {
-        // if (!$this->validateToken($request)) {
-        //     return response()->json(['message' => 'Unauthorized'], 401);
-        // }
+        if (!$this->validateToken($request)) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
 
         $collectionId = $request->input('collection_id');
         if (!$collectionId) {
@@ -89,9 +89,9 @@ class ShiprocketCatalogController extends Controller
      */
     public function fetchCollections(Request $request)
     {
-        // if (!$this->validateToken($request)) {
-        //     return response()->json(['message' => 'Unauthorized'], 401);
-        // }
+        if (!$this->validateToken($request)) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
 
         $page = $request->input('page', 1);
         $limit = $request->input('limit', 100);
