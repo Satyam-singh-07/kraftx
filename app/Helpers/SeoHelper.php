@@ -202,6 +202,8 @@ class SeoHelper
             ? self::absoluteUrl('storage/' . ltrim($product->images->first()->image_path, '/'))
             : asset('assets/images/product/product-placeholder.jpg');
 
+        $brandName = config('seo.site_name', config('app.name', 'KraftX'));
+
         $schema = [
             '@context' => 'https://schema.org',
             '@type' => 'Product',
@@ -209,6 +211,10 @@ class SeoHelper
             'image' => [$primaryImage],
             'description' => Str::limit(strip_tags($product->short_description ?? $product->description ?? ''), 160, ''),
             'sku' => $product->sku,
+            'brand' => [
+                '@type' => 'Brand',
+                'name' => $brandName,
+            ],
             'url' => route('product.show', $product->slug),
             'offers' => [
                 '@type' => 'Offer',
@@ -219,6 +225,41 @@ class SeoHelper
                 'availability' => (int) ($product->stock ?? 0) > 0
                     ? 'https://schema.org/InStock'
                     : 'https://schema.org/OutOfStock',
+                'shippingDetails' => [
+                    '@type' => 'OfferShippingDetails',
+                    'shippingRate' => [
+                        '@type' => 'MonetaryAmount',
+                        'value' => 0,
+                        'currency' => 'INR',
+                    ],
+                    'deliveryTime' => [
+                        '@type' => 'ShippingDeliveryTime',
+                        'handlingTime' => [
+                            '@type' => 'QuantitativeValue',
+                            'minValue' => 1,
+                            'maxValue' => 2,
+                            'unitCode' => 'd',
+                        ],
+                        'transitTime' => [
+                            '@type' => 'QuantitativeValue',
+                            'minValue' => 3,
+                            'maxValue' => 7,
+                            'unitCode' => 'd',
+                        ],
+                    ],
+                    'shippingDestination' => [
+                        '@type' => 'DefinedRegion',
+                        'addressCountry' => 'IN',
+                    ],
+                ],
+                'hasMerchantReturnPolicy' => [
+                    '@type' => 'MerchantReturnPolicy',
+                    'applicableCountry' => 'IN',
+                    'returnPolicyCategory' => 'https://schema.org/MerchantReturnFiniteReturnPeriod',
+                    'merchantReturnDays' => 14,
+                    'returnMethod' => 'https://schema.org/ReturnByMail',
+                    'returnFees' => 'https://schema.org/FreeReturn',
+                ],
             ],
         ];
 
