@@ -101,7 +101,7 @@ class HomeController extends Controller
             ->map($mapProduct);
 
         // Define Lookbook Product IDs here (easily editable)
-        $lookbookProductIds = [7, 7, 13]; 
+        $lookbookProductIds = [7, 7, 16]; 
 
         $lookbookItems = Product::with(['images'])
             ->whereIn('id', $lookbookProductIds)
