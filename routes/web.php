@@ -31,6 +31,14 @@ use App\Http\Controllers\Public\SearchController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/debug-config', function() {
+    return [
+        'key' => config('services.shiprocket.key'),
+        'env_key' => env('SHIPROCKET_API_KEY'),
+        'all_shiprocket' => config('services.shiprocket')
+    ];
+});
+
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');
 Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
