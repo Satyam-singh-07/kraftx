@@ -1,5 +1,6 @@
 <x-layouts.admin>
     @push('scripts')
+        <script src="{{ asset('assets/js/image-preview.js') }}"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <style>
             .editor-toolbar { display: flex; flex-wrap: wrap; gap: 5px; padding: 8px; background: #f8f9fa; border: 1px solid #dee2e6; border-bottom: none; border-radius: 8px 8px 0 0; align-items: center; }
@@ -100,28 +101,6 @@
                             <div class="editor-area" contenteditable="true" id="editor-content"></div>
                             <input type="hidden" name="content" id="input-content" value="{{ old('content') }}">
                         </div>
-
-                          <!-- Sidebar for Product Helper -->
-        <div class="space-y-6">
-            <x-admin.card title="Insert Products">
-                <div class="mt-4 space-y-4">
-                    <input type="text" id="product-search" placeholder="Search products..." 
-                        class="block w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
-                    
-                    <div id="product-list" class="space-y-2 max-h-[600px] overflow-auto">
-                        <p class="text-xs text-gray-500">Loading products...</p>
-                    </div>
-                </div>
-            </x-admin.card>
-            
-            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
-                <h4 class="text-sm font-bold text-blue-800 dark:text-blue-300 mb-2">How to use</h4>
-                <p class="text-xs text-blue-700 dark:text-blue-400 leading-relaxed">
-                    Click <strong>"Insert"</strong> on any product to add a "Buy Now" card to your post. 
-                    Or manually use <code>[product id=XX]</code>.
-                </p>
-            </div>
-        </div>
                     </div>
                 </x-admin.card>
 
@@ -138,13 +117,13 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Featured Image</label>
-                            <input type="file" name="featured_image" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            <input type="file" name="featured_image" id="featured_image" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            <div id="featured_image_preview" class="mt-2"></div>
                             @error('featured_image') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Tags</label>
                             <div class="space-y-3">
-                                <!-- Modern Tag Input -->
                                 <div class="flex flex-wrap gap-2 p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg min-h-[42px] focus-within:ring-2 focus-within:ring-blue-500/20" id="tag-input-container">
                                     <template x-for="(tag, index) in selectedTags" :key="index">
                                         <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 rounded text-xs font-medium">
@@ -160,13 +139,9 @@
                                         placeholder="Type and press enter..."
                                         class="flex-1 bg-transparent border-none outline-none text-sm dark:text-white min-w-[120px] focus:ring-0 p-0">
                                 </div>
-
-                                <!-- Hidden inputs for form submission -->
                                 <template x-for="tag in selectedTags" :key="tag.id || tag.name">
                                     <input type="hidden" name="tags[]" :value="tag.name">
                                 </template>
-
-                                <!-- Quick Select Tags -->
                                 <div>
                                     <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Quick Select Existing</p>
                                     <div class="flex flex-wrap gap-2">
@@ -233,7 +208,8 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">OG Image</label>
-                            <input type="file" name="seo[og_image]" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            <input type="file" name="seo[og_image]" id="og_image" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            <div id="og_image_preview" class="mt-2"></div>
                         </div>
                     </div>
                 </x-admin.card>
@@ -246,12 +222,32 @@
             </form>
         </div>
 
-      
+        <div class="space-y-6">
+            <x-admin.card title="Insert Products">
+                <div class="mt-4 space-y-4">
+                    <input type="text" id="product-search" placeholder="Search products..." 
+                        class="block w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none">
+                    <div id="product-list" class="space-y-2 max-h-[600px] overflow-auto">
+                        <p class="text-xs text-gray-500">Loading products...</p>
+                    </div>
+                </div>
+            </x-admin.card>
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
+                <h4 class="text-sm font-bold text-blue-800 dark:text-blue-300 mb-2">How to use</h4>
+                <p class="text-xs text-blue-700 dark:text-blue-400 leading-relaxed">
+                    Click <strong>"Insert"</strong> on any product to add a "Buy Now" card to your post. 
+                    Or manually use <code>[product id=XX]</code>.
+                </p>
+            </div>
+        </div>
     </div>
 
     @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            initImagePreview('featured_image', 'featured_image_preview');
+            initImagePreview('og_image', 'og_image_preview');
+
             const editor = document.getElementById('editor-content');
             const input = document.getElementById('input-content');
             const toolbar = document.querySelector('.editor-toolbar');
@@ -279,7 +275,6 @@
             editor.addEventListener('input', () => input.value = editor.innerHTML);
             document.getElementById('postForm').addEventListener('submit', () => input.value = editor.innerHTML);
 
-            // Product Picker Logic
             const productSearch = document.getElementById('product-search');
             const productList = document.getElementById('product-list');
             const insertProductBtn = document.getElementById('insert-product-btn');
@@ -299,7 +294,6 @@
                     productList.innerHTML = '<p class="text-xs text-gray-500 py-4 text-center">No products found</p>';
                     return;
                 }
-
                 productList.innerHTML = products.map(p => `
                     <div class="flex items-center gap-3 p-2 border rounded-lg bg-gray-50 dark:bg-gray-700/50">
                         <img src="${p.image}" class="w-10 h-10 object-cover rounded" alt="">
@@ -326,11 +320,7 @@
                 debounceTimer = setTimeout(() => fetchProducts(this.value), 300);
             });
 
-            insertProductBtn.addEventListener('click', () => {
-                productSearch.focus();
-            });
-
-            // Initial load
+            insertProductBtn.addEventListener('click', () => { productSearch.focus(); });
             fetchProducts();
         });
     </script>

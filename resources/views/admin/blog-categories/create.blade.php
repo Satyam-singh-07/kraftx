@@ -6,6 +6,9 @@
         </div>
 
         <form action="{{ route('admin.blog-categories.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+    @push('scripts')
+        <script src="{{ asset('assets/js/image-preview.js') }}"></script>
+    @endpush
             @csrf
 
             <x-admin.card title="Category Details">
@@ -31,7 +34,8 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Image</label>
-                            <input type="file" name="image" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            <input type="file" name="image" id="category_image" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            <div id="category_image_preview" class="mt-2"></div>
                         </div>
                         <div class="flex items-center pt-6">
                             <input type="hidden" name="status" value="0">
@@ -77,7 +81,8 @@
 
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">OG Image</label>
-                        <input type="file" name="seo[og_image]" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <input type="file" name="seo[og_image]" id="og_image" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <div id="og_image_preview" class="mt-2"></div>
                     </div>
                 </div>
             </x-admin.card>
@@ -89,4 +94,12 @@
             </div>
         </form>
     </div>
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initImagePreview('category_image', 'category_image_preview');
+            initImagePreview('og_image', 'og_image_preview');
+        });
+    </script>
+    @endpush
 </x-layouts.admin>

@@ -7,6 +7,9 @@
 
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <form action="{{ route('admin.reviews.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+    @push('scripts')
+        <script src="{{ asset('assets/js/image-preview.js') }}"></script>
+    @endpush
                 @csrf
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -80,6 +83,7 @@
                 <div class="space-y-1">
                     <label for="images" class="text-sm font-medium text-gray-700 dark:text-gray-300">Images</label>
                     <input type="file" name="images[]" id="images" multiple accept="image/*"
+                    <div id="images_preview" class="mt-2 flex flex-wrap"></div>
                         class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     <p class="text-xs text-gray-500 mt-1">You can select multiple images.</p>
                 </div>
@@ -92,4 +96,11 @@
             </form>
         </div>
     </div>
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initImagePreview('images', 'images_preview', true);
+        });
+    </script>
+    @endpush
 </x-layouts.admin>

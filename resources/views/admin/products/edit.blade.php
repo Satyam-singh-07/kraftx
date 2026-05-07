@@ -1,5 +1,6 @@
 <x-layouts.admin>
     @push('scripts')
+        <script src="{{ asset('assets/js/image-preview.js') }}"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <style>
             .editor-toolbar {
@@ -171,7 +172,7 @@
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Main Image (Primary)</label>
                         <div x-data="{ photoName: null, photoPreview: '{{ $product->images->where('is_primary', true)->first() ? asset('storage/' . $product->images->where('is_primary', true)->first()->image_path) : '' }}' }" class="col-span-6 sm:col-span-4">
-                            <input type="file" name="main_image" class="hidden" x-ref="photo"
+                            <input type="file" name="main_image" id="main_image" class="hidden" x-ref="photo"
                                    x-on:change="
                                         photoName = $refs.photo.files[0].name;
                                         const reader = new FileReader();
@@ -206,7 +207,8 @@
                                 </div>
                             @endforeach
                         </div>
-                        <input type="file" name="gallery_images[]" multiple class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <input type="file" name="gallery_images[]" id="gallery_images" multiple class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <div id="gallery_images_preview" class="mt-2 flex flex-wrap"></div>
                         @error('gallery_images.*') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                     </div>
 
@@ -217,7 +219,8 @@
                                 <img src="{{ asset('storage/' . $product->size_weight_image) }}" class="w-32 h-32 object-cover rounded-lg border">
                             </div>
                         @endif
-                        <input type="file" name="size_weight_image" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <input type="file" name="size_weight_image" id="size_weight_image" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <div id="size_weight_image_preview" class="mt-2"></div>
                         @error('size_weight_image') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                     </div>
                 </div>
@@ -379,7 +382,8 @@
                                 <img src="{{ Storage::url($product->seoMeta->og_image) }}" alt="{{ $product->name }} SEO image" class="w-20 h-20 object-cover rounded">
                             </div>
                         @endif
-                        <input type="file" name="seo_meta[og_image]" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <input type="file" name="seo_meta[og_image]" id="og_image" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <div id="og_image_preview" class="mt-2"></div>
                     </div>
                 </div>
             </x-admin.card>
@@ -393,8 +397,14 @@
     </div>
 
     @push('scripts')
+        <script src="{{ asset('assets/js/image-preview.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize image previews
+            initImagePreview('gallery_images', 'gallery_images_preview', true);
+            initImagePreview('size_weight_image', 'size_weight_image_preview');
+            initImagePreview('og_image', 'og_image_preview');
+
             const editors = ['description', 'perfect_placement'];
             
             editors.forEach(id => {

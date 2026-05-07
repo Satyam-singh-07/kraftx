@@ -1,4 +1,8 @@
 <x-layouts.admin>
+    @push('scripts')
+        <script src="{{ asset('assets/js/image-preview.js') }}"></script>
+    @endpush
+
     <div class="max-w-4xl mx-auto space-y-6">
         <div class="flex items-center justify-between">
             <h2 class="text-xl font-bold text-gray-800 dark:text-white">Edit Deal: {{ $deal->title }}</h2>
@@ -11,11 +15,24 @@
             
             <x-admin.card title="Deal Setup">
                 <div class="space-y-5 mt-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Deal Title <span class="text-red-500">*</span></label>
-                        <input type="text" name="title" required value="{{ old('title', $deal->title) }}" placeholder="e.g. Summer Flash Sale"
-                               class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none">
-                        @error('title') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Deal Title <span class="text-red-500">*</span></label>
+                            <input type="text" name="title" required value="{{ old('title', $deal->title) }}" placeholder="e.g. Summer Flash Sale"
+                                   class="block w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none">
+                            @error('title') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Banner Image</label>
+                            @if($deal->banner_image)
+                                <div class="mb-2">
+                                    <img src="{{ asset('storage/' . $deal->banner_image) }}" class="w-32 h-20 object-cover rounded-lg border shadow-sm">
+                                </div>
+                            @endif
+                            <input type="file" name="banner_image" id="banner_image" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            <div id="banner_image_preview" class="mt-2"></div>
+                            @error('banner_image') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                        </div>
                     </div>
 
                     <div>
@@ -99,4 +116,12 @@
             </div>
         </form>
     </div>
+
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initImagePreview('banner_image', 'banner_image_preview');
+        });
+    </script>
+    @endpush
 </x-layouts.admin>

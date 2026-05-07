@@ -1,5 +1,6 @@
 <x-layouts.admin>
     @push('scripts')
+        <script src="{{ asset('assets/js/image-preview.js') }}"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <style>
             .editor-toolbar {
@@ -180,18 +181,21 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Main Image (Primary)</label>
-                        <input type="file" name="main_image" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <input type="file" name="main_image" id="main_image" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <div id="main_image_preview" class="mt-2"></div>
                         @error('main_image') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Gallery Images</label>
-                        <input type="file" name="gallery_images[]" multiple class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <input type="file" name="gallery_images[]" id="gallery_images" multiple class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <div id="gallery_images_preview" class="mt-2 flex flex-wrap"></div>
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Size & Weight Image</label>
-                        <input type="file" name="size_weight_image" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <input type="file" name="size_weight_image" id="size_weight_image" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <div id="size_weight_image_preview" class="mt-2"></div>
                     </div>
                 </div>
             </x-admin.card>
@@ -316,7 +320,8 @@
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Open Graph Image</label>
-                        <input type="file" name="seo_meta[og_image]" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <input type="file" name="seo_meta[og_image]" id="og_image" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <div id="og_image_preview" class="mt-2"></div>
                     </div>
                 </div>
             </x-admin.card>
@@ -330,8 +335,15 @@
     </div>
 
     @push('scripts')
+        <script src="{{ asset('assets/js/image-preview.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize image previews
+            initImagePreview('main_image', 'main_image_preview');
+            initImagePreview('gallery_images', 'gallery_images_preview', true);
+            initImagePreview('size_weight_image', 'size_weight_image_preview');
+            initImagePreview('og_image', 'og_image_preview');
+
             const editors = ['description', 'perfect_placement'];
             
             editors.forEach(id => {
