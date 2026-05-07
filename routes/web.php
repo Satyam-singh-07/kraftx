@@ -31,13 +31,6 @@ use App\Http\Controllers\Public\SearchController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/debug-config', function() {
-    return [
-        'key' => config('services.shiprocket.key'),
-        'env_key' => env('SHIPROCKET_API_KEY'),
-        'all_shiprocket' => config('services.shiprocket')
-    ];
-});
 
 Route::post('/api/shiprocket/checkout/one-click', [App\Http\Controllers\Public\ShiprocketCheckoutController::class, 'getOneClickToken'])->name('api.shiprocket.oneclick');
 
