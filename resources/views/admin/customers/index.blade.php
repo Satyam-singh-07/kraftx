@@ -60,7 +60,8 @@
                         <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                             {{ $customer->created_at->format('M d, Y') }}
                         </td>
-                        <td class="px-6 py-4 space-x-2">
+                        <td class="px-6 py-4 space-x-2 whitespace-nowrap">
+                            <a href="{{ route('admin.customers.show', $customer->id) }}" class="text-blue-500 hover:text-blue-700">View</a>
                             <a href="{{ route('admin.customers.edit', $customer->id) }}" class="text-blue-500 hover:text-blue-700">Edit</a>
                             <form action="{{ route('admin.customers.destroy', $customer->id) }}" method="POST" class="inline">
                                 @csrf

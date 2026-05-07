@@ -51,6 +51,15 @@ class CustomerController extends Controller
         return redirect()->route('admin.customers.index')->with('success', 'Customer created successfully.');
     }
 
+    public function show(User $customer)
+    {
+        if ($customer->role !== 'customer') abort(404);
+
+        $customer->load(['orders.items.product', 'carts.items.product', 'wishlists.product', 'blogComments.post']);
+
+        return view('admin.customers.show', compact('customer'));
+    }
+
     public function edit(User $customer)
     {
         if ($customer->role !== 'customer') abort(404);
