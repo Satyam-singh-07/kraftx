@@ -39,6 +39,23 @@ Route::get('/debug-config', function() {
     ];
 });
 
+Route::get('/test-checkout-token', function() {
+    $service = app(App\Services\ShiprocketService::class);
+    $testCartData = [
+        'items' => [
+            [
+                'variant_id' => '900000001', // Using the ID from your product API
+                'quantity' => 1
+            ]
+        ],
+        'custom_attributes' => [
+            'test' => 'true'
+        ],
+        'mobile_app' => false
+    ];
+    return $service->getCheckoutToken($testCartData);
+});
+
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');
 Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');

@@ -83,4 +83,47 @@ class ShiprocketService
 
         return $response->json();
     }
+
+    /**
+     * Generate a checkout token for Shiprocket One-Click Checkout.
+     */
+    public function getCheckoutToken($cartData)
+    {
+        $timestamp = now()->toIso8601String();
+        $apiKey = config('services.shiprocket.key');
+        $apiSecret = config('services.shiprocket.secret');
+
+        $payload = [
+            'cart_data' => $cartData,
+            'redirect_url' => url('/account/orders'),
+            'timestamp' => $timestamp,
+        ];
+
+        $body = json_encode($payload);
+        $hmac = base64_encode(hash_hmac('sha256', $body, $apiSecret, true));
+
+        try {
+            $response = Http::withHeaders([
+                'X-Api-Key' => $apiKey,
+                'X-Api-HMAC-SHA256' => $hmac,
+                'Content-Type' => 'application/json',
+            ])->post('https://checkout-api.shiprocket.com/api/v1/access-token/checkout', $payload);
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            return [
+                'error' => true,
+                'status' => $response->status(),
+                'message' => $response->json('message') ?? 'Unknown error',
+                'details' => $response->json()
+            ];
+        } catch (\Exception $e) {
+            return [
+                'error' => true,
+                'message' => $e->getMessage()
+            ];
+        }
+    }
 }
