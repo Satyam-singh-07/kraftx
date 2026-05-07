@@ -33,9 +33,12 @@
                             <div class="text-xs text-gray-600 dark:text-gray-400">Ends: {{ $deal->end_date ? $deal->end_date->format('M d, Y H:i') : 'Never' }}</div>
                         </td>
                         <td class="px-6 py-4">
+                            @php $now = now(); @endphp
                             @if(!$deal->status)
                                 <span class="px-2 py-1 text-[10px] font-bold rounded-full bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400">INACTIVE</span>
-                            @elseif(!$deal->isValid())
+                            @elseif($deal->start_date && $deal->start_date > $now)
+                                <span class="px-2 py-1 text-[10px] font-bold rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">UPCOMING</span>
+                            @elseif($deal->end_date && $deal->end_date < $now)
                                 <span class="px-2 py-1 text-[10px] font-bold rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">EXPIRED</span>
                             @else
                                 <span class="px-2 py-1 text-[10px] font-bold rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">ACTIVE</span>

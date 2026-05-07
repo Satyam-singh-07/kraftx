@@ -112,7 +112,7 @@ class ProductService
         $filesToDelete = [];
         DB::beginTransaction();
         try {
-            $product = $this->productRepository->findById($id);
+            $product = $this->productRepository->find($id, relations: ['images', 'collections', 'tags', 'variants', 'seoMeta']);
             if (!$product) {
                 Log::error('Product not found in ProductService: ' . $id);
                 throw new Exception('Product not found.');
@@ -148,7 +148,7 @@ class ProductService
             }
 
             $this->productRepository->update($id, $productData);
-            $product = $this->productRepository->findById($id);
+            $product = $this->productRepository->find($id, relations: ['images', 'collections', 'tags', 'variants', 'seoMeta']);
 
             // Handle Media Updates
             if ($dto->main_image) {
@@ -262,7 +262,7 @@ class ProductService
 
     public function toggleStatus(int $id)
     {
-        $product = $this->productRepository->findById($id);
+        $product = $this->productRepository->find($id);
         if ($product) {
             $this->productRepository->update($id, ['status' => !$product->status]);
             return true;

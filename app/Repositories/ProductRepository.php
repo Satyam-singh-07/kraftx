@@ -6,11 +6,16 @@ use App\Models\Product;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class ProductRepository implements ProductRepositoryInterface
+class ProductRepository extends BaseRepository implements ProductRepositoryInterface
 {
+    public function __construct(Product $model)
+    {
+        parent::__construct($model);
+    }
+
     public function getAllPaginated(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $query = Product::with(['images', 'collections']);
+        $query = $this->model->with(['images', 'collections']);
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];
@@ -47,34 +52,12 @@ class ProductRepository implements ProductRepositoryInterface
         return $query->paginate($perPage);
     }
 
-    public function findById(int $id): ?Product
-    {
-        return Product::with(['images', 'collections', 'tags', 'variants', 'seoMeta'])->find($id);
-    }
-
     public function findBySlug(string $slug): ?Product
     {
-        return Product::with(['images', 'collections', 'tags', 'variants', 'seoMeta'])
+        return $this->model->with(['images', 'collections', 'tags', 'variants', 'seoMeta'])
             ->where('slug', $slug)
             ->where('status', true)
             ->first();
-    }
-
-    public function create(array $data): Product
-    {
-        return Product::create($data);
-    }
-
-    public function update(int $id, array $data): bool
-    {
-        $product = Product::findOrFail($id);
-        return $product->update($data);
-    }
-
-    public function delete(int $id): bool
-    {
-        $product = Product::findOrFail($id);
-        return $product->delete();
     }
 
     public function syncRelations(Product $product, string $relation, array $ids): void
@@ -109,7 +92,7 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function search(string $query, int $limit = 10)
     {
-        return Product::with(['images', 'variants'])
+        return $this->model->with(['images', 'variants'])
             ->where('status', true)
             ->where(function($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
@@ -122,7 +105,7 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function getTrending(int $limit = 5)
     {
-        return Product::with(['images', 'variants'])
+        return $this->model->with(['images', 'variants'])
             ->where('status', true)
             ->where('is_trending', true)
             ->inRandomOrder()

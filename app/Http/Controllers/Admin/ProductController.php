@@ -82,7 +82,7 @@ class ProductController extends Controller
 
     public function edit($id)
     {
-        $product = $this->productRepository->findById($id);
+        $product = $this->productRepository->find($id, relations: ['images', 'collections', 'tags', 'variants', 'seoMeta']);
         if (!$product) {
             abort(404);
         }

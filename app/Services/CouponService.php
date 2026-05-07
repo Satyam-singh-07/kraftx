@@ -2,29 +2,47 @@
 
 namespace App\Services;
 
-use App\Models\Coupon;
-use App\Exceptions\InvalidCouponException;
+use App\DTOs\CouponDTO;
+use App\Repositories\Contracts\CouponRepositoryInterface;
+use Exception;
 
 class CouponService
 {
-    public function validateAndApply(string $code, float $cartTotal)
-    {
-        $coupon = Coupon::where('code', $code)->first();
+    public function __construct(
+        protected CouponRepositoryInterface $couponRepository
+    ) {}
 
-        if (!$coupon || !$coupon->isValid($cartTotal)) {
-            throw new InvalidCouponException();
+    public function createCoupon(CouponDTO $dto)
+    {
+        if ($this->couponRepository->findByCode($dto->code)) {
+            throw new Exception("Coupon code already exists.");
         }
 
-        return [
-            'valid' => true,
-            'discount_amount' => $coupon->calculateDiscount($cartTotal),
-            'coupon_id' => $coupon->id,
-            'code' => $coupon->code
-        ];
+        return $this->couponRepository->create([
+            'code' => $dto->code,
+            'discount_type' => $dto->discount_type,
+            'discount_value' => $dto->discount_value,
+            'min_cart_value' => $dto->min_cart_value,
+            'max_discount' => $dto->max_discount,
+            'usage_limit' => $dto->usage_limit,
+            'start_date' => $dto->start_date,
+            'end_date' => $dto->end_date,
+            'status' => $dto->status,
+        ]);
     }
-    
-    public function incrementUsage(Coupon $coupon)
+
+    public function updateCoupon(int $id, CouponDTO $dto)
     {
-        $coupon->increment('used_count');
+        return $this->couponRepository->update($id, [
+            'code' => $dto->code,
+            'discount_type' => $dto->discount_type,
+            'discount_value' => $dto->discount_value,
+            'min_cart_value' => $dto->min_cart_value,
+            'max_discount' => $dto->max_discount,
+            'usage_limit' => $dto->usage_limit,
+            'start_date' => $dto->start_date,
+            'end_date' => $dto->end_date,
+            'status' => $dto->status,
+        ]);
     }
 }
