@@ -30,11 +30,22 @@ class ShiprocketCheckoutController extends Controller
 
         $product = Product::findOrFail($request->product_id);
         
+        // Match the ID logic in ShiprocketCatalogController
+        $variantId = $request->variant_id;
+        if (!$variantId) {
+            $variantId = (int) ($product->id + 900000000);
+            // Check if there's a real first variant instead
+            $firstVariant = $product->variants->first();
+            if ($firstVariant) {
+                $variantId = $firstVariant->id;
+            }
+        }
+
         // Prepare Cart Data for Shiprocket
         $cartData = [
             'items' => [
                 [
-                    'variant_id' => $request->variant_id ?? $product->id, // Shiprocket expects variant ID
+                    'variant_id' => (string) $variantId, 
                     'quantity' => (int) $request->quantity,
                 ]
             ],
