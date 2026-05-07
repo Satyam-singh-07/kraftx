@@ -1006,7 +1006,7 @@
                 })
                 .catch((error) => {
                     console.error('Shiprocket checkout error:', error);
-                    alert('Checkout Error: ' . error.message);
+                    alert(`Checkout Error: ${error.message}`);
                     btn.disabled = false;
                     btn.innerHTML = originalHtml;
                 });

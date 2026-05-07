@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\ShiprocketService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
 class ShiprocketCheckoutController extends Controller
 {
@@ -59,8 +60,9 @@ class ShiprocketCheckoutController extends Controller
 
         if (isset($result['result']['token'])) {
             $token = $result['result']['token'];
-            // The standard Shiprocket/Fastrr checkout URL
-            $checkoutUrl = "https://fastrr-boost-ui.pickrr.com/?token={$token}&domain=" . $request->getHost();
+            $checkoutUrl = Arr::get($result, 'result.checkout_url')
+                ?? Arr::get($result, 'result.redirect_url')
+                ?? 'https://fastrr-boost-ui.pickrr.com/?customCheckoutToken=' . urlencode($token);
             
             return response()->json([
                 'success' => true,
