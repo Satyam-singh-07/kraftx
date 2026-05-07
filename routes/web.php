@@ -39,22 +39,7 @@ Route::get('/debug-config', function() {
     ];
 });
 
-Route::get('/test-checkout-token', function() {
-    $service = app(App\Services\ShiprocketService::class);
-    $testCartData = [
-        'items' => [
-            [
-                'variant_id' => '900000001', // Using the ID from your product API
-                'quantity' => 1
-            ]
-        ],
-        'custom_attributes' => [
-            'test' => 'true'
-        ],
-        'mobile_app' => false
-    ];
-    return $service->getCheckoutToken($testCartData);
-});
+Route::post('/api/shiprocket/checkout/one-click', [App\Http\Controllers\Public\ShiprocketCheckoutController::class, 'getOneClickToken'])->name('api.shiprocket.oneclick');
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');

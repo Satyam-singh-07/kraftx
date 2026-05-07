@@ -975,38 +975,40 @@
                     return (!color || variant.color === color) && (!size || variant.size === size);
                 });
 
-                console.log('--- Shiprocket Debug Info ---');
-                console.log('Product ID:', productId);
-                console.log('Quantity:', quantity);
-                console.log('window.SRCheckout:', window.SRCheckout);
-                console.log('window.ShiprocketCheckout:', window.ShiprocketCheckout);
-                console.log('window.SR_CHECKOUT_CONFIG:', window.SR_CHECKOUT_CONFIG);
-                console.log('SDK Script Element:', document.getElementById('shiprocket-checkout-sdk'));
-                console.log('------------------------------');
+                // Show loading state
+                const btn = document.querySelector('button[onclick^="triggerShiprocketCheckout"]');
+                const originalHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="icon icon-loading animate-spin me-2"></i> Initializing Secure Checkout...';
 
-                if (typeof window.SRCheckout === 'undefined') {
-                    console.error('Shiprocket SDK (SRCheckout) is missing. Check if the script loaded successfully and the token is valid.');
-                    alert('Checkout system is still loading. Please try again in a moment.');
-                    return;
-                }
-
-                const checkoutData = {
-                    type: 'product',
-                    items: [{
-                        id: productId,
+                // Call our backend to get the token
+                fetch('/api/shiprocket/checkout/one-click', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
                         product_id: productId,
-                        title: shiprocketProductCheckoutData.title,
                         quantity: parseInt(quantity),
-                        variant_id: matchingVariant ? matchingVariant.id : shiprocketProductCheckoutData.default_variant_id,
-                        variant_title: matchingVariant ? matchingVariant.title : 'Default Title',
-                        price: matchingVariant ? matchingVariant.price : shiprocketProductCheckoutData.price,
-                        image: shiprocketProductCheckoutData.image,
-                    }]
-                };
-
-                window.SRCheckout.open(checkoutData).catch((error) => {
-                    console.error('Shiprocket checkout failed:', error);
-                    alert('Could not start checkout. Please try again.');
+                        variant_id: matchingVariant ? matchingVariant.id : shiprocketProductCheckoutData.default_variant_id
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.checkout_url) {
+                        // Redirect to Shiprocket Checkout
+                        window.location.href = data.checkout_url;
+                    } else {
+                        throw new Error(data.message || 'Failed to start checkout');
+                    }
+                })
+                .catch((error) => {
+                    console.error('Shiprocket checkout error:', error);
+                    alert('Checkout Error: ' . error.message);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
                 });
             }
         </script>
