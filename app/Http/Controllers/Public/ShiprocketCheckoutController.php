@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\Cart;
 use App\Services\ShiprocketService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 
 class ShiprocketCheckoutController extends Controller
 {
@@ -19,41 +21,58 @@ class ShiprocketCheckoutController extends Controller
     }
 
     /**
-     * Get a checkout token for a single product (One-Click).
+     * Get a checkout token for the current cart or a single product.
      */
-    public function getOneClickToken(Request $request)
+    public function getToken(Request $request)
     {
-        $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:1',
-            'variant_id' => 'required'
-        ]);
+        $items = [];
 
-        $product = Product::findOrFail($request->product_id);
-        
-        $variantId = $request->variant_id;
+        if ($request->has('product_id')) {
+            // Single Product (One-Click)
+            $request->validate([
+                'product_id' => 'required|exists:products,id',
+                'quantity' => 'required|integer|min:1',
+                'variant_id' => 'required'
+            ]);
 
-        // If the variant_id is the virtual fallback (900...) but real variants exist,
-        // we should use the first real variant ID instead to match Catalog behavior.
-        if ($variantId >= 900000000 || !$variantId) {
-            $firstVariant = $product->variants->first();
-            if ($firstVariant) {
-                $variantId = $firstVariant->id;
-            } elseif (!$variantId) {
-                $variantId = (int) ($product->id + 900000000);
+            $product = Product::findOrFail($request->product_id);
+            $variantId = $request->variant_id;
+
+            if ($variantId >= 900000000 || !$variantId) {
+                $firstVariant = $product->variants->first();
+                if ($firstVariant) {
+                    $variantId = $firstVariant->id;
+                } elseif (!$variantId) {
+                    $variantId = (int) ($product->id + 900000000);
+                }
             }
+
+            $items[] = [
+                'variant_id' => (string) $variantId,
+                'quantity' => (int) $request->quantity,
+            ];
+        } else {
+            // Cart Checkout
+            $requestData = $request->all();
+            $frontendItems = $requestData['items'] ?? [];
+            
+            foreach ($frontendItems as $item) {
+                $items[] = [
+                    'variant_id' => (string) $item['variant_id'],
+                    'quantity' => (int) $item['quantity'],
+                ];
+            }
+        }
+
+        if (empty($items)) {
+            return response()->json(['success' => false, 'message' => 'Cart is empty'], 400);
         }
 
         // Prepare Cart Data for Shiprocket
         $cartData = [
-            'items' => [
-                [
-                    'variant_id' => (string) $variantId, 
-                    'quantity' => (int) $request->quantity,
-                ]
-            ],
+            'items' => $items,
             'custom_attributes' => [
-                'source' => 'one_click_checkout'
+                'source' => $request->has('product_id') ? 'one_click_checkout' : 'cart_checkout'
             ],
             'mobile_app' => false
         ];
@@ -78,5 +97,13 @@ class ShiprocketCheckoutController extends Controller
             'message' => 'Could not generate checkout token',
             'details' => $result
         ], 500);
+    }
+
+    /**
+     * Get a checkout token for a single product (Legacy support).
+     */
+    public function getOneClickToken(Request $request)
+    {
+        return $this->getToken($request);
     }
 }

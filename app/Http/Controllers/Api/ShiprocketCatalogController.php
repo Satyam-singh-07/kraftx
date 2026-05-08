@@ -29,10 +29,6 @@ class ShiprocketCatalogController extends Controller
      */
     public function fetchProducts(Request $request)
     {
-        // if (!$this->validateToken($request)) {
-        //     return response()->json(['message' => 'Unauthorized'], 401);
-        // }
-
         $page = $request->input('page', 1);
         $limit = $request->input('limit', 100);
 
@@ -55,10 +51,6 @@ class ShiprocketCatalogController extends Controller
      */
     public function fetchProductsByCollection(Request $request)
     {
-        // if (!$this->validateToken($request)) {
-        //     return response()->json(['message' => 'Unauthorized'], 401);
-        // }
-
         $collectionId = $request->input('collection_id');
         if (!$collectionId) {
             return response()->json(['message' => 'Collection ID is required'], 400);
@@ -89,10 +81,6 @@ class ShiprocketCatalogController extends Controller
      */
     public function fetchCollections(Request $request)
     {
-        // if (!$this->validateToken($request)) {
-        //     return response()->json(['message' => 'Unauthorized'], 401);
-        // }
-
         $page = $request->input('page', 1);
         $limit = $request->input('limit', 100);
 
@@ -104,14 +92,14 @@ class ShiprocketCatalogController extends Controller
         $formattedCollections = $collections->getCollection()->map(function ($collection) {
             return [
                 'id' => (int) $collection->id,
-                'updated_at' => $collection->updated_at->toIso8601String(),
-                'body_html' => $collection->description,
-                'handle' => $collection->slug,
+                'updated_at' => $collection->updated_at ? $collection->updated_at->toIso8601String() : "",
+                'body_html' => (string) ($collection->description ?? ""),
+                'handle' => (string) ($collection->slug ?? ""),
                 'image' => [
-                    'src' => $collection->image ? asset('storage/' . $collection->image) : null,
+                    'src' => $collection->image ? asset('storage/' . $collection->image) : "",
                 ],
-                'title' => $collection->name,
-                'created_at' => $collection->created_at->toIso8601String(),
+                'title' => (string) ($collection->name ?? ""),
+                'created_at' => $collection->created_at ? $collection->created_at->toIso8601String() : "",
             ];
         });
 
@@ -129,44 +117,44 @@ class ShiprocketCatalogController extends Controller
     protected function formatProducts($products)
     {
         return $products->map(function ($product) {
-            $primaryImage = $product->primary_image ? asset('storage/' . $product->primary_image->image_path) : null;
+            $primaryImage = $product->primary_image ? asset('storage/' . $product->primary_image->image_path) : "";
             
             // Map Variants
             $variants = $product->variants->map(function ($variant) use ($product, $primaryImage) {
                 return [
                     'id' => (int) $variant->id,
-                    'title' => ($variant->color ? $variant->color : '') . ($variant->size ? ' / ' . $variant->size : 'Default'),
-                    'price' => number_format($variant->price ?? $product->sale_price ?? $product->price, 2, '.', ''),
-                    'compare_at_price' => number_format($product->price, 2, '.', ''),
-                    'sku' => $variant->sku ?? $product->sku,
+                    'title' => (string) (($variant->color ? $variant->color : "") . ($variant->size ? " / " . $variant->size : ($variant->color ? "" : "Default Title"))),
+                    'price' => number_format($variant->price ?? $product->sale_price ?? $product->price, 2, ".", ""),
+                    'compare_at_price' => number_format($product->price, 2, ".", ""),
+                    'sku' => (string) ($variant->sku ?? $product->sku ?? ""),
                     'quantity' => (int) $variant->stock,
-                    'created_at' => $variant->created_at->toIso8601String(),
-                    'updated_at' => $variant->updated_at->toIso8601String(),
+                    'created_at' => $variant->created_at ? $variant->created_at->toIso8601String() : "",
+                    'updated_at' => $variant->updated_at ? $variant->updated_at->toIso8601String() : "",
                     'taxable' => true,
-                    'option_values' => array_filter([
-                        'Color' => $variant->color,
-                        'Size' => $variant->size,
-                    ]),
+                    'option_values' => [
+                        'Color' => (string) ($variant->color ?? ""),
+                        'Size' => (string) ($variant->size ?? ""),
+                    ],
                     'grams' => (int) ($product->weight * 1000),
                     'image' => [
                         'src' => $primaryImage
                     ],
                     'weight' => (float) $product->weight,
-                    'weight_unit' => 'kg'
+                    'weight_unit' => "kg"
                 ];
             });
 
             // If no variants exist, create a default one
             if ($variants->isEmpty()) {
                 $variants->push([
-                    'id' => (int) ($product->id + 900000000), // Unique long ID for default variant
-                    'title' => 'Default Title',
-                    'price' => number_format($product->sale_price ?? $product->price, 2, '.', ''),
-                    'compare_at_price' => number_format($product->price, 2, '.', ''),
-                    'sku' => $product->sku,
+                    'id' => (int) ($product->id + 900000000),
+                    'title' => "Default Title",
+                    'price' => number_format($product->sale_price ?? $product->price, 2, ".", ""),
+                    'compare_at_price' => number_format($product->price, 2, ".", ""),
+                    'sku' => (string) ($product->sku ?? ""),
                     'quantity' => (int) $product->stock,
-                    'created_at' => $product->created_at->toIso8601String(),
-                    'updated_at' => $product->updated_at->toIso8601String(),
+                    'created_at' => $product->created_at ? $product->created_at->toIso8601String() : "",
+                    'updated_at' => $product->updated_at ? $product->updated_at->toIso8601String() : "",
                     'taxable' => true,
                     'option_values' => (object)[],
                     'grams' => (int) ($product->weight * 1000),
@@ -174,7 +162,7 @@ class ShiprocketCatalogController extends Controller
                         'src' => $primaryImage
                     ],
                     'weight' => (float) $product->weight,
-                    'weight_unit' => 'kg'
+                    'weight_unit' => "kg"
                 ]);
             }
 
@@ -192,15 +180,15 @@ class ShiprocketCatalogController extends Controller
 
             return [
                 'id' => (int) $product->id,
-                'title' => $product->name,
-                'body_html' => $product->description,
+                'title' => (string) ($product->name ?? ""),
+                'body_html' => (string) ($product->description ?? ""),
                 'vendor' => config('app.name', 'KraftX'),
-                'product_type' => $product->collections->first()?->name ?? 'Handicrafts',
-                'created_at' => $product->created_at->toIso8601String(),
-                'handle' => $product->slug,
-                'updated_at' => $product->updated_at->toIso8601String(),
-                'tags' => $product->tags->pluck('name')->implode(', '),
-                'status' => 'active',
+                'product_type' => (string) ($product->collections->first()?->name ?? "Handicrafts"),
+                'created_at' => $product->created_at ? $product->created_at->toIso8601String() : "",
+                'handle' => (string) ($product->slug ?? ""),
+                'updated_at' => $product->updated_at ? $product->updated_at->toIso8601String() : "",
+                'tags' => (string) ($product->tags->pluck('name')->implode(', ') ?: ""),
+                'status' => "active",
                 'variants' => $variants,
                 'image' => [
                     'src' => $primaryImage

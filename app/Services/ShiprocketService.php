@@ -104,7 +104,7 @@ class ShiprocketService
 
         try {
             $response = Http::withHeaders([
-                'X-Api-Key' => $apiKey,
+                'X-Api-Key' => 'Bearer ' . $apiKey,
                 'X-Api-HMAC-SHA256' => $hmac,
                 'Content-Type' => 'application/json',
             ])->post('https://checkout-api.shiprocket.com/api/v1/access-token/checkout', $payload);
@@ -124,6 +124,153 @@ class ShiprocketService
                 'error' => true,
                 'message' => $e->getMessage()
             ];
+        }
+    }
+
+    /**
+     * Get order details from the Shiprocket Checkout (Fastrr) API.
+     */
+    public function getCheckoutOrderDetails($orderId)
+    {
+        $timestamp = now()->toIso8601String();
+        $apiKey = config('services.shiprocket.key');
+        $apiSecret = config('services.shiprocket.secret');
+
+        $payload = [
+            'order_id' => $orderId,
+            'timestamp' => $timestamp,
+        ];
+
+        $body = json_encode($payload);
+        $hmac = base64_encode(hash_hmac('sha256', $body, $apiSecret, true));
+
+        try {
+            $url = 'https://checkout-api.shiprocket.com/api/v1/custom-platform-order/details';
+            
+            $response = Http::withHeaders([
+                'X-Api-Key' => 'Bearer ' . $apiKey,
+                'X-Api-HMAC-SHA256' => $hmac,
+                'Content-Type' => 'application/json',
+            ])->post($url, $payload);
+
+            if ($response->successful()) {
+                return $response->json();
+            }
+
+            Log::error('Shiprocket Checkout Order Details Failed:', [
+                'status' => $response->status(),
+                'body' => $response->json()
+            ]);
+
+            return null;
+        } catch (\Exception $e) {
+            Log::error('Shiprocket Checkout Order Details Exception: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Sync a product to Shiprocket Checkout.
+     */
+    public function syncProduct($product)
+    {
+        $apiKey = config('services.shiprocket.key');
+        $apiSecret = config('services.shiprocket.secret');
+
+        $primaryImage = $product->primary_image ? asset('storage/' . $product->primary_image->image_path) : "";
+
+        $payload = [
+            'id' => (int) $product->id,
+            'title' => (string) ($product->name ?? ""),
+            'body_html' => (string) ($product->description ?? ""),
+            'vendor' => config('app.name', 'KraftX'),
+            'product_type' => (string) ($product->collections->first()?->name ?? "Handicrafts"),
+            'updated_at' => $product->updated_at->toIso8601String(),
+            'status' => $product->status ? 'active' : 'archived',
+            'variants' => $product->variants->map(function ($variant) use ($product, $primaryImage) {
+                return [
+                    'id' => (int) $variant->id,
+                    'title' => (string) (($variant->color ? $variant->color : "") . ($variant->size ? " / " . $variant->size : ($variant->color ? "" : "Default Title"))),
+                    'price' => number_format($variant->price ?? $product->sale_price ?? $product->price, 2, ".", ""),
+                    'quantity' => (int) $variant->stock,
+                    'sku' => (string) ($variant->sku ?? $product->sku ?? ""),
+                    'updated_at' => $variant->updated_at->toIso8601String(),
+                    'image' => [
+                        'src' => $primaryImage
+                    ],
+                    'weight' => (float) $product->weight,
+                ];
+            })->toArray(),
+            'image' => [
+                'src' => $primaryImage
+            ]
+        ];
+
+        // If no variants, add default
+        if (empty($payload['variants'])) {
+            $payload['variants'][] = [
+                'id' => (int) ($product->id + 900000000),
+                'title' => "Default Title",
+                'price' => number_format($product->sale_price ?? $product->price, 2, ".", ""),
+                'quantity' => (int) $product->stock,
+                'sku' => (string) ($product->sku ?? ""),
+                'updated_at' => $product->updated_at->toIso8601String(),
+                'image' => [
+                    'src' => $primaryImage
+                ],
+                'weight' => (float) $product->weight,
+            ];
+        }
+
+        $body = json_encode($payload);
+        $hmac = base64_encode(hash_hmac('sha256', $body, $apiSecret, true));
+
+        try {
+            $response = Http::withHeaders([
+                'X-Api-Key' => 'Bearer ' . $apiKey,
+                'X-Api-HMAC-SHA256' => $hmac,
+                'Content-Type' => 'application/json',
+            ])->post('https://checkout-api.shiprocket.com/wh/v1/custom/product', $payload);
+
+            return $response->successful();
+        } catch (\Exception $e) {
+            Log::error('Shiprocket Product Sync Exception: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Sync a collection to Shiprocket Checkout.
+     */
+    public function syncCollection($collection)
+    {
+        $apiKey = config('services.shiprocket.key');
+        $apiSecret = config('services.shiprocket.secret');
+
+        $payload = [
+            'id' => (int) $collection->id,
+            'updated_at' => $collection->updated_at->toIso8601String(),
+            'title' => (string) ($collection->name ?? ""),
+            'body_html' => (string) ($collection->description ?? ""),
+            'image' => [
+                'src' => $collection->image ? asset('storage/' . $collection->image) : "",
+            ]
+        ];
+
+        $body = json_encode($payload);
+        $hmac = base64_encode(hash_hmac('sha256', $body, $apiSecret, true));
+
+        try {
+            $response = Http::withHeaders([
+                'X-Api-Key' => 'Bearer ' . $apiKey,
+                'X-Api-HMAC-SHA256' => $hmac,
+                'Content-Type' => 'application/json',
+            ])->post('https://checkout-api.shiprocket.com/wh/v1/custom/collection', $payload);
+
+            return $response->successful();
+        } catch (\Exception $e) {
+            Log::error('Shiprocket Collection Sync Exception: ' . $e->getMessage());
+            return false;
         }
     }
 }

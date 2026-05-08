@@ -69,42 +69,48 @@
             open(checkoutData) {
                 return new Promise((resolve, reject) => {
                     const startedAt = Date.now();
-                    const timeoutMs = 10000;
+                    const timeoutMs = 15000;
 
-                    const openWhenReady = () => {
-                        if (window.HeadlessCheckout && typeof window.HeadlessCheckout.buyDirect === 'function') {
-                            const products = (checkoutData.items || []).map((item) => ({
-                                productId: item.product_id || item.id,
-                                title: item.title || '',
-                                variantId: item.variant_id || item.id,
-                                variantTitle: item.variant_title || '',
-                                price: item.price ? Number(item.price) : 0,
-                                quantity: parseInt(item.quantity || 1, 10),
-                                image: item.image || '',
-                                customAttributes: item.customAttributes || {},
-                            }));
-
-                            if (!products.length) {
-                                reject(new Error('Shiprocket checkout requires at least one item.'));
-                                return;
+                    const openWhenReady = async () => {
+                        if (window.HeadlessCheckout) {
+                            try {
+                                const response = await fetch("{{ route('api.shiprocket.token') }}", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                    },
+                                    body: JSON.stringify(checkoutData)
+                                });
+                                
+                                const result = await response.json();
+                                
+                                if (result.success && result.token) {
+                                    window.HeadlessCheckout.addToCart(null, result.token, {
+                                        fallbackUrl: window.location.origin + "/checkout"
+                                    });
+                                    resolve();
+                                } else {
+                                    reject(new Error(result.message || "Could not initiate checkout"));
+                                }
+                            } catch (error) {
+                                reject(error);
                             }
-
-                            window.HeadlessCheckout.buyDirect({
-                                type: checkoutData.type || (products.length > 1 ? 'cart' : 'product'),
-                                products,
-                                couponCode: checkoutData.couponCode || null,
-                            });
-                            resolve();
                             return;
                         }
 
                         if (Date.now() - startedAt > timeoutMs) {
-                            reject(new Error('Shiprocket HeadlessCheckout SDK did not finish loading.'));
+                            reject(new Error("Shiprocket HeadlessCheckout SDK did not finish loading."));
                             return;
                         }
 
                         window.setTimeout(openWhenReady, 100);
                     };
+
+                    openWhenReady();
+                });
+            }
+        };
 
                     openWhenReady();
                 });

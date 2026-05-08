@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,25 +22,40 @@ class ShiprocketWebhookController extends Controller
     {
         Log::info('Shiprocket Webhook Received:', $request->all());
 
-        // Validate the request (You can add signature verification here)
-        
-        $data = $request->all();
-        $orderData = $data['order'] ?? $data; // Handle both nested and flat structures if they vary
+        // 1. Signature Verification
+        if (!$this->verifySignature($request)) {
+            Log::warning('Shiprocket Webhook Signature Verification Failed');
+            return response()->json(['message' => 'Invalid signature'], 401);
+        }
 
-        if (!isset($orderData['id'])) {
+        $data = $request->all();
+        
+        // The documentation shows the payload might be flat or nested under 'order'
+        $orderData = $data['order'] ?? $data;
+
+        // Use 'order_id' as per documentation page 8
+        $shiprocketOrderId = $orderData['order_id'] ?? $orderData['id'] ?? null;
+
+        if (!$shiprocketOrderId) {
             return response()->json(['message' => 'Invalid data: Missing order ID'], 400);
         }
 
         // Check if order already exists
-        $existingOrder = Order::where('shiprocket_order_id', $orderData['id'])->first();
+        $existingOrder = Order::where('shiprocket_order_id', $shiprocketOrderId)->first();
         if ($existingOrder) {
             return response()->json(['message' => 'Order already processed'], 200);
         }
 
+        // Map fields from documentation (Page 8)
+        $email = $orderData['email'] ?? $orderData['customer_email'] ?? 'N/A';
+        $phone = $orderData['phone'] ?? $orderData['customer_phone'] ?? 'N/A';
+        $total = $orderData['total_amount_payable'] ?? $orderData['total'] ?? 0;
+        $name = $orderData['customer_name'] ?? 'N/A';
+
         // Find user by email to link the order
         $user = null;
-        if (!empty($orderData['customer_email'])) {
-            $user = User::where('email', $orderData['customer_email'])->first();
+        if ($email !== 'N/A') {
+            $user = User::where('email', $email)->first();
         }
 
         DB::beginTransaction();
@@ -47,19 +63,19 @@ class ShiprocketWebhookController extends Controller
             // Create the Order
             $order = Order::create([
                 'user_id' => $user?->id,
-                'shiprocket_order_id' => $orderData['id'],
+                'shiprocket_order_id' => $shiprocketOrderId,
                 'order_number' => 'KRAFTX-' . strtoupper(Str::random(8)),
-                'total_amount' => $orderData['total'],
-                'subtotal' => $orderData['subtotal'] ?? $orderData['total'],
+                'total_amount' => $total,
+                'subtotal' => $orderData['subtotal'] ?? $total,
                 'tax_amount' => $orderData['tax'] ?? 0,
                 'shipping_amount' => $orderData['shipping_charges'] ?? 0,
                 'discount_amount' => $orderData['discount'] ?? 0,
                 'status' => 'processing',
-                'payment_method' => $orderData['payment_method'] ?? 'COD',
-                'payment_status' => ($orderData['payment_status'] ?? '') === 'captured' ? 'paid' : 'pending',
-                'customer_name' => $orderData['customer_name'] ?? 'N/A',
-                'customer_email' => $orderData['customer_email'] ?? 'N/A',
-                'customer_phone' => $orderData['customer_phone'] ?? 'N/A',
+                'payment_method' => $orderData['payment_type'] ?? $orderData['payment_method'] ?? 'COD',
+                'payment_status' => ($orderData['status'] ?? '') === 'SUCCESS' ? 'paid' : 'pending',
+                'customer_name' => $name,
+                'customer_email' => $email,
+                'customer_phone' => $phone,
                 'shipping_address' => $orderData['shipping_address'] ?? 'N/A',
                 'shipping_city' => $orderData['shipping_city'] ?? 'N/A',
                 'shipping_state' => $orderData['shipping_state'] ?? 'N/A',
@@ -67,23 +83,43 @@ class ShiprocketWebhookController extends Controller
                 'shipping_country' => $orderData['shipping_country'] ?? 'India',
             ]);
 
-            // Create Order Items
-            $lineItems = $orderData['line_items'] ?? $orderData['items'] ?? [];
-            foreach ($lineItems as $item) {
-                $product = Product::where('sku', $item['sku'])->first();
+            // Create Order Items (Documentation shows them under cart_data.items)
+            $items = $orderData['cart_data']['items'] ?? $orderData['line_items'] ?? $orderData['items'] ?? [];
+            
+            foreach ($items as $item) {
+                $variantId = $item['variant_id'] ?? null;
+                $sku = $item['sku'] ?? null;
+                
+                $product = null;
+                $variant = null;
+
+                if ($variantId) {
+                    // Check if it's our virtual default variant ID (900000000 + product_id)
+                    if ($variantId >= 900000000) {
+                        $productId = $variantId - 900000000;
+                        $product = Product::find($productId);
+                    } else {
+                        $variant = ProductVariant::with('product')->find($variantId);
+                        $product = $variant?->product;
+                    }
+                } elseif ($sku) {
+                    $product = Product::where('sku', $sku)->first();
+                }
                 
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $product?->id,
-                    'sku' => $item['sku'],
-                    'name' => $item['name'],
+                    'sku' => $sku ?? $variant?->sku ?? $product?->sku ?? 'N/A',
+                    'name' => $item['name'] ?? $product?->name ?? 'Product',
                     'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'total' => $item['price'] * $item['quantity'],
+                    'price' => $item['price'] ?? 0,
+                    'total' => ($item['price'] ?? 0) * $item['quantity'],
                 ]);
 
                 // Reduce Stock
-                if ($product) {
+                if ($variant) {
+                    $variant->decrement('stock', $item['quantity']);
+                } elseif ($product) {
                     $product->decrement('stock', $item['quantity']);
                 }
             }
@@ -94,7 +130,25 @@ class ShiprocketWebhookController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Shiprocket Webhook Error: ' . $e->getMessage());
-            return response()->json(['message' => 'Internal Server Error: ' . $e->getMessage()], 500);
+            return response()->json(['message' => 'Internal Server Error'], 500);
         }
+    }
+
+    /**
+     * Verify the HMAC signature from Shiprocket.
+     */
+    protected function verifySignature(Request $request)
+    {
+        $signature = $request->header('X-Api-HMAC-SHA256');
+        if (!$signature) {
+            return false;
+        }
+
+        $apiSecret = config('services.shiprocket.secret');
+        $payload = $request->getContent();
+        
+        $expectedSignature = base64_encode(hash_hmac('sha256', $payload, $apiSecret, true));
+
+        return hash_equals($expectedSignature, $signature);
     }
 }
