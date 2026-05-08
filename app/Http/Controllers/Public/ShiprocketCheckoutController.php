@@ -26,19 +26,21 @@ class ShiprocketCheckoutController extends Controller
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
-            'variant_id' => 'nullable'
+            'variant_id' => 'required'
         ]);
 
         $product = Product::findOrFail($request->product_id);
         
-        // Match the ID logic in ShiprocketCatalogController
         $variantId = $request->variant_id;
-        if (!$variantId) {
-            $variantId = (int) ($product->id + 900000000);
-            // Check if there's a real first variant instead
+
+        // If the variant_id is the virtual fallback (900...) but real variants exist,
+        // we should use the first real variant ID instead to match Catalog behavior.
+        if ($variantId >= 900000000 || !$variantId) {
             $firstVariant = $product->variants->first();
             if ($firstVariant) {
                 $variantId = $firstVariant->id;
+            } elseif (!$variantId) {
+                $variantId = (int) ($product->id + 900000000);
             }
         }
 
