@@ -10,6 +10,7 @@ use App\Services\ShiprocketService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ShiprocketCheckoutController extends Controller
 {
@@ -92,9 +93,13 @@ class ShiprocketCheckoutController extends Controller
             ]);
         }
 
+        Log::error('Shiprocket checkout token response did not include a token', [
+            'result' => $result,
+        ]);
+
         return response()->json([
             'success' => false,
-            'message' => 'Could not generate checkout token',
+            'message' => Arr::get($result, 'message') ?: 'Could not generate checkout token',
             'details' => $result
         ], 500);
     }

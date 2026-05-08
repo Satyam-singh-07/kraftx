@@ -89,9 +89,18 @@ class ShiprocketService
      */
     public function getCheckoutToken($cartData)
     {
-        $timestamp = now()->toIso8601String();
+        $timestamp = now('UTC')->format('Y-m-d\TH:i:s.u\Z');
         $apiKey = config('services.shiprocket.key');
         $apiSecret = config('services.shiprocket.secret');
+
+        if (!$apiKey || !$apiSecret) {
+            Log::error('Shiprocket Checkout Token skipped: missing API credentials');
+
+            return [
+                'error' => true,
+                'message' => 'Shiprocket API credentials are not configured.',
+            ];
+        }
 
         $payload = [
             'cart_data' => $cartData,
@@ -99,19 +108,25 @@ class ShiprocketService
             'timestamp' => $timestamp,
         ];
 
-        $body = json_encode($payload);
+        $body = json_encode($payload, JSON_UNESCAPED_SLASHES);
         $hmac = base64_encode(hash_hmac('sha256', $body, $apiSecret, true));
 
         try {
             $response = Http::withHeaders([
-                'X-Api-Key' => 'Bearer ' . $apiKey,
+                'X-Api-Key' => $apiKey,
                 'X-Api-HMAC-SHA256' => $hmac,
                 'Content-Type' => 'application/json',
-            ])->post('https://checkout-api.shiprocket.com/api/v1/access-token/checkout', $payload);
+            ])->withBody($body, 'application/json')
+                ->post('https://checkout-api.shiprocket.com/api/v1/access-token/checkout');
 
             if ($response->successful()) {
                 return $response->json();
             }
+
+            Log::error('Shiprocket Checkout Token Failed:', [
+                'status' => $response->status(),
+                'body' => $response->json() ?? $response->body(),
+            ]);
 
             return [
                 'error' => true,
@@ -132,7 +147,7 @@ class ShiprocketService
      */
     public function getCheckoutOrderDetails($orderId)
     {
-        $timestamp = now()->toIso8601String();
+        $timestamp = now('UTC')->format('Y-m-d\TH:i:s.u\Z');
         $apiKey = config('services.shiprocket.key');
         $apiSecret = config('services.shiprocket.secret');
 
@@ -141,17 +156,17 @@ class ShiprocketService
             'timestamp' => $timestamp,
         ];
 
-        $body = json_encode($payload);
+        $body = json_encode($payload, JSON_UNESCAPED_SLASHES);
         $hmac = base64_encode(hash_hmac('sha256', $body, $apiSecret, true));
 
         try {
             $url = 'https://checkout-api.shiprocket.com/api/v1/custom-platform-order/details';
             
             $response = Http::withHeaders([
-                'X-Api-Key' => 'Bearer ' . $apiKey,
+                'X-Api-Key' => $apiKey,
                 'X-Api-HMAC-SHA256' => $hmac,
                 'Content-Type' => 'application/json',
-            ])->post($url, $payload);
+            ])->withBody($body, 'application/json')->post($url);
 
             if ($response->successful()) {
                 return $response->json();
@@ -229,15 +244,16 @@ class ShiprocketService
             ];
         }
 
-        $body = json_encode($payload);
+        $body = json_encode($payload, JSON_UNESCAPED_SLASHES);
         $hmac = base64_encode(hash_hmac('sha256', $body, $apiSecret, true));
 
         try {
             $response = Http::withHeaders([
-                'X-Api-Key' => 'Bearer ' . $apiKey,
+                'X-Api-Key' => $apiKey,
                 'X-Api-HMAC-SHA256' => $hmac,
                 'Content-Type' => 'application/json',
-            ])->post('https://checkout-api.shiprocket.com/wh/v1/custom/product', $payload);
+            ])->withBody($body, 'application/json')
+                ->post('https://checkout-api.shiprocket.com/wh/v1/custom/product');
 
             if (!$response->successful()) {
                 Log::error('Shiprocket Product Sync Failed:', [
@@ -277,15 +293,16 @@ class ShiprocketService
             ]
         ];
 
-        $body = json_encode($payload);
+        $body = json_encode($payload, JSON_UNESCAPED_SLASHES);
         $hmac = base64_encode(hash_hmac('sha256', $body, $apiSecret, true));
 
         try {
             $response = Http::withHeaders([
-                'X-Api-Key' => 'Bearer ' . $apiKey,
+                'X-Api-Key' => $apiKey,
                 'X-Api-HMAC-SHA256' => $hmac,
                 'Content-Type' => 'application/json',
-            ])->post('https://checkout-api.shiprocket.com/wh/v1/custom/collection', $payload);
+            ])->withBody($body, 'application/json')
+                ->post('https://checkout-api.shiprocket.com/wh/v1/custom/collection');
 
             return $response->successful();
         } catch (\Exception $e) {
