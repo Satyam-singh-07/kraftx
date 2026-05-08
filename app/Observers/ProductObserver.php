@@ -21,6 +21,6 @@ class ProductObserver
 
     public function deleted(Product $product)
     {
-        // Optionally handle deletion if Shiprocket supports it
+        $this->shiprocketService->syncProduct($product, 'archived');
     }
 }

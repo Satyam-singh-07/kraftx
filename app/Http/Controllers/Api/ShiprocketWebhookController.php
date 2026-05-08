@@ -109,18 +109,19 @@ class ShiprocketWebhookController extends Controller
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $product?->id,
+                    'variant_id' => $variant?->id,
                     'sku' => $sku ?? $variant?->sku ?? $product?->sku ?? 'N/A',
                     'name' => $item['name'] ?? $product?->name ?? 'Product',
-                    'quantity' => $item['quantity'],
+                    'quantity' => (int) ($item['quantity'] ?? 1),
                     'price' => $item['price'] ?? 0,
-                    'total' => ($item['price'] ?? 0) * $item['quantity'],
+                    'total' => ($item['price'] ?? 0) * (int) ($item['quantity'] ?? 1),
                 ]);
 
                 // Reduce Stock
                 if ($variant) {
-                    $variant->decrement('stock', $item['quantity']);
+                    $variant->decrement('stock', (int) ($item['quantity'] ?? 1));
                 } elseif ($product) {
-                    $product->decrement('stock', $item['quantity']);
+                    $product->decrement('stock', (int) ($item['quantity'] ?? 1));
                 }
             }
 
@@ -141,10 +142,14 @@ class ShiprocketWebhookController extends Controller
     {
         $signature = $request->header('X-Api-HMAC-SHA256');
         if (!$signature) {
-            return false;
+            return !config('services.shiprocket.webhook_require_signature', false);
         }
 
         $apiSecret = config('services.shiprocket.secret');
+        if (!$apiSecret) {
+            return !config('services.shiprocket.webhook_require_signature', false);
+        }
+
         $payload = $request->getContent();
         
         $expectedSignature = base64_encode(hash_hmac('sha256', $payload, $apiSecret, true));

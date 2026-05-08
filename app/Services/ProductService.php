@@ -14,7 +14,8 @@ use Illuminate\Support\Facades\Storage;
 class ProductService
 {
     public function __construct(
-        protected ProductRepositoryInterface $productRepository
+        protected ProductRepositoryInterface $productRepository,
+        protected ShiprocketService $shiprocketService
     ) {
     }
 
@@ -97,6 +98,9 @@ class ProductService
             }
 
             DB::commit();
+
+            $this->shiprocketService->syncProduct($product->fresh(['images', 'collections', 'variants']));
+
             return $product;
 
         } catch (Exception $e) {
@@ -196,6 +200,8 @@ class ProductService
 
             DB::commit();
             Log::info('Product update transaction committed successfully for ID: ' . $id);
+
+            $this->shiprocketService->syncProduct($product->fresh(['images', 'collections', 'variants']));
 
             // Delete old files only AFTER successful commit
             foreach ($filesToDelete as $file) {

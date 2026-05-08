@@ -363,7 +363,7 @@
                                         </button>
                                         
                                         <!-- Shiprocket One-Click Checkout Button -->
-                                        <button type="button" onclick="triggerShiprocketCheckout({{ $product->id }})" class="tf-btn type-xl btn-fill animate-btn w-100" style="background-color: #5e17eb; border-color: #5e17eb; color: white;">
+                                        <button type="button" onclick="triggerShiprocketCheckout({{ $product->id }}, this)" class="tf-btn type-xl btn-fill animate-btn w-100" style="background-color: #5e17eb; border-color: #5e17eb; color: white;">
                                             <i class="icon icon-Lightning me-2"></i> One-Click Checkout
                                         </button>
                                     </div>
@@ -888,8 +888,8 @@
                     }
 
                     if (isBuyNow) {
-                        buyNowBtn.disabled = true;
-                        buyNowBtn.textContent = 'Processing...';
+                        triggerShiprocketCheckout(productId, event.currentTarget);
+                        return;
                     }
 
                     fetch('{{ route('cart.add') }}', {
@@ -965,7 +965,7 @@
             @endphp
             const shiprocketProductCheckoutData = {{ \Illuminate\Support\Js::from($shiprocketProductCheckoutData) }};
 
-            function triggerShiprocketCheckout(productId) {
+            function triggerShiprocketCheckout(productId, button = null) {
                 const quantity = document.querySelector('input[name="quantity"]')?.value || 1;
                 const activeColorBtn = document.querySelector('.variant-color .color-btn.active');
                 const color = activeColorBtn ? activeColorBtn.getAttribute('data-color') : null;
@@ -976,33 +976,19 @@
                 });
 
                 // Show loading state
-                const btn = document.querySelector('button[onclick^="triggerShiprocketCheckout"]');
+                const btn = button || document.querySelector('button[onclick^="triggerShiprocketCheckout"]');
                 const originalHtml = btn.innerHTML;
                 btn.disabled = true;
                 btn.innerHTML = '<i class="icon icon-loading animate-spin me-2"></i> Initializing Secure Checkout...';
 
-                // Call our backend to get the token
-                fetch('/api/shiprocket/checkout/one-click', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        product_id: productId,
-                        quantity: parseInt(quantity),
-                        variant_id: matchingVariant ? matchingVariant.id : shiprocketProductCheckoutData.default_variant_id
-                    })
+                window.SRCheckout.open({
+                    product_id: productId,
+                    quantity: parseInt(quantity),
+                    variant_id: matchingVariant ? matchingVariant.id : shiprocketProductCheckoutData.default_variant_id
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success && data.checkout_url) {
-                        // Redirect to Shiprocket Checkout
-                        window.location.href = data.checkout_url;
-                    } else {
-                        throw new Error(data.message || 'Failed to start checkout');
-                    }
+                .then(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
                 })
                 .catch((error) => {
                     console.error('Shiprocket checkout error:', error);

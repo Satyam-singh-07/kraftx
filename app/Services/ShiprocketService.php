@@ -172,10 +172,17 @@ class ShiprocketService
     /**
      * Sync a product to Shiprocket Checkout.
      */
-    public function syncProduct($product)
+    public function syncProduct($product, ?string $statusOverride = null)
     {
         $apiKey = config('services.shiprocket.key');
         $apiSecret = config('services.shiprocket.secret');
+
+        if (!$apiKey || !$apiSecret) {
+            Log::warning('Shiprocket Product Sync skipped: missing API credentials');
+            return false;
+        }
+
+        $product->loadMissing(['images', 'collections', 'variants']);
 
         $primaryImage = $product->primary_image ? asset('storage/' . $product->primary_image->image_path) : "";
 
@@ -186,7 +193,7 @@ class ShiprocketService
             'vendor' => config('app.name', 'KraftX'),
             'product_type' => (string) ($product->collections->first()?->name ?? "Handicrafts"),
             'updated_at' => $product->updated_at->toIso8601String(),
-            'status' => $product->status ? 'active' : 'archived',
+            'status' => $statusOverride ?? ($product->status ? 'active' : 'archived'),
             'variants' => $product->variants->map(function ($variant) use ($product, $primaryImage) {
                 return [
                     'id' => (int) $variant->id,
@@ -232,6 +239,14 @@ class ShiprocketService
                 'Content-Type' => 'application/json',
             ])->post('https://checkout-api.shiprocket.com/wh/v1/custom/product', $payload);
 
+            if (!$response->successful()) {
+                Log::error('Shiprocket Product Sync Failed:', [
+                    'product_id' => $product->id,
+                    'status' => $response->status(),
+                    'body' => $response->json(),
+                ]);
+            }
+
             return $response->successful();
         } catch (\Exception $e) {
             Log::error('Shiprocket Product Sync Exception: ' . $e->getMessage());
@@ -246,6 +261,11 @@ class ShiprocketService
     {
         $apiKey = config('services.shiprocket.key');
         $apiSecret = config('services.shiprocket.secret');
+
+        if (!$apiKey || !$apiSecret) {
+            Log::warning('Shiprocket Collection Sync skipped: missing API credentials');
+            return false;
+        }
 
         $payload = [
             'id' => (int) $collection->id,

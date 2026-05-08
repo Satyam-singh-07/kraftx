@@ -7,21 +7,39 @@ use App\Models\Product;
 use App\Models\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
 
 class ShiprocketCatalogController extends Controller
 {
     /**
      * Validate the secure catalog token from Shiprocket.
      */
-    protected function validateToken(Request $request)
+    protected function validateToken(Request $request): bool
     {
         $headerToken = $request->header('X-Shiprocket-Catalog-Token');
         $validToken = Config::get('services.shiprocket.catalog_token');
 
-        if (!$headerToken || $headerToken !== $validToken) {
+        if ($validToken && $headerToken && hash_equals($validToken, $headerToken)) {
+            return true;
+        }
+
+        $apiKey = Config::get('services.shiprocket.key');
+        $apiSecret = Config::get('services.shiprocket.secret');
+        $providedApiKey = $request->header('X-Api-Key');
+        $providedHmac = $request->header('X-Api-HMAC-SHA256');
+
+        if (!$apiKey || !$apiSecret || !$providedApiKey || !$providedHmac) {
             return false;
         }
-        return true;
+
+        $normalizedApiKey = preg_replace('/^Bearer\s+/i', '', $providedApiKey);
+        if (!hash_equals($apiKey, $normalizedApiKey)) {
+            return false;
+        }
+
+        $expectedHmac = base64_encode(hash_hmac('sha256', $request->getContent(), $apiSecret, true));
+
+        return hash_equals($expectedHmac, $providedHmac);
     }
 
     /**
@@ -29,21 +47,24 @@ class ShiprocketCatalogController extends Controller
      */
     public function fetchProducts(Request $request)
     {
-        $page = $request->input('page', 1);
-        $limit = $request->input('limit', 100);
+        if (!$this->validateToken($request)) {
+            Log::warning('Shiprocket catalog products request rejected: invalid token');
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $page = max((int) $request->input('page', 1), 1);
+        $limit = min(max((int) $request->input('limit', 100), 1), 250);
 
         $query = Product::with(['images', 'collections', 'variants', 'tags'])
             ->where('status', true);
 
-        $totalCount = $query->count();
         $products = $query->paginate($limit, ['*'], 'page', $page);
 
-        return response()->json([
-            'data' => [
-                'total' => $totalCount,
-                'products' => $this->formatProducts($products->getCollection())
-            ]
-        ]);
+        return response()->json($this->paginatedPayload(
+            'products',
+            $this->formatProducts($products->getCollection()),
+            $products
+        ));
     }
 
     /**
@@ -51,13 +72,18 @@ class ShiprocketCatalogController extends Controller
      */
     public function fetchProductsByCollection(Request $request)
     {
+        if (!$this->validateToken($request)) {
+            Log::warning('Shiprocket catalog collection-products request rejected: invalid token');
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
         $collectionId = $request->input('collection_id');
         if (!$collectionId) {
             return response()->json(['message' => 'Collection ID is required'], 400);
         }
 
-        $page = $request->input('page', 1);
-        $limit = $request->input('limit', 100);
+        $page = max((int) $request->input('page', 1), 1);
+        $limit = min(max((int) $request->input('limit', 100), 1), 250);
 
         $query = Product::with(['images', 'collections', 'variants', 'tags'])
             ->where('status', true)
@@ -65,15 +91,13 @@ class ShiprocketCatalogController extends Controller
                 $q->where('collections.id', $collectionId);
             });
 
-        $totalCount = $query->count();
         $products = $query->paginate($limit, ['*'], 'page', $page);
 
-        return response()->json([
-            'data' => [
-                'total' => $totalCount,
-                'products' => $this->formatProducts($products->getCollection())
-            ]
-        ]);
+        return response()->json($this->paginatedPayload(
+            'products',
+            $this->formatProducts($products->getCollection()),
+            $products
+        ));
     }
 
     /**
@@ -81,12 +105,15 @@ class ShiprocketCatalogController extends Controller
      */
     public function fetchCollections(Request $request)
     {
-        $page = $request->input('page', 1);
-        $limit = $request->input('limit', 100);
+        if (!$this->validateToken($request)) {
+            Log::warning('Shiprocket catalog collections request rejected: invalid token');
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $page = max((int) $request->input('page', 1), 1);
+        $limit = min(max((int) $request->input('limit', 100), 1), 250);
 
         $query = Collection::where('status', true);
-        $totalCount = $query->count();
-        
         $collections = $query->paginate($limit, ['*'], 'page', $page);
 
         $formattedCollections = $collections->getCollection()->map(function ($collection) {
@@ -103,12 +130,33 @@ class ShiprocketCatalogController extends Controller
             ];
         });
 
-        return response()->json([
+        return response()->json($this->paginatedPayload(
+            'collections',
+            $formattedCollections,
+            $collections
+        ));
+    }
+
+    protected function paginatedPayload(string $key, $items, $paginator): array
+    {
+        return [
             'data' => [
-                'total' => $totalCount,
-                'collections' => $formattedCollections
-            ]
-        ]);
+                'total' => $paginator->total(),
+                'page' => $paginator->currentPage(),
+                'limit' => $paginator->perPage(),
+                'total_pages' => $paginator->lastPage(),
+                'has_next_page' => $paginator->hasMorePages(),
+                'next_page' => $paginator->hasMorePages() ? $paginator->currentPage() + 1 : null,
+                $key => $items,
+            ],
+            'pagination' => [
+                'total' => $paginator->total(),
+                'current_page' => $paginator->currentPage(),
+                'per_page' => $paginator->perPage(),
+                'last_page' => $paginator->lastPage(),
+                'next_page' => $paginator->hasMorePages() ? $paginator->currentPage() + 1 : null,
+            ],
+        ];
     }
 
     /**

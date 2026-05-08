@@ -55,10 +55,10 @@
     {!! \App\Helpers\SeoHelper::renderJsonLd($seoData['json_ld'] ?? []) !!}
     @yield('seo')
 
-    <!-- Shiprocket/Fastrr Headless Checkout -->
-    <link rel="stylesheet" href="https://fastrr-boost-ui.pickrr.com/assets/styles/shopify.css">
+    <!-- Shiprocket Headless Checkout -->
+    <link rel="stylesheet" href="https://checkout-ui.shiprocket.com/assets/styles/shopify.css">
     <script>
-        window.checkoutBuyer = "https://fastrr-boost-ui.pickrr.com/";
+        window.checkoutBuyer = "https://checkout-ui.shiprocket.com/";
         window.SR_CHECKOUT_CONFIG = {
             storeToken: "{{ config('services.shiprocket.key') }}", 
             api_url: "{{ url('/api/shiprocket') }}",
@@ -111,13 +111,8 @@
                 });
             }
         };
-
-                    openWhenReady();
-                });
-            }
-        };
     </script>
-    <script src="https://fastrr-boost-ui.pickrr.com/assets/js/channels/shopify.js" id="shiprocket-checkout-sdk" defer></script>
+    <script src="https://checkout-ui.shiprocket.com/assets/js/channels/shopify.js" id="shiprocket-checkout-sdk" defer></script>
     <script src="https://fastrr-boost-ui.pickrr.com/assets/js/channels/shiprocket-login.js" defer></script>
     <script src="https://shiprocket-sns.pickrr.com/script.js" defer></script>
     <link rel="stylesheet" href="https://shiprocket-sns.pickrr.com/styles.css">

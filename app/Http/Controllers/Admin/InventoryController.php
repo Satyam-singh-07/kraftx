@@ -89,9 +89,9 @@ class InventoryController extends Controller
         ]);
 
         if ($request->type === 'product') {
-            Product::where('id', $request->id)->update(['stock' => $request->stock]);
+            Product::findOrFail($request->id)->update(['stock' => $request->stock]);
         } else {
-            ProductVariant::where('id', $request->id)->update(['stock' => $request->stock]);
+            ProductVariant::findOrFail($request->id)->update(['stock' => $request->stock]);
         }
 
         return response()->json(['success' => true, 'message' => 'Stock updated successfully.']);
