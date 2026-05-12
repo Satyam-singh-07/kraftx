@@ -140,8 +140,51 @@
                             <label class="text-xs font-bold text-gray-500 uppercase">Shiprocket Order ID</label>
                             <div class="text-sm font-mono text-gray-600 dark:text-gray-400">{{ $order->shiprocket_order_id }}</div>
                         </div>
+                        @if($order->fastrr_order_id)
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Fastrr Order ID</label>
+                            <div class="text-sm font-mono text-gray-600 dark:text-gray-400">{{ $order->fastrr_order_id }}</div>
+                        </div>
+                        @endif
+                        @if($order->checkout_status)
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Checkout Status</label>
+                            <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $order->checkout_status }}</div>
+                        </div>
+                        @endif
                     </div>
                 </x-admin.card>
+
+                @if($order->shipping_plan || $order->rto_prediction || $order->estimated_delivery_date || $order->coupon_codes)
+                <x-admin.card title="Shiprocket Checkout">
+                    <div class="mt-4 space-y-4">
+                        @if($order->shipping_plan)
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Shipping Plan</label>
+                            <div class="text-sm text-gray-900 dark:text-white">{{ $order->shipping_plan }}</div>
+                        </div>
+                        @endif
+                        @if($order->estimated_delivery_date)
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Estimated Delivery</label>
+                            <div class="text-sm text-gray-900 dark:text-white">{{ $order->estimated_delivery_date->format('d M, Y') }}</div>
+                        </div>
+                        @endif
+                        @if($order->rto_prediction)
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">RTO Prediction</label>
+                            <div class="text-sm text-gray-900 dark:text-white">{{ ucfirst($order->rto_prediction) }}</div>
+                        </div>
+                        @endif
+                        @if($order->coupon_codes)
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Coupons</label>
+                            <div class="text-sm text-gray-900 dark:text-white">{{ implode(', ', $order->coupon_codes) }}</div>
+                        </div>
+                        @endif
+                    </div>
+                </x-admin.card>
+                @endif
 
                 @if($order->notes)
                 <x-admin.card title="Order Notes">

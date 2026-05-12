@@ -18,3 +18,6 @@ Route::prefix('shiprocket')->group(function () {
     // Webhook for Order Placement
     Route::post('/webhook/order', [ShiprocketWebhookController::class, 'handleOrder']);
 });
+
+// Recommended URL for Shiprocket Checkout order webhook. Avoids provider keywords in the path.
+Route::post('/checkout/order-webhook', [ShiprocketWebhookController::class, 'handleOrder'])->name('api.checkout.order-webhook');

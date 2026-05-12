@@ -15,6 +15,9 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'shiprocket_order_id',
+        'platform_order_id',
+        'fastrr_order_id',
+        'cart_id',
         'order_number',
         'total_amount',
         'subtotal',
@@ -22,6 +25,12 @@ class Order extends Model
         'shipping_amount',
         'discount_amount',
         'status',
+        'checkout_status',
+        'source',
+        'shipping_plan',
+        'rto_prediction',
+        'estimated_delivery_date',
+        'shiprocket_order_created_at',
         'payment_method',
         'payment_status',
         'customer_name',
@@ -32,7 +41,26 @@ class Order extends Model
         'shipping_state',
         'shipping_pincode',
         'shipping_country',
+        'shipping_address_data',
+        'billing_address_data',
+        'payments',
+        'coupon_codes',
+        'discount_detail',
+        'shiprocket_tags',
+        'shiprocket_payload',
         'notes',
+    ];
+
+    protected $casts = [
+        'shipping_address_data' => 'array',
+        'billing_address_data' => 'array',
+        'payments' => 'array',
+        'coupon_codes' => 'array',
+        'discount_detail' => 'array',
+        'shiprocket_tags' => 'array',
+        'shiprocket_payload' => 'array',
+        'estimated_delivery_date' => 'date',
+        'shiprocket_order_created_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

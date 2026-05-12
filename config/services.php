@@ -38,6 +38,7 @@ return [
         'secret' => env('SHIPROCKET_API_SECRET'),
         'catalog_token' => env('SHIPROCKET_CATALOG_TOKEN'),
         'webhook_require_signature' => env('SHIPROCKET_WEBHOOK_REQUIRE_SIGNATURE', false),
+        'webhook_token' => env('SHIPROCKET_WEBHOOK_TOKEN'),
     ],
 
 ];
