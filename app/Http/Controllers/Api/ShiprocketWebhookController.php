@@ -40,6 +40,35 @@ class ShiprocketWebhookController extends Controller
             return response()->json(['message' => 'Invalid data: Missing order_id'], 422);
         }
 
+        try {
+            $result = $this->storeCheckoutOrder($orderData);
+
+            return response()->json([
+                'success' => true,
+                'message' => $result['created'] ? 'Order created' : 'Order updated',
+                'order_id' => $result['order']->id,
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Shiprocket Checkout Order Webhook Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'payload' => $orderData,
+            ]);
+            return response()->json(['message' => 'Internal Server Error'], 500);
+        }
+    }
+
+    public function storeCheckoutOrder(array $orderData): array
+    {
+        $shiprocketOrderId = $orderData['order_id']
+            ?? $orderData['platform_order_id']
+            ?? $orderData['fastrr_order_id']
+            ?? null;
+
+        if (blank($shiprocketOrderId)) {
+            throw new \InvalidArgumentException('Missing Shiprocket order_id.');
+        }
+
         $shippingAddress = is_array($orderData['shipping_address'] ?? null) ? $orderData['shipping_address'] : [];
         $email = $shippingAddress['email'] ?? $orderData['email'] ?? $orderData['customer_email'] ?? 'N/A';
         $phone = $shippingAddress['phone'] ?? $orderData['phone'] ?? $orderData['customer_phone'] ?? 'N/A';
@@ -50,10 +79,9 @@ class ShiprocketWebhookController extends Controller
             $user = User::where('email', $email)->first();
         }
 
-        DB::beginTransaction();
-        try {
+        return DB::transaction(function () use ($orderData, $shiprocketOrderId, $shippingAddress, $email, $phone, $name, $user) {
             $order = Order::where('shiprocket_order_id', $shiprocketOrderId)->lockForUpdate()->first();
-            $isNewOrder = !$order;
+            $created = !$order;
 
             if (!$order) {
                 $order = new Order([
@@ -89,7 +117,7 @@ class ShiprocketWebhookController extends Controller
                 'shipping_state' => $shippingAddress['state'] ?? $orderData['shipping_state'] ?? 'N/A',
                 'shipping_pincode' => $shippingAddress['pincode'] ?? $orderData['shipping_pincode'] ?? 'N/A',
                 'shipping_country' => $shippingAddress['country'] ?? $orderData['shipping_country'] ?? 'India',
-                'shipping_address_data' => is_array($shippingAddress) ? $shippingAddress : null,
+                'shipping_address_data' => $shippingAddress ?: null,
                 'billing_address_data' => is_array($orderData['billing_address'] ?? null) ? $orderData['billing_address'] : null,
                 'payments' => $orderData['payments'] ?? [],
                 'coupon_codes' => $orderData['coupon_codes'] ?? [],
@@ -99,28 +127,14 @@ class ShiprocketWebhookController extends Controller
             ]);
             $order->save();
 
-            $shouldCreateItems = $isNewOrder || !$order->items()->exists();
+            $shouldCreateItems = $created || !$order->items()->exists();
             if ($shouldCreateItems) {
                 $order->items()->delete();
-                $this->createItems($order, $orderData, $shouldCreateItems);
+                $this->createItems($order, $orderData, $created);
             }
 
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => $isNewOrder ? 'Order created' : 'Order updated',
-                'order_id' => $order->id,
-            ], 200);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Shiprocket Checkout Order Webhook Error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-                'payload' => $orderData,
-            ]);
-            return response()->json(['message' => 'Internal Server Error'], 500);
-        }
+            return ['order' => $order, 'created' => $created];
+        });
     }
 
     protected function verifyRequest(Request $request): bool

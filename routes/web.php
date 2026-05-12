@@ -34,6 +34,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/api/shiprocket/checkout/token', [App\Http\Controllers\Public\ShiprocketCheckoutController::class, 'getToken'])->name('api.shiprocket.token');
 Route::post('/api/shiprocket/checkout/one-click', [App\Http\Controllers\Public\ShiprocketCheckoutController::class, 'getOneClickToken'])->name('api.shiprocket.oneclick');
+Route::get('/checkout/success', [App\Http\Controllers\Public\ShiprocketCheckoutController::class, 'success'])->name('shiprocket.checkout.success');
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');

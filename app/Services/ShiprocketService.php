@@ -104,7 +104,7 @@ class ShiprocketService
 
         $payload = [
             'cart_data' => $cartData,
-            'redirect_url' => url('/account/orders'),
+            'redirect_url' => url('/checkout/success'),
             'timestamp' => $timestamp,
         ];
 

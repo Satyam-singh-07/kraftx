@@ -3,33 +3,38 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\User;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // Sample data for the dashboard
+        $dailyLabels = collect(range(6, 0))->map(fn ($daysAgo) => now()->subDays($daysAgo)->format('D'));
+        $dailyDates = collect(range(6, 0))->map(fn ($daysAgo) => now()->subDays($daysAgo)->toDateString());
+
         $stats = [
-            'total_orders' => 1250,
-            'total_revenue' => 45800.50,
-            'total_products' => 142,
-            'total_customers' => 850,
-            'recent_orders' => [
-                ['id' => '#ORD-1234', 'customer' => 'John Doe', 'amount' => 120.00, 'status' => 'Completed', 'date' => '2026-04-08'],
-                ['id' => '#ORD-1235', 'customer' => 'Jane Smith', 'amount' => 85.50, 'status' => 'Pending', 'date' => '2026-04-08'],
-                ['id' => '#ORD-1236', 'customer' => 'Robert Johnson', 'amount' => 210.00, 'status' => 'Shipped', 'date' => '2026-04-07'],
-                ['id' => '#ORD-1237', 'customer' => 'Sarah Williams', 'amount' => 45.00, 'status' => 'Completed', 'date' => '2026-04-07'],
-                ['id' => '#ORD-1238', 'customer' => 'Michael Brown', 'amount' => 135.20, 'status' => 'Cancelled', 'date' => '2026-04-06'],
-            ],
+            'total_orders' => Order::count(),
+            'total_revenue' => (float) Order::whereIn('payment_status', ['paid', 'pending'])->sum('total_amount'),
+            'total_products' => Product::count(),
+            'total_customers' => User::where('role', 'customer')->count(),
+            'recent_orders' => Order::latest()->take(5)->get()->map(fn (Order $order) => [
+                'id' => $order->order_number,
+                'db_id' => $order->id,
+                'customer' => $order->customer_name,
+                'amount' => (float) $order->total_amount,
+                'status' => ucfirst($order->status),
+                'date' => $order->created_at->format('Y-m-d'),
+            ]),
             'sales_data' => [
-                'labels' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                'data' => [1200, 1900, 1500, 2500, 2200, 3000, 2800]
+                'labels' => $dailyLabels,
+                'data' => $dailyDates->map(fn ($date) => (float) Order::whereDate('created_at', $date)->sum('total_amount')),
             ],
             'orders_data' => [
-                'labels' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                'data' => [12, 19, 15, 25, 22, 30, 28]
-            ]
+                'labels' => $dailyLabels,
+                'data' => $dailyDates->map(fn ($date) => Order::whereDate('created_at', $date)->count()),
+            ],
         ];
 
         return view('admin.dashboard', compact('stats'));
@@ -37,12 +42,11 @@ class DashboardController extends Controller
 
     public function getStats()
     {
-        // For AJAX requests
         return response()->json([
-            'revenue' => 45800.50,
-            'orders' => 1250,
-            'customers' => 850,
-            'products' => 142
+            'revenue' => (float) Order::whereIn('payment_status', ['paid', 'pending'])->sum('total_amount'),
+            'orders' => Order::count(),
+            'customers' => User::where('role', 'customer')->count(),
+            'products' => Product::count(),
         ]);
     }
 }

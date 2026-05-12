@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Http\Controllers\Api\ShiprocketWebhookController;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Cart;
 use App\Services\ShiprocketService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
@@ -110,5 +112,76 @@ class ShiprocketCheckoutController extends Controller
     public function getOneClickToken(Request $request)
     {
         return $this->getToken($request);
+    }
+
+    public function success(Request $request): RedirectResponse
+    {
+        Log::info('Shiprocket checkout success redirect received', [
+            'query' => $request->query(),
+        ]);
+
+        $orderId = $request->query('oid') ?? $request->query('order_id');
+        $status = $request->query('ost') ?? $request->query('status');
+
+        if (!$orderId || strtoupper((string) $status) !== 'SUCCESS') {
+            Log::warning('Shiprocket checkout success redirect missing successful order data', [
+                'order_id' => $orderId,
+                'status' => $status,
+            ]);
+
+            return redirect()->route('track.order')->with('error', 'Payment status could not be verified yet.');
+        }
+
+        $details = $this->shiprocketService->getCheckoutOrderDetails($orderId);
+        $orderData = $this->extractOrderData($details);
+
+        if (!$orderData) {
+            Log::error('Shiprocket checkout success could not fetch order details', [
+                'order_id' => $orderId,
+                'response' => $details,
+            ]);
+
+            return redirect()->route('track.order')->with('error', 'Order is placed, but details are still syncing.');
+        }
+
+        $orderData['order_id'] = $orderData['order_id'] ?? $orderId;
+        $orderData['status'] = $orderData['status'] ?? 'SUCCESS';
+
+        $result = app(ShiprocketWebhookController::class)->storeCheckoutOrder($orderData);
+
+        Log::info('Shiprocket checkout success order stored', [
+            'shiprocket_order_id' => $orderId,
+            'local_order_id' => $result['order']->id ?? null,
+            'created' => $result['created'] ?? null,
+        ]);
+
+        if (Auth::guard('web')->check()) {
+            return redirect()->route('account.orders')->with('success', 'Order placed successfully.');
+        }
+
+        return redirect()->route('track.order')->with('success', 'Order placed successfully.');
+    }
+
+    protected function extractOrderData(?array $details): ?array
+    {
+        if (!$details) {
+            return null;
+        }
+
+        $candidates = [
+            Arr::get($details, 'data.order'),
+            Arr::get($details, 'data'),
+            Arr::get($details, 'result.order'),
+            Arr::get($details, 'result'),
+            $details,
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (is_array($candidate) && (isset($candidate['order_id']) || isset($candidate['platform_order_id']) || isset($candidate['fastrr_order_id']))) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 }
