@@ -131,12 +131,16 @@ class ShiprocketWebhookController extends Controller
     protected function verifySecurityToken(Request $request): bool
     {
         $expectedToken = config('services.shiprocket.webhook_token');
+        $providedToken = $request->header('x-api-key');
+
+        Log::info('Shiprocket Webhook Security Token Check:', [
+            'expected' => $expectedToken ? 'set' : 'not set',
+            'provided' => $providedToken ? 'set' : 'not set'
+        ]);
 
         if (!$expectedToken) {
             return true;
         }
-
-        $providedToken = $request->header('x-api-key');
 
         return $providedToken && hash_equals($expectedToken, $providedToken);
     }
@@ -144,20 +148,36 @@ class ShiprocketWebhookController extends Controller
     protected function verifySignature(Request $request): bool
     {
         $signature = $request->header('X-Api-HMAC-SHA256');
+        $requireSignature = config('services.shiprocket.webhook_require_signature', false);
+
+        Log::info('Shiprocket Webhook Signature Check:', [
+            'signature_present' => !!$signature,
+            'require_signature' => $requireSignature
+        ]);
+
         if (!$signature) {
-            return !config('services.shiprocket.webhook_require_signature', false);
+            return !$requireSignature;
         }
 
         $apiSecret = config('services.shiprocket.secret');
         if (!$apiSecret) {
-            return !config('services.shiprocket.webhook_require_signature', false);
+            Log::warning('Shiprocket Webhook: Signature provided but SHIPROCKET_API_SECRET is not set');
+            return !$requireSignature;
         }
 
         $payload = $request->getContent();
         
         $expectedSignature = base64_encode(hash_hmac('sha256', $payload, $apiSecret, true));
+        $isValid = hash_equals($expectedSignature, $signature);
 
-        return hash_equals($expectedSignature, $signature);
+        if (!$isValid) {
+            Log::warning('Shiprocket Webhook Signature Mismatch', [
+                'expected' => $expectedSignature,
+                'provided' => $signature
+            ]);
+        }
+
+        return $isValid;
     }
 
     protected function createItems(Order $order, array $orderData, bool $decrementStock): void
