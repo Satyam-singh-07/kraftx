@@ -48,6 +48,13 @@ class Order extends Model
         'discount_detail',
         'shiprocket_tags',
         'shiprocket_payload',
+        'awb_code',
+        'courier_name',
+        'shipment_status',
+        'shipment_status_id',
+        'shipment_status_updated_at',
+        'shipment_track_url',
+        'delivered_at',
         'notes',
     ];
 
@@ -61,6 +68,8 @@ class Order extends Model
         'shiprocket_payload' => 'array',
         'estimated_delivery_date' => 'date',
         'shiprocket_order_created_at' => 'datetime',
+        'shipment_status_updated_at' => 'datetime',
+        'delivered_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

@@ -58,6 +58,91 @@ class ShiprocketWebhookController extends Controller
         }
     }
 
+    /**
+     * Handle delivery/tracking updates from Shiprocket API webhooks.
+     */
+    public function handleDeliveryStatus(Request $request)
+    {
+        $trackingData = $request->all();
+        Log::info('Shiprocket Delivery Status Webhook Received:', $trackingData);
+
+        if (!$this->verifySecurityToken($request)) {
+            Log::warning('Shiprocket Delivery Status Webhook Verification Failed');
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $order = $this->findOrderForTrackingPayload($trackingData);
+
+            if (!$order) {
+                Log::warning('Shiprocket Delivery Status Webhook could not match order', [
+                    'payload' => $trackingData,
+                ]);
+
+                // Shiprocket expects a 200 response. Returning 200 here prevents retry loops
+                // while preserving the unmatched payload in logs for debugging.
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Webhook received, but no matching order was found.',
+                ], 200);
+            }
+
+            $status = $trackingData['current_status']
+                ?? $trackingData['shipment_status']
+                ?? $trackingData['status']
+                ?? null;
+            $statusId = $trackingData['current_status_id']
+                ?? $trackingData['shipment_status_id']
+                ?? $trackingData['status_id']
+                ?? null;
+            $timestamp = $trackingData['current_timestamp']
+                ?? $trackingData['status_time']
+                ?? $trackingData['updated_at']
+                ?? $trackingData['event_time']
+                ?? now();
+
+            $payload = is_array($order->shiprocket_payload) ? $order->shiprocket_payload : [];
+            $payload['latest_tracking_webhook'] = $trackingData;
+
+            $mappedStatus = $this->mapShipmentStatus($status);
+
+            $order->fill([
+                'awb_code' => $trackingData['awb'] ?? $trackingData['awb_code'] ?? $order->awb_code,
+                'courier_name' => $trackingData['courier_name'] ?? $trackingData['courier'] ?? $order->courier_name,
+                'shipment_status' => $status ?? $order->shipment_status,
+                'shipment_status_id' => $statusId ?? $order->shipment_status_id,
+                'shipment_status_updated_at' => $this->dateTimeOrNull($timestamp) ?? now(),
+                'shipment_track_url' => $trackingData['track_url']
+                    ?? $trackingData['tracking_url']
+                    ?? $trackingData['tracking_link']
+                    ?? $order->shipment_track_url,
+                'delivered_at' => $mappedStatus === 'delivered'
+                    ? ($this->dateTimeOrNull($timestamp) ?? now())
+                    : $order->delivered_at,
+                'shiprocket_payload' => $payload,
+            ]);
+
+            if ($mappedStatus) {
+                $order->status = $mappedStatus;
+            }
+
+            $order->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Delivery status updated',
+                'order_id' => $order->id,
+            ], 200);
+        } catch (\Throwable $e) {
+            Log::error('Shiprocket Delivery Status Webhook Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'payload' => $trackingData,
+            ]);
+
+            return response()->json(['message' => 'Internal Server Error'], 500);
+        }
+    }
+
     public function storeCheckoutOrder(array $orderData): array
     {
         $shiprocketOrderId = $orderData['order_id']
@@ -314,6 +399,60 @@ class ShiprocketWebhookController extends Controller
         }
 
         return 'pending';
+    }
+
+    protected function findOrderForTrackingPayload(array $trackingData): ?Order
+    {
+        $awb = $trackingData['awb'] ?? $trackingData['awb_code'] ?? null;
+        $orderId = $trackingData['order_id']
+            ?? $trackingData['shiprocket_order_id']
+            ?? $trackingData['sr_order_id']
+            ?? null;
+        $channelOrderId = $trackingData['channel_order_id']
+            ?? $trackingData['platform_order_id']
+            ?? $trackingData['order_number']
+            ?? null;
+
+        if (blank($awb) && blank($orderId) && blank($channelOrderId)) {
+            return null;
+        }
+
+        return Order::query()
+            ->when($awb, fn ($query) => $query->orWhere('awb_code', $awb))
+            ->when($orderId, fn ($query) => $query->orWhere('shiprocket_order_id', $orderId))
+            ->when($channelOrderId, function ($query) use ($channelOrderId) {
+                $query->orWhere('platform_order_id', $channelOrderId)
+                    ->orWhere('fastrr_order_id', $channelOrderId)
+                    ->orWhere('order_number', $channelOrderId);
+            })
+            ->first();
+    }
+
+    protected function mapShipmentStatus(?string $status): ?string
+    {
+        $status = Str::lower((string) $status);
+
+        if ($status === '') {
+            return null;
+        }
+
+        if (Str::contains($status, ['cancel', 'rto', 'return', 'undelivered', 'lost', 'destroyed', 'damaged'])) {
+            return 'cancelled';
+        }
+
+        if (Str::contains($status, ['delivered'])) {
+            return 'delivered';
+        }
+
+        if (Str::contains($status, ['shipped', 'in transit', 'transit', 'out for delivery', 'picked up'])) {
+            return 'shipped';
+        }
+
+        if (Str::contains($status, ['ready', 'pickup', 'manifest', 'assigned', 'packed'])) {
+            return 'processing';
+        }
+
+        return null;
     }
 
     protected function money($value): float
