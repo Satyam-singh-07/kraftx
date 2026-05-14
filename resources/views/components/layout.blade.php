@@ -113,9 +113,6 @@
         };
     </script>
     <script src="https://checkout-ui.shiprocket.com/assets/js/channels/shopify.js" id="shiprocket-checkout-sdk" defer></script>
-    <script src="https://fastrr-boost-ui.pickrr.com/assets/js/channels/shiprocket-login.js" defer></script>
-    <script src="https://shiprocket-sns.pickrr.com/script.js" defer></script>
-    <link rel="stylesheet" href="https://shiprocket-sns.pickrr.com/styles.css">
 </head>
 
 <body>

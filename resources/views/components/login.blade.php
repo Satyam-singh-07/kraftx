@@ -17,7 +17,7 @@
                     <div class="alert alert-success mb-3">{{ session('success') }}</div>
                 @endif
                 @if (! session('otp_email'))
-                <form action="{{ route('auth.otp.send') }}" method="POST" class="form-log">
+                <form action="{{ route('auth.otp.send') }}" method="POST" class="form-log otp-auth-form">
                     @csrf
                     <div class="form-content">
                         <fieldset class="tf-field">
@@ -32,14 +32,14 @@
                         </fieldset>
                     </div>
                     <div class="group-action">
-                        <button type="submit" class="tf-btn animate-btn w-100">
+                        <button type="submit" class="tf-btn animate-btn w-100" data-loading-text="Sending...">
                             Send OTP
                         </button>
                     </div>
                 </form>
                 @endif
                 @if (session('otp_email'))
-                    <form action="{{ route('auth.otp.verify') }}" method="POST" class="form-log mt-4">
+                    <form action="{{ route('auth.otp.verify') }}" method="POST" class="form-log mt-4 otp-auth-form">
                         @csrf
                         <input type="hidden" name="email" value="{{ session('otp_email') }}">
                         <div class="form-content">
@@ -55,15 +55,15 @@
                             </fieldset>
                         </div>
                         <div class="group-action">
-                            <button type="submit" class="tf-btn animate-btn w-100">
+                            <button type="submit" class="tf-btn animate-btn w-100" data-loading-text="Verifying...">
                                 Verify & Continue
                             </button>
-                            <button type="submit" form="resend-otp-form" class="link text-primary text-decoration-underline bg-transparent border-0 p-0 mt-3">
+                            <button type="submit" form="resend-otp-form" class="link text-primary text-decoration-underline bg-transparent border-0 p-0 mt-3" data-loading-text="Sending...">
                                 Resend OTP
                             </button>
                         </div>
                     </form>
-                    <form id="resend-otp-form" action="{{ route('auth.otp.send') }}" method="POST" class="d-none">
+                    <form id="resend-otp-form" action="{{ route('auth.otp.send') }}" method="POST" class="d-none otp-auth-form">
                         @csrf
                         <input type="hidden" name="email" value="{{ session('otp_email') }}">
                     </form>
@@ -72,4 +72,20 @@
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.otp-auth-form').forEach(function(form) {
+            form.addEventListener('submit', function(event) {
+                var submitter = event.submitter || form.querySelector('[type="submit"]');
+                if (!submitter || submitter.disabled) {
+                    return;
+                }
+
+                submitter.dataset.originalText = submitter.innerHTML;
+                submitter.disabled = true;
+                submitter.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>' + (submitter.dataset.loadingText || 'Please wait...');
+            });
+        });
+    });
+</script>
 <!-- /Email Auth -->
