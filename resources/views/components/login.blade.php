@@ -16,6 +16,7 @@
                 @if (session('auth_modal') === 'sign' && session('success'))
                     <div class="alert alert-success mb-3">{{ session('success') }}</div>
                 @endif
+                @if (! session('otp_email'))
                 <form action="{{ route('auth.otp.send') }}" method="POST" class="form-log">
                     @csrf
                     <div class="form-content">
@@ -36,6 +37,7 @@
                         </button>
                     </div>
                 </form>
+                @endif
                 @if (session('otp_email'))
                     <form action="{{ route('auth.otp.verify') }}" method="POST" class="form-log mt-4">
                         @csrf
@@ -56,7 +58,14 @@
                             <button type="submit" class="tf-btn animate-btn w-100">
                                 Verify & Continue
                             </button>
+                            <button type="submit" form="resend-otp-form" class="link text-primary text-decoration-underline bg-transparent border-0 p-0 mt-3">
+                                Resend OTP
+                            </button>
                         </div>
+                    </form>
+                    <form id="resend-otp-form" action="{{ route('auth.otp.send') }}" method="POST" class="d-none">
+                        @csrf
+                        <input type="hidden" name="email" value="{{ session('otp_email') }}">
                     </form>
                 @endif
             </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\OrderLinkingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,11 @@ use Illuminate\Support\Str;
 
 class OtpAuthController extends Controller
 {
+    public function __construct(
+        protected OrderLinkingService $orderLinkingService
+    ) {
+    }
+
     public function sendOtp(Request $request): RedirectResponse
     {
         $validator = Validator::make($request->all(), [
@@ -82,6 +88,8 @@ class OtpAuthController extends Controller
         if (! $user->email_verified_at) {
             $user->forceFill(['email_verified_at' => now()])->save();
         }
+
+        $this->orderLinkingService->linkGuestOrders($user);
 
         Auth::login($user);
         $request->session()->regenerate();

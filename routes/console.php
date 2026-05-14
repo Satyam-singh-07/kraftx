@@ -41,3 +41,10 @@ Artisan::command('shiprocket:import-order {order_id}', function (string $orderId
     $this->info(($result['created'] ? 'Created' : 'Updated') . ' local order ID: ' . $result['order']->id);
     return self::SUCCESS;
 })->purpose('Import a Shiprocket Checkout order by order_id');
+
+Artisan::command('orders:link-guests', function () {
+    $linked = app(\App\Services\OrderLinkingService::class)->linkAllGuestOrders();
+
+    $this->info("Linked {$linked} guest order(s).");
+    return self::SUCCESS;
+})->purpose('Link guest orders to customer accounts by email or phone');

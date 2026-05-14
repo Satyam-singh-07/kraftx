@@ -4,33 +4,43 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\User;
+use App\Services\OrderLinkingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class AccountController extends Controller
 {
+    public function __construct(
+        protected OrderLinkingService $orderLinkingService
+    ) {
+    }
+
     public function dashboard(Request $request): View
     {
         $user = $request->user();
-        $orders = $this->ordersQuery($user->id)->latest()->take(5)->get();
+        $this->orderLinkingService->linkGuestOrders($user);
+        $orders = $this->ordersQuery($user)->latest()->take(5)->get();
 
         return view('account.dashboard', [
             'seo' => $this->seo('Account'),
             'orders' => $orders,
             'stats' => [
-                'pending' => $this->ordersQuery($user->id)->whereIn('status', ['pending', 'processing'])->count(),
-                'cancelled' => $this->ordersQuery($user->id)->where('status', 'cancelled')->count(),
-                'total' => $this->ordersQuery($user->id)->count(),
+                'pending' => $this->ordersQuery($user)->whereIn('status', ['pending', 'processing'])->count(),
+                'cancelled' => $this->ordersQuery($user)->where('status', 'cancelled')->count(),
+                'total' => $this->ordersQuery($user)->count(),
             ],
         ]);
     }
 
     public function orders(Request $request): View
     {
+        $this->orderLinkingService->linkGuestOrders($request->user());
+
         return view('account.orders', [
             'seo' => $this->seo('Your Orders'),
-            'orders' => $this->ordersQuery($request->user()->id)->latest()->paginate(10),
+            'orders' => $this->ordersQuery($request->user())->latest()->paginate(10),
         ]);
     }
 
@@ -74,10 +84,12 @@ class AccountController extends Controller
         return back()->with('success', 'Profile updated successfully.');
     }
 
-    private function ordersQuery(int $userId)
+    private function ordersQuery(User $user)
     {
-        return Order::with('items.product')
-            ->where('user_id', $userId);
+        return $this->orderLinkingService->scopeForUser(
+            Order::with('items.product'),
+            $user
+        );
     }
 
     private function seo(string $title): array

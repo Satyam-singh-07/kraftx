@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Cart;
+use App\Services\OrderLinkingService;
 use App\Services\ShiprocketService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -148,6 +149,10 @@ class ShiprocketCheckoutController extends Controller
         $orderData['status'] = $orderData['status'] ?? 'SUCCESS';
 
         $result = app(ShiprocketWebhookController::class)->storeCheckoutOrder($orderData);
+
+        if (Auth::guard('web')->check()) {
+            app(OrderLinkingService::class)->linkGuestOrders(Auth::guard('web')->user());
+        }
 
         Log::info('Shiprocket checkout success order stored', [
             'shiprocket_order_id' => $orderId,
