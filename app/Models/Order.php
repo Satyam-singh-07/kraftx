@@ -14,9 +14,7 @@ class Order extends Model
 
     protected $fillable = [
         'user_id',
-        'shiprocket_order_id',
         'platform_order_id',
-        'fastrr_order_id',
         'cart_id',
         'order_number',
         'total_amount',
@@ -30,7 +28,6 @@ class Order extends Model
         'shipping_plan',
         'rto_prediction',
         'estimated_delivery_date',
-        'shiprocket_order_created_at',
         'payment_method',
         'payment_status',
         'customer_name',
@@ -46,8 +43,6 @@ class Order extends Model
         'payments',
         'coupon_codes',
         'discount_detail',
-        'shiprocket_tags',
-        'shiprocket_payload',
         'awb_code',
         'courier_name',
         'shipment_status',
@@ -64,10 +59,7 @@ class Order extends Model
         'payments' => 'array',
         'coupon_codes' => 'array',
         'discount_detail' => 'array',
-        'shiprocket_tags' => 'array',
-        'shiprocket_payload' => 'array',
         'estimated_delivery_date' => 'date',
-        'shiprocket_order_created_at' => 'datetime',
         'shipment_status_updated_at' => 'datetime',
         'delivered_at' => 'datetime',
     ];

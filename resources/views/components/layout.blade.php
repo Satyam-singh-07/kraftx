@@ -55,64 +55,6 @@
     {!! \App\Helpers\SeoHelper::renderJsonLd($seoData['json_ld'] ?? []) !!}
     @yield('seo')
 
-    <!-- Shiprocket Headless Checkout -->
-    <link rel="stylesheet" href="https://checkout-ui.shiprocket.com/assets/styles/shopify.css">
-    <script>
-        window.checkoutBuyer = "https://checkout-ui.shiprocket.com/";
-        window.SR_CHECKOUT_CONFIG = {
-            storeToken: "{{ config('services.shiprocket.key') }}", 
-            api_url: "{{ url('/api/shiprocket') }}",
-            seller_domain: "{{ request()->getHost() }}"
-        };
-
-        window.SRCheckout = window.SRCheckout || {
-            open(checkoutData) {
-                return new Promise((resolve, reject) => {
-                    const startedAt = Date.now();
-                    const timeoutMs = 15000;
-
-                    const openWhenReady = async () => {
-                        if (window.HeadlessCheckout) {
-                            try {
-                                const response = await fetch("{{ route('api.shiprocket.token') }}", {
-                                    method: "POST",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                                    },
-                                    body: JSON.stringify(checkoutData)
-                                });
-                                
-                                const result = await response.json();
-                                
-                                if (result.success && result.token) {
-                                    window.HeadlessCheckout.addToCart(null, result.token, {
-                                        fallbackUrl: window.location.origin + "/checkout"
-                                    });
-                                    resolve();
-                                } else {
-                                    reject(new Error(result.message || "Could not initiate checkout"));
-                                }
-                            } catch (error) {
-                                reject(error);
-                            }
-                            return;
-                        }
-
-                        if (Date.now() - startedAt > timeoutMs) {
-                            reject(new Error("Shiprocket HeadlessCheckout SDK did not finish loading."));
-                            return;
-                        }
-
-                        window.setTimeout(openWhenReady, 100);
-                    };
-
-                    openWhenReady();
-                });
-            }
-        };
-    </script>
-    <script src="https://checkout-ui.shiprocket.com/assets/js/channels/shopify.js" id="shiprocket-checkout-sdk" defer></script>
 </head>
 
 <body>

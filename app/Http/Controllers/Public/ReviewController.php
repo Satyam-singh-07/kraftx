@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Public;
 
-use App\Models\CartItem;
 use App\Http\Controllers\Controller;
+use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -16,10 +16,12 @@ class ReviewController extends Controller
             return back()->with('error', 'Please verify your email to submit a review.');
         }
 
-        $hasPurchasedProduct = CartItem::where('product_id', $product->id)
-            ->whereHas('cart', function ($query) use ($user) {
-                $query->where('user_id', $user->id)
-                    ->whereIn('status', ['completed', 'paid', 'delivered']);
+        $hasPurchasedProduct = OrderItem::where('product_id', $product->id)
+            ->whereHas('order', function ($query) use ($user) {
+                $query->where(function ($query) use ($user) {
+                    $query->where('user_id', $user->id)
+                        ->orWhereRaw('LOWER(customer_email) = ?', [strtolower($user->email)]);
+                })->whereNotIn('status', ['cancelled']);
             })
             ->exists();
 

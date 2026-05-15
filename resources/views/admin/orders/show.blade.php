@@ -137,15 +137,9 @@
                             <div class="text-sm font-bold {{ $pClass }} uppercase">{{ $order->payment_status }}</div>
                         </div>
                         <div>
-                            <label class="text-xs font-bold text-gray-500 uppercase">Shiprocket Order ID</label>
-                            <div class="text-sm font-mono text-gray-600 dark:text-gray-400">{{ $order->shiprocket_order_id }}</div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Order ID</label>
+                            <div class="text-sm font-mono text-gray-600 dark:text-gray-400">{{ $order->id }}</div>
                         </div>
-                        @if($order->fastrr_order_id)
-                        <div>
-                            <label class="text-xs font-bold text-gray-500 uppercase">Fastrr Order ID</label>
-                            <div class="text-sm font-mono text-gray-600 dark:text-gray-400">{{ $order->fastrr_order_id }}</div>
-                        </div>
-                        @endif
                         @if($order->checkout_status)
                         <div>
                             <label class="text-xs font-bold text-gray-500 uppercase">Checkout Status</label>
@@ -156,7 +150,7 @@
                 </x-admin.card>
 
                 @if($order->shipping_plan || $order->rto_prediction || $order->estimated_delivery_date || $order->coupon_codes)
-                <x-admin.card title="Shiprocket Checkout">
+                <x-admin.card title="Checkout Details">
                     <div class="mt-4 space-y-4">
                         @if($order->shipping_plan)
                         <div>

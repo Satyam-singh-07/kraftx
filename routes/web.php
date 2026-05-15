@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Public\AccountController;
 use App\Http\Controllers\Public\BlogController;
 use App\Http\Controllers\Public\CartController;
+use App\Http\Controllers\Public\CheckoutController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\NewsletterController as PublicNewsletterController;
@@ -31,10 +32,6 @@ use App\Http\Controllers\Public\SearchController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 
-
-Route::post('/api/shiprocket/checkout/token', [App\Http\Controllers\Public\ShiprocketCheckoutController::class, 'getToken'])->name('api.shiprocket.token');
-Route::post('/api/shiprocket/checkout/one-click', [App\Http\Controllers\Public\ShiprocketCheckoutController::class, 'getOneClickToken'])->name('api.shiprocket.oneclick');
-Route::get('/checkout/success', [App\Http\Controllers\Public\ShiprocketCheckoutController::class, 'success'])->name('shiprocket.checkout.success');
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');
@@ -314,23 +311,9 @@ Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remov
 Route::get('/search', [SearchController::class, 'results'])->name('search.results');
 Route::get('/api/search/suggestions', [SearchController::class, 'suggestions'])->name('api.search.suggestions');
 
-Route::get('/checkout', function () {
-    $seo = [
-        'title' => 'Checkout | ' . config('app.name', 'KraftX'),
-        'description' => 'Secure checkout for your KraftX order.',
-        'canonical' => route('checkout'),
-        'robots' => 'noindex,follow',
-        'json_ld' => [
-            SeoHelper::webPageSchema([
-                'title' => 'Checkout | ' . config('app.name', 'KraftX'),
-                'description' => 'Secure checkout for your KraftX order.',
-                'canonical' => route('checkout'),
-            ]),
-        ],
-    ];
-
-    return view('checkout', compact('seo'));
-})->middleware('customer.auth')->name('checkout');
+Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout');
+Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
 
 // Public Deals & Coupons
 Route::get('/deals', [App\Http\Controllers\Public\DealController::class, 'index'])->name('deals.index');

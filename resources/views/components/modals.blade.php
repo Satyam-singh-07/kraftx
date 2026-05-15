@@ -1187,7 +1187,7 @@
                 </div>
                                                                                                                         
                 <div class="tf-mini-cart-view-checkout">
-                    <button type="button" onclick="triggerShiprocketCartCheckout()" class="cart-cta cart-cta-solid w-100 border-0">Check Out</button>
+                    <a href="{{ route('checkout') }}" class="cart-cta cart-cta-solid w-100 border-0 text-center">Check Out</a>
                 </div>
             </div>
         </div>
@@ -1195,52 +1195,6 @@
 </div>
 
 <script>
-    /**
-     * Shiprocket Cart Checkout Trigger
-     */
-    function triggerShiprocketCartCheckout() {
-        console.log('Triggering Shiprocket Cart Checkout');
-        console.log('Current window.SRCheckout type:', typeof window.SRCheckout);
-
-        if (typeof window.SRCheckout === 'undefined') {
-            console.error('Shiprocket SDK (SRCheckout) is not defined on the window object.');
-            alert('Checkout system is still loading. Please try again in a moment.');
-            return;
-        }
-
-        // Fetch latest cart items to ensure accuracy
-        fetch('{{ route('cart.fetch') }}')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.items.length > 0) {
-                    const checkoutData = {
-                        type: 'cart',
-                        items: data.items.map(item => ({
-                            id: item.product_id,
-                            product_id: item.product_id,
-                            title: item.product?.name || '',
-                            quantity: parseInt(item.quantity),
-                            variant_id: item.product_variant_id || (parseInt(item.product_id, 10) + 900000000),
-                            variant_title: [item.variant?.color, item.variant?.size].filter(Boolean).join(' / ') || 'Default Title',
-                            price: item.price || item.variant?.price || item.product?.sale_price || item.product?.price || 0,
-                            image: item.product?.images?.[0]?.image_path ? `/storage/${item.product.images[0].image_path}` : '',
-                        }))
-                    };
-                    console.log('Opening Shiprocket Cart Checkout with data:', checkoutData);
-                    window.SRCheckout.open(checkoutData).catch((error) => {
-                        console.error('Shiprocket checkout failed:', error);
-                        alert('Could not start checkout. Please try again.');
-                    });
-                } else {
-                    alert('Your cart is empty.');
-                }
-            })
-            .catch(error => {
-                console.error('Error initiating checkout:', error);
-                alert('Could not start checkout. Please try again.');
-            });
-    }
-
     document.addEventListener('DOMContentLoaded', function() {
         const cartDrawer = document.getElementById('shoppingCart');
         const itemsList = document.getElementById('cart-items-list');

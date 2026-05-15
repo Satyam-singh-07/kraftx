@@ -225,7 +225,7 @@
                 </div>
             </x-admin.card>
 
-            <x-admin.card title="Shipping Information (Shiprocket)">
+            <x-admin.card title="Shipping Information">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Weight (Kg) *</label>

@@ -362,10 +362,6 @@
                                             Buy It Now
                                         </button>
                                         
-                                        <!-- Shiprocket One-Click Checkout Button -->
-                                        <button type="button" onclick="triggerShiprocketCheckout({{ $product->id }}, this)" class="tf-btn type-xl btn-fill animate-btn w-100" style="background-color: #5e17eb; border-color: #5e17eb; color: white;">
-                                            <i class="icon icon-Lightning me-2"></i> One-Click Checkout
-                                        </button>
                                     </div>
                                 </div>
 
@@ -887,11 +883,6 @@
                         size = activeSizeBtn ? activeSizeBtn.getAttribute('data-size') : null;
                     }
 
-                    if (isBuyNow) {
-                        triggerShiprocketCheckout(productId, event.currentTarget);
-                        return;
-                    }
-
                     fetch('{{ route('cart.add') }}', {
                         method: 'POST',
                         headers: {
@@ -942,61 +933,6 @@
                 if (stickyAddToCartBtn) stickyAddToCartBtn.addEventListener('click', handleAddToCart);
             });
 
-            /**
-             * Shiprocket Headless Checkout Trigger
-             */
-            @php
-                $shiprocketProductCheckoutData = [
-                    'id' => $product->id,
-                    'title' => $product->name,
-                    'price' => (float) ($product->sale_price ?? $product->price),
-                    'image' => $product->primary_image ? asset('storage/' . $product->primary_image->image_path) : '',
-                    'default_variant_id' => (int) ($product->id + 900000000),
-                    'variants' => $product->variants->map(function ($variant) use ($product) {
-                        return [
-                            'id' => (int) $variant->id,
-                            'color' => $variant->color,
-                            'size' => $variant->size,
-                            'title' => trim(($variant->color ?: '') . ($variant->size ? ' / ' . $variant->size : '')) ?: 'Default Title',
-                            'price' => (float) ($variant->price ?? $product->sale_price ?? $product->price),
-                        ];
-                    })->values(),
-                ];
-            @endphp
-            const shiprocketProductCheckoutData = {{ \Illuminate\Support\Js::from($shiprocketProductCheckoutData) }};
-
-            function triggerShiprocketCheckout(productId, button = null) {
-                const quantity = document.querySelector('input[name="quantity"]')?.value || 1;
-                const activeColorBtn = document.querySelector('.variant-color .color-btn.active');
-                const color = activeColorBtn ? activeColorBtn.getAttribute('data-color') : null;
-                const activeSizeBtn = document.querySelector('.variant-size .size-btn.active');
-                const size = activeSizeBtn ? activeSizeBtn.getAttribute('data-size') : null;
-                const matchingVariant = shiprocketProductCheckoutData.variants.find((variant) => {
-                    return (!color || variant.color === color) && (!size || variant.size === size);
-                });
-
-                // Show loading state
-                const btn = button || document.querySelector('button[onclick^="triggerShiprocketCheckout"]');
-                const originalHtml = btn.innerHTML;
-                btn.disabled = true;
-                btn.innerHTML = '<i class="icon icon-loading animate-spin me-2"></i> Initializing Secure Checkout...';
-
-                window.SRCheckout.open({
-                    product_id: productId,
-                    quantity: parseInt(quantity),
-                    variant_id: matchingVariant ? matchingVariant.id : shiprocketProductCheckoutData.default_variant_id
-                })
-                .then(() => {
-                    btn.disabled = false;
-                    btn.innerHTML = originalHtml;
-                })
-                .catch((error) => {
-                    console.error('Shiprocket checkout error:', error);
-                    alert(`Checkout Error: ${error.message}`);
-                    btn.disabled = false;
-                    btn.innerHTML = originalHtml;
-                });
-            }
         </script>
         <script src="{{ asset('assets/js/plugin/drift.min.js') }}"></script>
         <script src="{{ asset('assets/js/plugin/photoswipe.umd.min.js') }}"></script>

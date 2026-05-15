@@ -55,7 +55,7 @@
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                         <td class="px-6 py-4">
                             <div class="text-sm font-bold text-blue-600 dark:text-blue-400">{{ $order->order_number }}</div>
-                            <div class="text-[10px] text-gray-400">SR ID: {{ $order->shiprocket_order_id }}</div>
+                            <div class="text-[10px] text-gray-400">Order ID: {{ $order->id }}</div>
                         </td>
                         <td class="px-6 py-4">
                             <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $order->customer_name }}</div>
