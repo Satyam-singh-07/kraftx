@@ -136,6 +136,18 @@
                             @endphp
                             <div class="text-sm font-bold {{ $pClass }} uppercase">{{ $order->payment_status }}</div>
                         </div>
+                        @if($order->payment_provider)
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Payment Provider</label>
+                            <div class="text-sm font-medium text-gray-900 dark:text-white">{{ ucfirst($order->payment_provider) }}</div>
+                        </div>
+                        @endif
+                        @if($order->payment_transaction_id)
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Transaction ID</label>
+                            <div class="text-sm font-mono text-gray-600 dark:text-gray-400">{{ $order->payment_transaction_id }}</div>
+                        </div>
+                        @endif
                         <div>
                             <label class="text-xs font-bold text-gray-500 uppercase">Order ID</label>
                             <div class="text-sm font-mono text-gray-600 dark:text-gray-400">{{ $order->id }}</div>

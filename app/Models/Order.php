@@ -30,6 +30,11 @@ class Order extends Model
         'estimated_delivery_date',
         'payment_method',
         'payment_status',
+        'payment_provider',
+        'payment_transaction_id',
+        'payment_reference',
+        'payment_payload',
+        'paid_at',
         'customer_name',
         'customer_email',
         'customer_phone',
@@ -57,11 +62,13 @@ class Order extends Model
         'shipping_address_data' => 'array',
         'billing_address_data' => 'array',
         'payments' => 'array',
+        'payment_payload' => 'array',
         'coupon_codes' => 'array',
         'discount_detail' => 'array',
         'estimated_delivery_date' => 'date',
         'shipment_status_updated_at' => 'datetime',
         'delivered_at' => 'datetime',
+        'paid_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

@@ -27,6 +27,7 @@ use App\Http\Controllers\Public\CheckoutController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\NewsletterController as PublicNewsletterController;
+use App\Http\Controllers\Public\PaymentController;
 use App\Http\Controllers\Public\QuickAddController;
 use App\Http\Controllers\Public\SearchController;
 use App\Models\Product;
@@ -313,7 +314,9 @@ Route::get('/api/search/suggestions', [SearchController::class, 'suggestions'])-
 
 Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::get('/checkout/payment/{order}', [CheckoutController::class, 'payment'])->name('checkout.payment');
 Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::post('/payments/razorpay/{order}/verify', [PaymentController::class, 'verify'])->name('payments.razorpay.verify');
 
 // Public Deals & Coupons
 Route::get('/deals', [App\Http\Controllers\Public\DealController::class, 'index'])->name('deals.index');

@@ -27,7 +27,7 @@ class CheckoutTest extends TestCase
 
         $response->assertRedirect(route('checkout.success', $order));
         $this->assertNull($order->user_id);
-        $this->assertSame('processing', $order->status);
+        $this->assertSame('cod_confirmed', $order->status);
         $this->assertSame('COD', $order->payment_method);
         $this->assertSame('pending', $order->payment_status);
         $this->assertSame(250.0, (float) $order->subtotal);
@@ -152,6 +152,7 @@ class CheckoutTest extends TestCase
             'shipping_state' => 'Rajasthan',
             'shipping_pincode' => '302001',
             'shipping_country' => 'India',
+            'payment_method' => 'cod',
             'notes' => null,
         ], $overrides);
     }

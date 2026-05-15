@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\CartService;
+use App\Services\Payments\RazorpayService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +22,8 @@ use Throwable;
 class CheckoutController extends Controller
 {
     public function __construct(
-        protected CartService $cartService
+        protected CartService $cartService,
+        protected RazorpayService $razorpay
     ) {
     }
 
@@ -48,10 +50,11 @@ class CheckoutController extends Controller
             'shippingAmount' => 0,
             'user' => Auth::user(),
             'checkoutToken' => $checkoutToken,
+            'razorpayEnabled' => filled(config('services.razorpay.key')) && filled(config('services.razorpay.secret')),
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): View|RedirectResponse
     {
         if (!$this->validCheckoutToken((string) $request->input('checkout_token'))) {
             if ($order = $this->lastCompletedOrder()) {
@@ -75,8 +78,13 @@ class CheckoutController extends Controller
             'shipping_state' => ['required', 'string', 'min:2', 'max:255'],
             'shipping_pincode' => ['required', 'string', 'regex:/^[A-Za-z0-9 -]{3,20}$/'],
             'shipping_country' => ['nullable', 'string', 'max:255'],
+            'payment_method' => ['required', 'string', 'in:cod,razorpay'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
+
+        if ($validated['payment_method'] === 'razorpay' && (!config('services.razorpay.key') || !config('services.razorpay.secret'))) {
+            return back()->withInput()->with('error', 'Online payment is temporarily unavailable. Please choose Cash on Delivery.');
+        }
 
         $cartId = (int) session('checkout_cart_id');
         if (!$cartId) {
@@ -114,6 +122,7 @@ class CheckoutController extends Controller
                 $shippingAmount = 0;
                 $taxAmount = 0;
                 $discountAmount = 0;
+                $isPrepaid = $validated['payment_method'] === 'razorpay';
 
                 $order = Order::create([
                     'user_id' => Auth::id(),
@@ -124,11 +133,12 @@ class CheckoutController extends Controller
                     'tax_amount' => $taxAmount,
                     'shipping_amount' => $shippingAmount,
                     'discount_amount' => $discountAmount,
-                    'status' => 'processing',
+                    'status' => $isPrepaid ? 'pending_payment' : 'cod_confirmed',
                     'checkout_status' => 'placed',
                     'source' => 'local_checkout',
-                    'payment_method' => 'COD',
+                    'payment_method' => $isPrepaid ? 'Prepaid' : 'COD',
                     'payment_status' => 'pending',
+                    'payment_provider' => $isPrepaid ? 'razorpay' : null,
                     'customer_name' => $validated['customer_name'],
                     'customer_email' => strtolower($validated['customer_email']),
                     'customer_phone' => $validated['customer_phone'],
@@ -145,7 +155,8 @@ class CheckoutController extends Controller
                         'country' => $validated['shipping_country'] ?? 'India',
                     ],
                     'payments' => [[
-                        'payment_method' => 'COD',
+                        'payment_method' => $isPrepaid ? 'Prepaid' : 'COD',
+                        'payment_provider' => $isPrepaid ? 'razorpay' : null,
                         'payment_status' => 'pending',
                     ]],
                     'notes' => $validated['notes'] ?? null,
@@ -169,8 +180,12 @@ class CheckoutController extends Controller
                     }
                 }
 
-                $cart->update(['status' => 'converted']);
-                $cart->items()->delete();
+                if ($isPrepaid) {
+                    $cart->update(['status' => 'payment_pending']);
+                } else {
+                    $cart->update(['status' => 'converted']);
+                    $cart->items()->delete();
+                }
 
                 return $order;
             });
@@ -193,8 +208,60 @@ class CheckoutController extends Controller
             return back()->withInput()->with('error', 'We could not place your order right now. Please review your cart and try again.');
         }
 
-        session()->forget('checkout_token');
         session(['last_order_id' => $order->id]);
+
+        if ($order->payment_provider === 'razorpay' && !$order->payment_reference) {
+            try {
+                $gatewayOrder = $this->razorpay->createPaymentOrder($order);
+                $payments = $order->payments ?: [];
+                $payments[] = [
+                    'provider' => 'razorpay',
+                    'event' => 'order_created',
+                    'reference' => $gatewayOrder['id'] ?? null,
+                    'created_at' => now()->toIso8601String(),
+                ];
+
+                $order->update([
+                    'payment_reference' => $gatewayOrder['id'] ?? null,
+                    'payment_payload' => [
+                        'gateway_order' => [
+                            'id' => $gatewayOrder['id'] ?? null,
+                            'status' => $gatewayOrder['status'] ?? null,
+                            'amount' => $gatewayOrder['amount'] ?? null,
+                            'currency' => $gatewayOrder['currency'] ?? null,
+                        ],
+                    ],
+                    'payments' => $payments,
+                ]);
+            } catch (Throwable $e) {
+                Log::error('Payment order creation failed', [
+                    'order_id' => $order->id,
+                    'exception' => $e::class,
+                    'message' => $e->getMessage(),
+                ]);
+
+                DB::transaction(function () use ($order) {
+                    $order = Order::with('items')->whereKey($order->id)->lockForUpdate()->firstOrFail();
+
+                    if ($order->payment_status !== 'paid') {
+                        $this->releaseReservedStock($order);
+                    }
+
+                    if ($order->cart_id && $cart = Cart::whereKey((int) $order->cart_id)->lockForUpdate()->first()) {
+                        $cart->update(['status' => 'active']);
+                    }
+
+                    $order->update([
+                        'status' => 'payment_failed',
+                        'payment_status' => 'failed',
+                    ]);
+                });
+
+                return back()->withInput()->with('error', 'Online payment could not be started. Please retry or choose Cash on Delivery.');
+            }
+        }
+
+        session()->forget('checkout_token');
 
         Log::info('Checkout completed', [
             'cart_id' => $cartId,
@@ -203,16 +270,42 @@ class CheckoutController extends Controller
             'user_id' => Auth::id(),
         ]);
 
+        if ($order->payment_provider === 'razorpay') {
+            return redirect()->route('checkout.payment', $order);
+        }
+
         return redirect()->route('checkout.success', $order)->with('success', 'Order placed successfully.');
+    }
+
+    public function payment(Order $order): View
+    {
+        $this->authorizeOrderAccess($order);
+
+        abort_if($order->payment_provider !== 'razorpay', 404);
+
+        if ($order->payment_status === 'paid') {
+            return view('checkout-success', [
+                'seo' => [
+                    'title' => 'Order Placed | ' . config('app.name', 'KraftX'),
+                    'robots' => 'noindex,follow',
+                ],
+                'order' => $order->load('items.product'),
+            ]);
+        }
+
+        return view('checkout-payment', [
+            'seo' => [
+                'title' => 'Complete Payment | ' . config('app.name', 'KraftX'),
+                'robots' => 'noindex,follow',
+            ],
+            'order' => $order->load('items.product'),
+            'razorpayKey' => config('services.razorpay.key'),
+        ]);
     }
 
     public function success(Order $order): View
     {
-        abort_unless(
-            Auth::id() === $order->user_id
-                || (int) session('last_order_id') === (int) $order->id,
-            403
-        );
+        $this->authorizeOrderAccess($order);
 
         $order->load('items.product');
 
@@ -223,6 +316,15 @@ class CheckoutController extends Controller
             ],
             'order' => $order,
         ]);
+    }
+
+    protected function authorizeOrderAccess(Order $order): void
+    {
+        abort_unless(
+            Auth::id() === $order->user_id
+                || (int) session('last_order_id') === (int) $order->id,
+            403
+        );
     }
 
     protected function subtotal($cart): float
@@ -323,6 +425,17 @@ class CheckoutController extends Controller
         $orderId = session('last_order_id');
 
         return $orderId ? Order::find($orderId) : null;
+    }
+
+    protected function releaseReservedStock(Order $order): void
+    {
+        foreach ($order->items as $item) {
+            if ($item->variant_id) {
+                ProductVariant::whereKey($item->variant_id)->increment('stock', $item->quantity);
+            } elseif ($item->product_id) {
+                Product::whereKey($item->product_id)->increment('stock', $item->quantity);
+            }
+        }
     }
 
     protected function makeOrderNumber(): string
