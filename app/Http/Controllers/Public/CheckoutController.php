@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\CartService;
+use App\Services\Orders\OrderConfirmationNotifier;
 use App\Services\Payments\RazorpayService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,8 @@ class CheckoutController extends Controller
 {
     public function __construct(
         protected CartService $cartService,
-        protected RazorpayService $razorpay
+        protected RazorpayService $razorpay,
+        protected OrderConfirmationNotifier $confirmationNotifier
     ) {
     }
 
@@ -273,6 +275,8 @@ class CheckoutController extends Controller
         if ($order->payment_provider === 'razorpay') {
             return redirect()->route('checkout.payment', $order);
         }
+
+        $this->confirmationNotifier->send($order, 'cod_checkout');
 
         return redirect()->route('checkout.success', $order)->with('success', 'Order placed successfully.');
     }

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\OrderConfirmationMail;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Order;
@@ -9,6 +10,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class CheckoutTest extends TestCase
@@ -17,6 +19,8 @@ class CheckoutTest extends TestCase
 
     public function test_guest_can_place_local_checkout_order(): void
     {
+        Mail::fake();
+
         [$cart, $product] = $this->cartWithProduct(quantity: 2, stock: 5, price: 125);
 
         $response = $this
@@ -40,6 +44,8 @@ class CheckoutTest extends TestCase
         $this->assertSame(3, $product->fresh()->stock);
         $this->assertSame('converted', $cart->fresh()->status);
         $this->assertSame(0, CartItem::where('cart_id', $cart->id)->count());
+        Mail::assertQueued(OrderConfirmationMail::class, fn ($mail) => $mail->order->is($order));
+        $this->assertNotNull($order->fresh()->confirmation_email_sent_at);
     }
 
     public function test_logged_in_checkout_attaches_order_to_user(): void

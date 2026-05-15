@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\Orders\OrderConfirmationNotifier;
 use App\Services\Payments\PaymentVerificationService;
 use App\Services\Payments\PaymentWebhookService;
 use Illuminate\Http\RedirectResponse;
@@ -12,8 +13,12 @@ use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
-    public function verify(Request $request, Order $order, PaymentVerificationService $verification): RedirectResponse
-    {
+    public function verify(
+        Request $request,
+        Order $order,
+        PaymentVerificationService $verification,
+        OrderConfirmationNotifier $confirmationNotifier
+    ): RedirectResponse {
         $validated = $request->validate([
             'razorpay_order_id' => ['required', 'string'],
             'razorpay_payment_id' => ['required', 'string'],
@@ -22,6 +27,7 @@ class PaymentController extends Controller
 
         try {
             $order = $verification->verifyRazorpayCallback($order, $validated);
+            $confirmationNotifier->send($order, 'razorpay_callback');
             session(['last_order_id' => $order->id]);
 
             return redirect()->route('checkout.success', $order)->with('success', 'Payment verified successfully.');

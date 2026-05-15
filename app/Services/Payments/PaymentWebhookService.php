@@ -4,6 +4,7 @@ namespace App\Services\Payments;
 
 use App\Models\Order;
 use App\Models\Cart;
+use App\Services\Orders\OrderConfirmationNotifier;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -11,7 +12,8 @@ use Illuminate\Support\Facades\Log;
 class PaymentWebhookService
 {
     public function __construct(
-        protected RazorpayService $razorpay
+        protected RazorpayService $razorpay,
+        protected OrderConfirmationNotifier $confirmationNotifier
     ) {
     }
 
@@ -30,7 +32,7 @@ class PaymentWebhookService
             return;
         }
 
-        DB::transaction(function () use ($event, $payload, $razorpayOrderId, $paymentId) {
+        $confirmedOrder = DB::transaction(function () use ($event, $payload, $razorpayOrderId, $paymentId) {
             $order = Order::where('payment_reference', $razorpayOrderId)->lockForUpdate()->first();
 
             if (!$order) {
@@ -38,7 +40,7 @@ class PaymentWebhookService
                     'event' => $event,
                     'payment_reference' => $razorpayOrderId,
                 ]);
-                return;
+                return null;
             }
 
             $payments = $order->payments ?: [];
@@ -86,7 +88,13 @@ class PaymentWebhookService
             ];
             $order->payments = $payments;
             $order->save();
+
+            return $event === 'payment.captured' && $order->payment_status === 'paid' ? $order : null;
         });
+
+        if ($confirmedOrder) {
+            $this->confirmationNotifier->send($confirmedOrder, 'razorpay_webhook');
+        }
     }
 
     protected function releaseReservedStock(Order $order): void

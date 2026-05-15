@@ -35,6 +35,7 @@ class Order extends Model
         'payment_reference',
         'payment_payload',
         'paid_at',
+        'confirmation_email_sent_at',
         'customer_name',
         'customer_email',
         'customer_phone',
@@ -69,6 +70,7 @@ class Order extends Model
         'shipment_status_updated_at' => 'datetime',
         'delivered_at' => 'datetime',
         'paid_at' => 'datetime',
+        'confirmation_email_sent_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
