@@ -44,7 +44,7 @@ class CheckoutTest extends TestCase
         $this->assertSame(3, $product->fresh()->stock);
         $this->assertSame('converted', $cart->fresh()->status);
         $this->assertSame(0, CartItem::where('cart_id', $cart->id)->count());
-        Mail::assertQueued(OrderConfirmationMail::class, fn ($mail) => $mail->order->is($order));
+        Mail::assertSent(OrderConfirmationMail::class, fn ($mail) => $mail->order->is($order));
         $this->assertNotNull($order->fresh()->confirmation_email_sent_at);
     }
 
