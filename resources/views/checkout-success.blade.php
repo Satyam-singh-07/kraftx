@@ -324,6 +324,18 @@
                                 <span>Shipping</span>
                                 <strong>{{ (float) $order->shipping_amount > 0 ? '₹' . number_format($order->shipping_amount, 2) : 'Free' }}</strong>
                             </div>
+                            @if((float) $order->payment_fee_amount > 0)
+                                <div class="summary-line">
+                                    <span>Cash Handling Fee</span>
+                                    <strong>₹{{ number_format($order->payment_fee_amount, 2) }}</strong>
+                                </div>
+                            @endif
+                            @if((float) $order->payment_discount_amount > 0)
+                                <div class="summary-line">
+                                    <span>Prepaid Savings</span>
+                                    <strong>-₹{{ number_format($order->payment_discount_amount, 2) }}</strong>
+                                </div>
+                            @endif
                             <div class="summary-line">
                                 <span>Discount</span>
                                 <strong>{{ (float) $order->discount_amount > 0 ? '-₹' . number_format($order->discount_amount, 2) : '₹0.00' }}</strong>
@@ -383,8 +395,15 @@
                         <div class="cta-stack">
                             <a href="{{ route('home') }}" class="tf-btn btn-fill animate-btn w-100">Continue Shopping</a>
                             <a href="{{ route('track.order') }}" class="tf-btn btn-stroke animate-btn w-100">Track Order</a>
-                            <a href="{{ route('account.orders') }}" class="tf-btn btn-stroke animate-btn w-100">View My Orders</a>
+                            @auth
+                                <a href="{{ route('account.orders') }}" class="tf-btn btn-stroke animate-btn w-100">View My Orders</a>
+                            @else
+                                <a href="#sign" data-bs-toggle="modal" class="tf-btn btn-stroke animate-btn w-100">Create Account to Track Faster</a>
+                            @endauth
                         </div>
+                        @guest
+                            <p class="support-note">Use the same email address, {{ $order->customer_email }}, and your past guest orders will attach to your account after OTP verification.</p>
+                        @endguest
                     </div>
                 </aside>
             </div>

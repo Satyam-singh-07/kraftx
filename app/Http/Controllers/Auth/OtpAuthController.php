@@ -34,6 +34,7 @@ class OtpAuthController extends Controller
         }
 
         $validated = $validator->validated();
+        $validated['email'] = strtolower(trim($validated['email']));
 
         $this->storeAndSendOtp($request, $validated['email']);
 
@@ -62,6 +63,7 @@ class OtpAuthController extends Controller
         }
 
         $validated = $validator->validated();
+        $validated['email'] = strtolower(trim($validated['email']));
         $otpError = $this->pendingOtpError($request, $validated['email'], $validated['otp']);
 
         if ($otpError) {

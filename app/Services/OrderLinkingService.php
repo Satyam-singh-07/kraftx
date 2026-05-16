@@ -22,7 +22,7 @@ class OrderLinkingService
             $query = Order::whereNull('user_id')
                 ->where(function (Builder $query) use ($email, $phone) {
                     if ($email) {
-                        $query->orWhereRaw('LOWER(customer_email) = ?', [$email]);
+                        $query->orWhereRaw('LOWER(TRIM(customer_email)) = ?', [$email]);
                     }
 
                     if ($phone) {
@@ -74,7 +74,7 @@ class OrderLinkingService
             $query->where('user_id', $user->id);
 
             if ($email) {
-                $query->orWhereRaw('LOWER(customer_email) = ?', [$email]);
+                $query->orWhereRaw('LOWER(TRIM(customer_email)) = ?', [$email]);
             }
 
             if ($phone) {

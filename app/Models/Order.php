@@ -22,6 +22,8 @@ class Order extends Model
         'tax_amount',
         'shipping_amount',
         'discount_amount',
+        'payment_fee_amount',
+        'payment_discount_amount',
         'status',
         'checkout_status',
         'source',

@@ -10,11 +10,13 @@ use App\Models\ProductVariant;
 use App\Services\CartService;
 use App\Services\Orders\OrderConfirmationNotifier;
 use App\Services\Payments\RazorpayService;
+use App\Services\PaymentStrategy;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -25,7 +27,8 @@ class CheckoutController extends Controller
     public function __construct(
         protected CartService $cartService,
         protected RazorpayService $razorpay,
-        protected OrderConfirmationNotifier $confirmationNotifier
+        protected OrderConfirmationNotifier $confirmationNotifier,
+        protected PaymentStrategy $paymentStrategy
     ) {
     }
 
@@ -42,24 +45,49 @@ class CheckoutController extends Controller
         session([
             'checkout_token' => $checkoutToken,
             'checkout_cart_id' => $cart->id,
+            'checkout_started_at' => now()->timestamp,
         ]);
+        $subtotal = $this->subtotal($cart);
+        $paymentSettings = $this->paymentStrategy->settings();
+        $razorpayEnabled = filled(config('services.razorpay.key')) && filled(config('services.razorpay.secret'));
 
         return view('checkout', [
             'seo' => $this->seo(),
             'cart' => $cart,
             'items' => $cart->items,
-            'subtotal' => $this->subtotal($cart),
+            'subtotal' => $subtotal,
             'shippingAmount' => 0,
             'user' => Auth::user(),
             'checkoutToken' => $checkoutToken,
-            'razorpayEnabled' => filled(config('services.razorpay.key')) && filled(config('services.razorpay.secret')),
+            'razorpayEnabled' => $razorpayEnabled,
+            'paymentSettings' => $paymentSettings,
+            'paymentTotals' => [
+                'cod' => $this->paymentStrategy->totals($subtotal, 'cod', $paymentSettings),
+                'razorpay' => $this->paymentStrategy->totals($subtotal, 'razorpay', $paymentSettings),
+            ],
         ]);
     }
 
     public function store(Request $request): View|RedirectResponse
     {
+        $rateLimitKey = 'checkout:'.sha1($request->ip().'|'.$request->session()->getId());
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 5)) {
+            Log::warning('Checkout rejected: rate limit exceeded', [
+                'session_id' => $request->session()->getId(),
+                'user_id' => Auth::id(),
+            ]);
+
+            return back()->withInput()->with('error', 'Too many checkout attempts. Please wait a few minutes and try again.');
+        }
+        RateLimiter::hit($rateLimitKey, 600);
+
         if (!$this->validCheckoutToken((string) $request->input('checkout_token'))) {
             if ($order = $this->lastCompletedOrder()) {
+                Log::info('Checkout duplicate submission redirected', [
+                    'order_id' => $order->id,
+                    'user_id' => Auth::id(),
+                ]);
+
                 return redirect()->route('checkout.success', $order);
             }
 
@@ -71,21 +99,25 @@ class CheckoutController extends Controller
             return redirect()->route('checkout')->with('error', 'Checkout session expired. Please review your cart and try again.');
         }
 
-        $validated = $request->validate([
-            'customer_name' => ['required', 'string', 'min:2', 'max:255'],
-            'customer_email' => ['required', 'email', 'max:255'],
-            'customer_phone' => ['required', 'string', 'regex:/^[0-9+\-\s()]{7,30}$/'],
-            'shipping_address' => ['required', 'string', 'min:10', 'max:2000'],
-            'shipping_city' => ['required', 'string', 'min:2', 'max:255'],
-            'shipping_state' => ['required', 'string', 'min:2', 'max:255'],
-            'shipping_pincode' => ['required', 'string', 'regex:/^[A-Za-z0-9 -]{3,20}$/'],
-            'shipping_country' => ['nullable', 'string', 'max:255'],
-            'payment_method' => ['required', 'string', 'in:cod,razorpay'],
-            'notes' => ['nullable', 'string', 'max:2000'],
-        ]);
+        if ($this->checkoutIsStale()) {
+            Log::warning('Checkout rejected: stale checkout session', [
+                'user_id' => Auth::id(),
+                'session_id' => $request->session()->getId(),
+            ]);
 
-        if ($validated['payment_method'] === 'razorpay' && (!config('services.razorpay.key') || !config('services.razorpay.secret'))) {
+            return redirect()->route('checkout')->with('error', 'Checkout session expired. Please review your cart and try again.');
+        }
+
+        $paymentSettings = $this->paymentStrategy->settings();
+        $razorpayEnabled = filled(config('services.razorpay.key')) && filled(config('services.razorpay.secret'));
+        $validated = $this->validateCheckout($request, $paymentSettings, $razorpayEnabled);
+
+        if ($validated['payment_method'] === 'razorpay' && !$razorpayEnabled) {
             return back()->withInput()->with('error', 'Online payment is temporarily unavailable. Please choose Cash on Delivery.');
+        }
+
+        if ($validated['payment_method'] === 'cod' && !$paymentSettings['cod_enabled']) {
+            return back()->withInput()->with('error', 'Cash on Delivery is temporarily unavailable. Please choose online payment.');
         }
 
         $cartId = (int) session('checkout_cart_id');
@@ -100,7 +132,7 @@ class CheckoutController extends Controller
         ]);
 
         try {
-            $order = DB::transaction(function () use ($cartId, $validated) {
+            $order = DB::transaction(function () use ($cartId, $validated, $paymentSettings) {
                 $cart = Cart::whereKey($cartId)->lockForUpdate()->first();
 
                 if (!$cart || $cart->status !== 'active') {
@@ -121,20 +153,32 @@ class CheckoutController extends Controller
 
                 $checkoutItems = $this->lockAndValidateCartItems($cart);
                 $subtotal = round($checkoutItems->sum(fn ($item) => $item['price'] * $item['quantity']), 2);
-                $shippingAmount = 0;
                 $taxAmount = 0;
                 $discountAmount = 0;
                 $isPrepaid = $validated['payment_method'] === 'razorpay';
+                $totals = $this->paymentStrategy->totals($subtotal, $validated['payment_method'], $paymentSettings);
+                $grandTotal = round($totals['subtotal'] + $taxAmount + $totals['shipping_amount'] + $totals['payment_fee_amount'] - $discountAmount - $totals['payment_discount_amount'], 2);
+
+                if (abs($grandTotal - $totals['total_amount']) > 0.01) {
+                    Log::warning('Checkout total integrity failure', [
+                        'cart_id' => $cart->id,
+                        'payment_method' => $validated['payment_method'],
+                    ]);
+
+                    throw ValidationException::withMessages(['cart' => 'We could not verify your order total. Please refresh checkout and try again.']);
+                }
 
                 $order = Order::create([
                     'user_id' => Auth::id(),
                     'cart_id' => (string) $cart->id,
                     'order_number' => $this->makeOrderNumber(),
-                    'total_amount' => $subtotal + $shippingAmount + $taxAmount - $discountAmount,
-                    'subtotal' => $subtotal,
+                    'total_amount' => $totals['total_amount'],
+                    'subtotal' => $totals['subtotal'],
                     'tax_amount' => $taxAmount,
-                    'shipping_amount' => $shippingAmount,
+                    'shipping_amount' => $totals['shipping_amount'],
                     'discount_amount' => $discountAmount,
+                    'payment_fee_amount' => $totals['payment_fee_amount'],
+                    'payment_discount_amount' => $totals['payment_discount_amount'],
                     'status' => $isPrepaid ? 'pending_payment' : 'cod_confirmed',
                     'checkout_status' => 'placed',
                     'source' => 'local_checkout',
@@ -142,7 +186,7 @@ class CheckoutController extends Controller
                     'payment_status' => 'pending',
                     'payment_provider' => $isPrepaid ? 'razorpay' : null,
                     'customer_name' => $validated['customer_name'],
-                    'customer_email' => strtolower($validated['customer_email']),
+                    'customer_email' => strtolower(trim($validated['customer_email'])),
                     'customer_phone' => $validated['customer_phone'],
                     'shipping_address' => $validated['shipping_address'],
                     'shipping_city' => $validated['shipping_city'],
@@ -160,6 +204,8 @@ class CheckoutController extends Controller
                         'payment_method' => $isPrepaid ? 'Prepaid' : 'COD',
                         'payment_provider' => $isPrepaid ? 'razorpay' : null,
                         'payment_status' => 'pending',
+                        'payment_fee_amount' => $totals['payment_fee_amount'],
+                        'payment_discount_amount' => $totals['payment_discount_amount'],
                     ]],
                     'notes' => $validated['notes'] ?? null,
                 ]);
@@ -338,11 +384,36 @@ class CheckoutController extends Controller
 
     protected function lockAndValidateCartItems(Cart $cart)
     {
+        if ($cart->items->count() > 20) {
+            Log::warning('Checkout cart integrity failure: too many line items', [
+                'cart_id' => $cart->id,
+                'line_items' => $cart->items->count(),
+            ]);
+
+            throw ValidationException::withMessages(['cart' => 'Your cart has too many items for one checkout. Please split the order.']);
+        }
+
+        $totalQuantity = (int) $cart->items->sum('quantity');
+        if ($totalQuantity > 25) {
+            Log::warning('Checkout cart integrity failure: excessive quantity', [
+                'cart_id' => $cart->id,
+                'total_quantity' => $totalQuantity,
+            ]);
+
+            throw ValidationException::withMessages(['cart' => 'Please reduce item quantities before checkout.']);
+        }
+
         return $cart->items
             ->sortBy(fn ($item) => sprintf('%010d-%010d', (int) $item->product_id, (int) $item->product_variant_id))
             ->map(function ($item) {
             $quantity = (int) $item->quantity;
-            if ($quantity < 1) {
+            if ($quantity < 1 || $quantity > 10) {
+                Log::warning('Checkout cart integrity failure: invalid quantity', [
+                    'cart_item_id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'quantity' => $quantity,
+                ]);
+
                 throw ValidationException::withMessages(['cart' => 'One or more cart items has an invalid quantity.']);
             }
 
@@ -422,6 +493,143 @@ class CheckoutController extends Controller
         $expectedToken = (string) session('checkout_token');
 
         return $expectedToken !== '' && $providedToken !== '' && hash_equals($expectedToken, $providedToken);
+    }
+
+    protected function checkoutIsStale(): bool
+    {
+        $startedAt = (int) session('checkout_started_at');
+
+        return !$startedAt || $startedAt < now()->subMinutes(60)->timestamp;
+    }
+
+    protected function validateCheckout(Request $request, array $paymentSettings, bool $razorpayEnabled): array
+    {
+        $request->merge([
+            'customer_name' => $this->squish($request->input('customer_name')),
+            'customer_email' => strtolower(trim((string) $request->input('customer_email'))),
+            'customer_phone' => preg_replace('/\D+/', '', (string) $request->input('customer_phone')),
+            'shipping_address' => $this->squish($request->input('shipping_address')),
+            'shipping_city' => $this->squish($request->input('shipping_city')),
+            'shipping_state' => $this->squish($request->input('shipping_state')),
+            'shipping_pincode' => preg_replace('/\D+/', '', (string) $request->input('shipping_pincode')),
+            'shipping_country' => $this->squish($request->input('shipping_country') ?: 'India'),
+            'notes' => $this->squish($request->input('notes')),
+        ]);
+
+        $paymentMethods = [];
+        if ($paymentSettings['cod_enabled']) {
+            $paymentMethods[] = 'cod';
+        }
+        if ($razorpayEnabled) {
+            $paymentMethods[] = 'razorpay';
+        }
+
+        try {
+            return $request->validate([
+                'customer_name' => ['required', 'string', 'min:3', 'max:255', function ($attribute, $value, $fail) {
+                    if (! preg_match('/[A-Za-z]/', $value) || preg_match('/^[^A-Za-z]+$/', $value)) {
+                        $fail('Please enter your full name.');
+                    }
+                }],
+                'customer_email' => ['required', 'email:rfc', 'max:255', function ($attribute, $value, $fail) {
+                    if ($this->isDisposableEmail($value)) {
+                        $fail('Please use an email address you can access for order updates.');
+                    }
+                }],
+                'customer_phone' => ['required', 'digits:10', function ($attribute, $value, $fail) {
+                    if ($this->isJunkIndianPhone($value)) {
+                        Log::warning('Checkout rejected: fake phone number', [
+                            'user_id' => Auth::id(),
+                            'phone_suffix' => substr($value, -4),
+                        ]);
+
+                        $fail('This phone number looks invalid.');
+                    }
+                }],
+                'shipping_address' => ['required', 'string', 'min:15', 'max:2000', function ($attribute, $value, $fail) {
+                    if ($this->isPoorAddress($value)) {
+                        $fail('Please enter a complete delivery address.');
+                    }
+                }],
+                'shipping_city' => ['required', 'string', 'min:2', 'max:80', 'regex:/^[A-Za-z .-]+$/'],
+                'shipping_state' => ['required', 'string', 'min:2', 'max:80', 'regex:/^[A-Za-z .-]+$/'],
+                'shipping_pincode' => ['required', 'digits:6', 'regex:/^[1-9][0-9]{5}$/'],
+                'shipping_country' => ['nullable', 'string', 'max:80', 'regex:/^[A-Za-z .-]+$/'],
+                'payment_method' => ['required', 'string', 'in:'.implode(',', $paymentMethods ?: ['none'])],
+                'notes' => ['nullable', 'string', 'max:1000'],
+            ], [
+                'customer_name.required' => 'Please enter your full name.',
+                'customer_email.required' => 'Email address is required.',
+                'customer_email.email' => 'Please enter a valid email address.',
+                'customer_phone.digits' => 'Enter a valid 10-digit mobile number.',
+                'shipping_address.min' => 'Please enter a complete delivery address.',
+                'shipping_city.regex' => 'City should contain letters only.',
+                'shipping_state.regex' => 'State should contain letters only.',
+                'shipping_pincode.digits' => 'Enter a valid 6-digit pincode.',
+                'shipping_pincode.regex' => 'Enter a valid 6-digit pincode.',
+                'payment_method.in' => 'Please choose an available payment method.',
+            ]);
+        } catch (ValidationException $e) {
+            Log::warning('Checkout validation failed', [
+                'user_id' => Auth::id(),
+                'session_id' => $request->session()->getId(),
+                'errors' => array_keys($e->errors()),
+            ]);
+
+            throw $e;
+        }
+    }
+
+    protected function squish(mixed $value): string
+    {
+        return trim(preg_replace('/\s+/', ' ', (string) $value));
+    }
+
+    protected function isDisposableEmail(string $email): bool
+    {
+        $domain = Str::of($email)->after('@')->lower()->toString();
+
+        return in_array($domain, [
+            'mailinator.com',
+            'tempmail.com',
+            '10minutemail.com',
+            'guerrillamail.com',
+            'yopmail.com',
+            'trashmail.com',
+        ], true);
+    }
+
+    protected function isJunkIndianPhone(string $phone): bool
+    {
+        if (! preg_match('/^[6-9][0-9]{9}$/', $phone)) {
+            return true;
+        }
+
+        if (in_array($phone, ['9999999999', '1234567890', '0000000000'], true)) {
+            return true;
+        }
+
+        if (preg_match('/^(\d)\1{9}$/', $phone)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    protected function isPoorAddress(string $address): bool
+    {
+        $lettersAndDigits = preg_replace('/[^A-Za-z0-9]/', '', $address);
+        $words = preg_split('/\s+/', trim($address), flags: PREG_SPLIT_NO_EMPTY);
+
+        if (strlen($lettersAndDigits) < 10 || count($words) < 3) {
+            return true;
+        }
+
+        if (! preg_match('/[A-Za-z]/', $address) || preg_match('/^[^A-Za-z0-9]+$/', $address)) {
+            return true;
+        }
+
+        return preg_match('/(.{2,})\1{4,}/i', $address) === 1;
     }
 
     protected function lastCompletedOrder(): ?Order

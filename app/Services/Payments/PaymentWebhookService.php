@@ -52,6 +52,18 @@ class PaymentWebhookService
             ];
 
             if ($event === 'payment.captured' && $order->payment_status !== 'paid') {
+                $paidAmount = isset($payment['amount']) ? round(((float) $payment['amount']) / 100, 2) : null;
+                if ($paidAmount !== null && abs($paidAmount - (float) $order->total_amount) > 0.01) {
+                    Log::warning('Razorpay webhook amount mismatch', [
+                        'order_id' => $order->id,
+                        'event' => $event,
+                        'expected_amount' => (float) $order->total_amount,
+                        'received_amount' => $paidAmount,
+                    ]);
+
+                    return null;
+                }
+
                 $order->fill([
                     'status' => 'paid',
                     'payment_status' => 'paid',

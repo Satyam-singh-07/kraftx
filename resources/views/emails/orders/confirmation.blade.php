@@ -94,6 +94,18 @@
                                     <td style="padding:7px 0; color:#6f665e;">Shipping</td>
                                     <td align="right" style="padding:7px 0; font-weight:700;">{{ (float) $order->shipping_amount > 0 ? '₹' . number_format($order->shipping_amount, 2) : 'Free' }}</td>
                                 </tr>
+                                @if((float) $order->payment_fee_amount > 0)
+                                    <tr>
+                                        <td style="padding:7px 0; color:#6f665e;">Cash Handling Fee</td>
+                                        <td align="right" style="padding:7px 0; font-weight:700;">₹{{ number_format($order->payment_fee_amount, 2) }}</td>
+                                    </tr>
+                                @endif
+                                @if((float) $order->payment_discount_amount > 0)
+                                    <tr>
+                                        <td style="padding:7px 0; color:#2f7a3e;">Prepaid Savings</td>
+                                        <td align="right" style="padding:7px 0; font-weight:700; color:#2f7a3e;">-₹{{ number_format($order->payment_discount_amount, 2) }}</td>
+                                    </tr>
+                                @endif
                                 <tr>
                                     <td style="padding:7px 0; color:#6f665e;">Discount</td>
                                     <td align="right" style="padding:7px 0; font-weight:700;">{{ (float) $order->discount_amount > 0 ? '-₹' . number_format($order->discount_amount, 2) : '₹0.00' }}</td>

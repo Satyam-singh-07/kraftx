@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DealController;
 use App\Http\Controllers\Admin\NewsletterController as AdminNewsletterController;
+use App\Http\Controllers\Admin\PaymentSettingsController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReelController;
 use App\Http\Controllers\Admin\ReviewController;
@@ -283,7 +284,8 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
     Route::get('/inventory', [\App\Http\Controllers\Admin\InventoryController::class, 'index'])->name('inventory.index');
     Route::post('/inventory/update', [\App\Http\Controllers\Admin\InventoryController::class, 'update'])->name('inventory.update');
 
-    Route::get('/settings', fn () => view('admin.dashboard', ['stats' => ['total_orders' => 0, 'total_revenue' => 0, 'total_products' => 0, 'total_customers' => 0, 'recent_orders' => [], 'sales_data' => ['labels' => [], 'data' => []], 'orders_data' => ['labels' => [], 'data' => []]]]))->name('settings.index');
+    Route::get('/settings', [PaymentSettingsController::class, 'edit'])->name('settings.index');
+    Route::patch('/settings/payment', [PaymentSettingsController::class, 'update'])->name('settings.payment.update');
 });
 
 // Public Product Routes
