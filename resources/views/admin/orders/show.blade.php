@@ -14,10 +14,27 @@
                     @method('PATCH')
                     <select name="status" onchange="this.form.submit()" class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm focus:ring-blue-500">
                         <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>Pending</option>
+                        <option value="pending_payment" {{ $order->status === 'pending_payment' ? 'selected' : '' }}>Pending Payment</option>
+                        <option value="cod_confirmed" {{ $order->status === 'cod_confirmed' ? 'selected' : '' }}>COD Confirmed</option>
+                        <option value="paid" {{ $order->status === 'paid' ? 'selected' : '' }}>Paid</option>
+                        <option value="payment_failed" {{ $order->status === 'payment_failed' ? 'selected' : '' }}>Payment Failed</option>
                         <option value="processing" {{ $order->status === 'processing' ? 'selected' : '' }}>Processing</option>
                         <option value="shipped" {{ $order->status === 'shipped' ? 'selected' : '' }}>Shipped</option>
                         <option value="delivered" {{ $order->status === 'delivered' ? 'selected' : '' }}>Delivered</option>
                         <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                    </select>
+                </form>
+                <form action="{{ route('admin.orders.update-status', $order->id) }}" method="POST" class="flex items-center space-x-2">
+                    @csrf
+                    @method('PATCH')
+                    <select name="fulfillment_status" onchange="this.form.submit()" class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm focus:ring-blue-500">
+                        <option value="pending" {{ $order->fulfillment_status === 'pending' ? 'selected' : '' }}>Fulfillment Pending</option>
+                        <option value="ready_to_ship" {{ $order->fulfillment_status === 'ready_to_ship' ? 'selected' : '' }}>Ready to Ship</option>
+                        <option value="shipped" {{ $order->fulfillment_status === 'shipped' ? 'selected' : '' }}>Shipped</option>
+                        <option value="in_transit" {{ $order->fulfillment_status === 'in_transit' ? 'selected' : '' }}>In Transit</option>
+                        <option value="delivered" {{ $order->fulfillment_status === 'delivered' ? 'selected' : '' }}>Delivered</option>
+                        <option value="rto" {{ $order->fulfillment_status === 'rto' ? 'selected' : '' }}>RTO</option>
+                        <option value="cancelled" {{ $order->fulfillment_status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                     </select>
                 </form>
             </div>
@@ -111,6 +128,115 @@
                                 <span class="text-gray-500">Phone:</span> {{ $order->customer_phone }}
                             </p>
                         </div>
+                    </div>
+                </x-admin.card>
+
+                <x-admin.card title="Fulfillment Readiness">
+                    <div class="mt-4 space-y-4">
+                        <div class="flex items-center justify-between gap-4">
+                            <div>
+                                <div class="text-sm font-semibold text-gray-900 dark:text-white">Shipment eligibility</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">Centralized checks for future provider shipment creation.</div>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold {{ $shipmentEligibility->eligible ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-800' }}">
+                                {{ $shipmentEligibility->eligible ? 'Eligible' : 'Needs Review' }}
+                            </span>
+                        </div>
+
+                        @if($shipmentEligibility->reasons)
+                            <div class="rounded-lg bg-yellow-50 border border-yellow-200 p-4">
+                                <div class="text-xs font-bold text-yellow-900 uppercase mb-2">Blocking items</div>
+                                <ul class="list-disc pl-5 text-sm text-yellow-900 space-y-1">
+                                    @foreach($shipmentEligibility->reasons as $reason)
+                                        <li>{{ $reason }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        @if($shipmentEligibility->warnings)
+                            <div class="rounded-lg bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700 p-4">
+                                <div class="text-xs font-bold text-gray-500 uppercase mb-2">Warnings</div>
+                                <ul class="list-disc pl-5 text-sm text-gray-700 dark:text-gray-300 space-y-1">
+                                    @foreach($shipmentEligibility->warnings as $warning)
+                                        <li>{{ $warning }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                            <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                                <div class="text-xs text-gray-500 uppercase font-bold">Fulfillment Status</div>
+                                <div class="font-semibold text-gray-900 dark:text-white">{{ \Illuminate\Support\Str::headline($order->fulfillment_status ?? 'pending') }}</div>
+                            </div>
+                            <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                                <div class="text-xs text-gray-500 uppercase font-bold">Payment Gate</div>
+                                <div class="font-semibold text-gray-900 dark:text-white">{{ $order->payment_method === 'Prepaid' ? \Illuminate\Support\Str::headline($order->payment_status) : 'COD Review' }}</div>
+                            </div>
+                            <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                                <div class="text-xs text-gray-500 uppercase font-bold">Shipments</div>
+                                <div class="font-semibold text-gray-900 dark:text-white">{{ $order->shipments->count() }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </x-admin.card>
+
+                <x-admin.card title="Shipment Foundation">
+                    <div class="mt-4 space-y-5">
+                        @forelse($order->shipments as $shipment)
+                            <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                                    <div>
+                                        <div class="text-sm font-bold text-gray-900 dark:text-white">{{ ucfirst($shipment->provider) }} Shipment #{{ $shipment->id }}</div>
+                                        <div class="text-xs text-gray-500">AWB: {{ $shipment->awb ?: 'Not generated' }}</div>
+                                    </div>
+                                    <span class="px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs font-bold">
+                                        {{ \Illuminate\Support\Str::headline($shipment->shipment_status) }}
+                                    </span>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm mb-4">
+                                    <div><span class="text-gray-500">Payment:</span> {{ $shipment->payment_mode }}</div>
+                                    <div><span class="text-gray-500">COD:</span> ₹{{ number_format($shipment->cod_amount, 2) }}</div>
+                                    <div><span class="text-gray-500">Invoice:</span> ₹{{ number_format($shipment->invoice_value, 2) }}</div>
+                                    <div><span class="text-gray-500">Serviceability:</span> {{ $shipment->serviceability_status ?: 'Not checked' }}</div>
+                                    <div><span class="text-gray-500">Pickup:</span> {{ $shipment->pickup_location_name ?: 'Not selected' }}</div>
+                                    <div><span class="text-gray-500">Label:</span> {{ $shipment->label_path ? 'Generated' : 'Not generated' }}</div>
+                                </div>
+
+                                <div class="border-t border-gray-100 dark:border-gray-700 pt-4">
+                                    <div class="text-xs font-bold text-gray-500 uppercase mb-2">Package Details</div>
+                                    @forelse($shipment->packages as $package)
+                                        <div class="text-sm text-gray-700 dark:text-gray-300">
+                                            Package {{ $package->package_number }}:
+                                            {{ $package->weight_kg }} kg,
+                                            {{ $package->length_cm }} x {{ $package->width_cm }} x {{ $package->height_cm }} cm
+                                            (Volumetric {{ $package->volumetric_weight_kg }} kg)
+                                        </div>
+                                    @empty
+                                        <div class="text-sm text-gray-500">No package rows yet. Future shipment creation must capture packed box details here.</div>
+                                    @endforelse
+                                </div>
+
+                                <div class="border-t border-gray-100 dark:border-gray-700 pt-4 mt-4">
+                                    <div class="text-xs font-bold text-gray-500 uppercase mb-2">Shipment Timeline</div>
+                                    @forelse($shipment->events->take(5) as $event)
+                                        <div class="text-sm text-gray-700 dark:text-gray-300">
+                                            {{ optional($event->event_time)->format('d M Y H:i') ?: 'No time' }} -
+                                            {{ $event->normalized_status ?: $event->raw_status ?: $event->event_type }}
+                                            @if($event->location) · {{ $event->location }} @endif
+                                        </div>
+                                    @empty
+                                        <div class="text-sm text-gray-500">No shipment events yet. Webhook/tracking integration will append immutable events here later.</div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        @empty
+                            <div class="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 p-5 text-sm text-gray-500">
+                                No shipment has been created. This section is ready for future serviceability checks, package capture, shipment creation, labels, pickup requests, and tracking events.
+                            </div>
+                        @endforelse
                     </div>
                 </x-admin.card>
             </div>

@@ -25,6 +25,7 @@ class Order extends Model
         'payment_fee_amount',
         'payment_discount_amount',
         'status',
+        'fulfillment_status',
         'checkout_status',
         'source',
         'shipping_plan',
@@ -83,5 +84,15 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function shipments(): HasMany
+    {
+        return $this->hasMany(Shipment::class);
+    }
+
+    public function shipmentAttempts(): HasMany
+    {
+        return $this->hasMany(ShipmentAttempt::class);
     }
 }
