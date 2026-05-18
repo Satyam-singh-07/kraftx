@@ -81,7 +81,17 @@ class DelhiveryService
 
         $cache = app(ServiceabilityService::class);
         $ttl = (int) ($this->config['serviceability_cache_ttl_minutes'] ?? 1440);
-        $cached = $cache->cachedRecord($pincode, $this->provider);
+        $cached = null;
+
+        try {
+            $cached = $cache->cachedRecord($pincode, $this->provider);
+        } catch (\Throwable $e) {
+            Log::warning('Delhivery serviceability cache read failed', [
+                'pincode' => $pincode,
+                'exception' => $e::class,
+                'message' => $e->getMessage(),
+            ]);
+        }
 
         if (! $forceRefresh && $cached && $cache->isFresh($cached, $ttl)) {
             $this->logServiceabilityCache($pincode, true, true);
@@ -122,9 +132,20 @@ class DelhiveryService
             }
 
             $result = $this->normalizeServiceabilityResponse($pincode, $data, $paymentMode);
-            $record = $cache->remember($result);
 
-            return $cache->fromRecord($record, false);
+            try {
+                $record = $cache->remember($result);
+
+                return $cache->fromRecord($record, false);
+            } catch (\Throwable $e) {
+                Log::warning('Delhivery serviceability cache write failed', [
+                    'pincode' => $pincode,
+                    'exception' => $e::class,
+                    'message' => $e->getMessage(),
+                ]);
+
+                return $result;
+            }
         } catch (\Throwable $e) {
             Log::warning('Delhivery serviceability check failed', [
                 'pincode' => $pincode,
@@ -191,7 +212,8 @@ class DelhiveryService
             ->timeout((int) ($this->config['timeout'] ?? 15))
             ->retry(
                 (int) ($this->config['retry_count'] ?? 2),
-                (int) ($this->config['retry_sleep_ms'] ?? 250)
+                (int) ($this->config['retry_sleep_ms'] ?? 250),
+                throw: false
             )
             ->acceptJson()
             ->asJson();
@@ -232,20 +254,29 @@ class DelhiveryService
         } finally {
             $latencyMs = (int) round((microtime(true) - $started) * 1000);
 
-            ShipmentApiLog::create([
-                'shipment_id' => $shipment?->id,
-                'provider' => $this->provider,
-                'endpoint' => $endpoint,
-                'request_type' => strtoupper($method),
-                'response_code' => $response?->status(),
-                'latency_ms' => $latencyMs,
-                'success' => $response?->successful() ?? false,
-                'request_summary' => $this->sanitizePayload($payload),
-                'response_summary' => $response
-                    ? $this->sanitizePayload($response->json() ?? ['body' => str($response->body())->limit(500)->toString()])
-                    : ['exception' => $exception ? $exception::class : null],
-                'retry_count' => (int) ($this->config['retry_count'] ?? 0),
-            ]);
+            try {
+                ShipmentApiLog::create([
+                    'shipment_id' => $shipment?->id,
+                    'provider' => $this->provider,
+                    'endpoint' => $endpoint,
+                    'request_type' => strtoupper($method),
+                    'response_code' => $response?->status(),
+                    'latency_ms' => $latencyMs,
+                    'success' => $response?->successful() ?? false,
+                    'request_summary' => $this->sanitizePayload($payload),
+                    'response_summary' => $response
+                        ? $this->sanitizePayload($response->json() ?? ['body' => str($response->body())->limit(500)->toString()])
+                        : ['exception' => $exception ? $exception::class : null],
+                    'retry_count' => (int) ($this->config['retry_count'] ?? 0),
+                ]);
+            } catch (\Throwable $logException) {
+                Log::warning('Shipping provider API log write failed', [
+                    'provider' => $this->provider,
+                    'endpoint' => $endpoint,
+                    'exception' => $logException::class,
+                    'message' => $logException->getMessage(),
+                ]);
+            }
 
             Log::info('Shipping provider request completed', [
                 'provider' => $this->provider,
@@ -313,17 +344,26 @@ class DelhiveryService
 
     protected function logServiceabilityCache(string $pincode, bool $hit, bool $success): void
     {
-        ShipmentApiLog::create([
-            'provider' => $this->provider,
-            'endpoint' => 'serviceability_cache',
-            'request_type' => 'CACHE',
-            'success' => $success,
-            'request_summary' => [
+        try {
+            ShipmentApiLog::create([
+                'provider' => $this->provider,
+                'endpoint' => 'serviceability_cache',
+                'request_type' => 'CACHE',
+                'success' => $success,
+                'request_summary' => [
+                    'pincode' => $pincode,
+                ],
+                'response_summary' => [
+                    'cache_hit' => $hit,
+                ],
+            ]);
+        } catch (\Throwable $logException) {
+            Log::warning('Serviceability cache log write failed', [
+                'provider' => $this->provider,
                 'pincode' => $pincode,
-            ],
-            'response_summary' => [
-                'cache_hit' => $hit,
-            ],
-        ]);
+                'exception' => $logException::class,
+                'message' => $logException->getMessage(),
+            ]);
+        }
     }
 }
