@@ -33,6 +33,7 @@ use App\Http\Controllers\Public\PaymentController;
 use App\Http\Controllers\Public\ProductNotifyRequestController;
 use App\Http\Controllers\Public\QuickAddController;
 use App\Http\Controllers\Public\SearchController;
+use App\Http\Controllers\Public\ServiceabilityController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 
@@ -285,6 +286,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.update-status');
+    Route::post('/orders/{order}/serviceability/recheck', [AdminOrderController::class, 'recheckServiceability'])->name('orders.serviceability.recheck');
 
     // Inventory Management
     Route::get('/inventory', [\App\Http\Controllers\Admin\InventoryController::class, 'index'])->name('inventory.index');
@@ -323,6 +325,7 @@ Route::get('/api/search/suggestions', [SearchController::class, 'suggestions'])-
 
 Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::get('/checkout/serviceability', ServiceabilityController::class)->name('checkout.serviceability');
 Route::get('/checkout/payment/{order}', [CheckoutController::class, 'payment'])->name('checkout.payment');
 Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
 Route::post('/payments/razorpay/{order}/verify', [PaymentController::class, 'verify'])->name('payments.razorpay.verify');

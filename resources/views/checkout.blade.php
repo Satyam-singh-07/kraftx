@@ -14,6 +14,13 @@
             .checkout-field.is-invalid input, .checkout-field.is-invalid textarea { border-color: #d92d20; background: #fffafa; }
             .checkout-field.is-valid input, .checkout-field.is-valid textarea { border-color: #1a7f37; }
             .field-hint { color: #777; font-size: 12px; line-height: 1.45; margin-top: 5px; }
+            .serviceability-status { display: none; margin-top: 8px; border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.45; border: 1px solid transparent; }
+            .serviceability-status.is-visible { display: block; }
+            .serviceability-status.is-loading { background: #f8f8f8; border-color: #e5e5e5; color: #555; }
+            .serviceability-status.is-success { background: #f3fbf5; border-color: #cfe8d5; color: #285b36; }
+            .serviceability-status.is-warning { background: #fff8eb; border-color: #f4dbab; color: #7a4d00; }
+            .serviceability-status.is-error { background: #fff1f1; border-color: #ffd4d4; color: #9f1d1d; }
+            .serviceability-spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid #ccc; border-top-color: #111; border-radius: 50%; animation: serviceability-spin .8s linear infinite; margin-right: 6px; vertical-align: -2px; }
             .checkout-options { display: grid; gap: 12px; }
             .payment-option { display: flex; gap: 12px; align-items: flex-start; border: 1px solid #dedede; border-radius: 10px; padding: 14px; cursor: pointer; transition: border-color .15s ease, background .15s ease; }
             .payment-option:hover { border-color: #111; background: #fafafa; }
@@ -39,6 +46,7 @@
             .checkout-alert { border-radius: 10px; padding: 14px 16px; margin-bottom: 18px; }
             .checkout-alert-danger { background: #fff1f1; color: #9f1d1d; border: 1px solid #ffd4d4; }
             .field-error { color: #b42318; font-size: 12px; margin-top: 5px; }
+            @keyframes serviceability-spin { to { transform: rotate(360deg); } }
             @media (max-width: 991px) {
                 .checkout-grid { grid-template-columns: 1fr; }
                 .summary-card { position: static; }
@@ -139,6 +147,7 @@
                                     <label for="shipping_pincode">Pincode</label>
                                     <input id="shipping_pincode" name="shipping_pincode" type="text" required value="{{ old('shipping_pincode') }}" autocomplete="postal-code" inputmode="numeric" maxlength="6" data-validate="pincode">
                                     <div class="field-error" data-error-for="shipping_pincode">@error('shipping_pincode') {{ $message }} @enderror</div>
+                                    <div id="serviceability-status" class="serviceability-status" aria-live="polite"></div>
                                 </div>
                                 <div class="checkout-field">
                                     <label for="shipping_country">Country</label>
@@ -223,6 +232,12 @@
             const formatMoney = amount => Number(amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             const fakePhones = new Set(['9999999999', '1234567890', '0000000000']);
             const disposableDomains = new Set(['mailinator.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com', 'yopmail.com', 'trashmail.com']);
+            const serviceabilityUrl = @json(route('checkout.serviceability'));
+            const pincodeInput = document.getElementById('shipping_pincode');
+            const serviceabilityStatus = document.getElementById('serviceability-status');
+            let serviceabilityTimer = null;
+            let serviceabilityAbort = null;
+            let lastCheckedPincode = '';
 
             const validators = {
                 name(value) {
@@ -318,6 +333,83 @@
                 });
             }
 
+            function setServiceabilityState(type, message, loading = false) {
+                if (!serviceabilityStatus) return;
+                serviceabilityStatus.className = `serviceability-status is-visible is-${type}`;
+                serviceabilityStatus.innerHTML = loading ? `<span class="serviceability-spinner"></span>${message}` : message;
+            }
+
+            function clearServiceabilityState() {
+                if (!serviceabilityStatus) return;
+                serviceabilityStatus.className = 'serviceability-status';
+                serviceabilityStatus.textContent = '';
+            }
+
+            function serviceabilityPaymentMode() {
+                const method = form.querySelector('input[name="payment_method"]:checked')?.value || 'cod';
+                return method === 'razorpay' ? 'prepaid' : method;
+            }
+
+            function scheduleServiceabilityCheck(force = false) {
+                if (!pincodeInput) return;
+                const pincode = pincodeInput.value.replace(/\D+/g, '');
+
+                window.clearTimeout(serviceabilityTimer);
+                if (!/^[1-9]\d{5}$/.test(pincode)) {
+                    clearServiceabilityState();
+                    return;
+                }
+
+                if (!force && pincode === lastCheckedPincode) return;
+
+                serviceabilityTimer = window.setTimeout(() => {
+                    checkServiceability(pincode);
+                }, 650);
+            }
+
+            async function checkServiceability(pincode) {
+                if (serviceabilityAbort) serviceabilityAbort.abort();
+                serviceabilityAbort = new AbortController();
+                lastCheckedPincode = pincode;
+                setServiceabilityState('loading', 'Checking delivery availability...', true);
+
+                const params = new URLSearchParams({
+                    pincode,
+                    payment_mode: serviceabilityPaymentMode()
+                });
+
+                try {
+                    const response = await fetch(`${serviceabilityUrl}?${params.toString()}`, {
+                        headers: { 'Accept': 'application/json' },
+                        signal: serviceabilityAbort.signal
+                    });
+                    const payload = await response.json();
+
+                    if (!payload.ok || !payload.serviceability) {
+                        setServiceabilityState('warning', payload.message || 'We could not check delivery availability right now. You can continue checkout.');
+                        return;
+                    }
+
+                    const result = payload.serviceability;
+                    if (!result.is_serviceable) {
+                        setServiceabilityState('error', result.message || 'Sorry, delivery is currently unavailable for this pincode.');
+                        return;
+                    }
+
+                    if (serviceabilityPaymentMode() === 'cod' && result.cod_available === false) {
+                        setServiceabilityState('warning', 'Delivery available, but Cash on Delivery is not available for this location.');
+                        return;
+                    }
+
+                    const eta = result.estimated_days ? ` Estimated delivery: ${result.estimated_days} days.` : '';
+                    const cod = result.cod_available === true ? ' COD available.' : '';
+                    setServiceabilityState('success', `Delivery available.${cod}${eta}`);
+                } catch (error) {
+                    if (error.name === 'AbortError') return;
+                    setServiceabilityState('warning', 'We could not check delivery availability right now. You can continue checkout.');
+                }
+            }
+
             form.querySelectorAll('[data-validate]').forEach(input => {
                 input.addEventListener('blur', () => {
                     input.value = input.value.trim().replace(/\s+/g, ' ');
@@ -329,6 +421,7 @@
                 input.addEventListener('input', () => {
                     if (touched.has(input.name)) setFieldState(input, false);
                     validateForm();
+                    if (input === pincodeInput) scheduleServiceabilityCheck();
                 });
             });
 
@@ -336,6 +429,8 @@
                 input.addEventListener('change', () => {
                     updateTotals();
                     validateForm();
+                    lastCheckedPincode = '';
+                    scheduleServiceabilityCheck(true);
                 });
             });
 
@@ -357,6 +452,7 @@
 
             updateTotals();
             validateForm();
+            scheduleServiceabilityCheck(true);
         })();
     </script>
 </x-layout>

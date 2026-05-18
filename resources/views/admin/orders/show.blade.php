@@ -1,5 +1,12 @@
 <x-layouts.admin>
     <div class="space-y-6">
+        @if(session('success'))
+            <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ session('error') }}</div>
+        @endif
+
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
                 <a href="{{ route('admin.orders.index') }}" class="text-gray-500 hover:text-gray-700">
@@ -179,6 +186,55 @@
                                 <div class="font-semibold text-gray-900 dark:text-white">{{ $order->shipments->count() }}</div>
                             </div>
                         </div>
+                    </div>
+                </x-admin.card>
+
+                <x-admin.card title="Delhivery Serviceability">
+                    <div class="mt-4 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <div class="text-sm font-semibold text-gray-900 dark:text-white">Pincode {{ $order->shipping_pincode }}</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">Used for fulfillment readiness only. No shipment is created here.</div>
+                            </div>
+                            <form method="POST" action="{{ route('admin.orders.serviceability.recheck', $order) }}">
+                                @csrf
+                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold">
+                                    Recheck Serviceability
+                                </button>
+                            </form>
+                        </div>
+
+                        @if($serviceability)
+                            <div class="grid grid-cols-1 md:grid-cols-5 gap-3 text-sm">
+                                <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                                    <div class="text-xs text-gray-500 uppercase font-bold">Delivery</div>
+                                    <div class="font-semibold {{ $serviceability->isServiceable ? 'text-green-600' : 'text-red-600' }}">
+                                        {{ $serviceability->isServiceable ? 'Serviceable' : 'Not Serviceable' }}
+                                    </div>
+                                </div>
+                                <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                                    <div class="text-xs text-gray-500 uppercase font-bold">COD</div>
+                                    <div class="font-semibold text-gray-900 dark:text-white">{{ $serviceability->codAvailable === null ? 'Unknown' : ($serviceability->codAvailable ? 'Available' : 'Unavailable') }}</div>
+                                </div>
+                                <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                                    <div class="text-xs text-gray-500 uppercase font-bold">Prepaid</div>
+                                    <div class="font-semibold text-gray-900 dark:text-white">{{ $serviceability->prepaidAvailable === null ? 'Unknown' : ($serviceability->prepaidAvailable ? 'Available' : 'Unavailable') }}</div>
+                                </div>
+                                <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                                    <div class="text-xs text-gray-500 uppercase font-bold">ETA</div>
+                                    <div class="font-semibold text-gray-900 dark:text-white">{{ $serviceability->estimatedDays ? $serviceability->estimatedDays.' days' : 'Unknown' }}</div>
+                                </div>
+                                <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                                    <div class="text-xs text-gray-500 uppercase font-bold">Last Checked</div>
+                                    <div class="font-semibold text-gray-900 dark:text-white">{{ $serviceability->checkedAt ? $serviceability->checkedAt->format('d M Y H:i') : 'Never' }}</div>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ $serviceability->message }}</p>
+                        @else
+                            <div class="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 p-5 text-sm text-gray-500">
+                                Serviceability has not been checked yet. Recheck before marking this order ready to ship.
+                            </div>
+                        @endif
                     </div>
                 </x-admin.card>
 

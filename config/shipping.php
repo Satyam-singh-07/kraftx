@@ -13,6 +13,7 @@ return [
             'timeout' => (int) env('DELHIVERY_TIMEOUT', 15),
             'retry_count' => (int) env('DELHIVERY_RETRY_COUNT', 2),
             'retry_sleep_ms' => (int) env('DELHIVERY_RETRY_SLEEP_MS', 250),
+            'serviceability_cache_ttl_minutes' => (int) env('DELHIVERY_SERVICEABILITY_CACHE_TTL', 1440),
             'client_name' => env('DELHIVERY_CLIENT_NAME'),
             'pickup_location_name' => env('DELHIVERY_PICKUP_LOCATION_NAME'),
         ],
