@@ -4,11 +4,13 @@ namespace App\Services\Shipping;
 
 use App\Models\Shipment;
 use App\Models\ShipmentApiLog;
+use App\Models\ShipmentPackage;
 use App\Services\Shipping\DTOs\ServiceabilityResult;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
 use RuntimeException;
@@ -70,6 +72,70 @@ class DelhiveryService
     public function refreshServiceability(string $pincode, ?string $paymentMode = null): ServiceabilityResult
     {
         return $this->resolveServiceability($pincode, $paymentMode, true);
+    }
+
+    public function createShipment(Shipment $shipment): array
+    {
+        $shipment->loadMissing(['order.items.product', 'packages']);
+
+        if (! $this->configured()) {
+            throw new RuntimeException('Delhivery shipment creation is not configured.');
+        }
+
+        $payload = $this->buildShipmentPayload($shipment);
+        $response = $this->request('POST', '/api/cmu/create.json', [
+            'format' => 'json',
+            'data' => json_encode($payload, JSON_UNESCAPED_SLASHES),
+        ], $shipment, 'form');
+
+        if ($response->status() === 401) {
+            throw new RuntimeException('Delhivery rejected the API token.');
+        }
+
+        if (! $response->successful()) {
+            throw new RuntimeException('Delhivery shipment creation request failed.');
+        }
+
+        $data = $response->json();
+        if (! is_array($data)) {
+            throw new RuntimeException('Delhivery returned a malformed shipment creation response.');
+        }
+
+        $normalized = $this->normalizeShipmentCreationResponse($data);
+
+        if (! $normalized['success']) {
+            throw new RuntimeException($normalized['message'] ?: 'Delhivery rejected the shipment payload.');
+        }
+
+        return $normalized;
+    }
+
+    public function generateLabel(Shipment $shipment, string $size = '4R'): array
+    {
+        if (! filled($shipment->awb)) {
+            throw new InvalidArgumentException('Shipment AWB is required before label generation.');
+        }
+
+        $response = $this->request('GET', '/api/p/packing_slip', [
+            'wbns' => $shipment->awb,
+            'pdf' => 'true',
+            'pdf_size' => $size,
+        ], $shipment);
+
+        if ($response->status() === 401) {
+            throw new RuntimeException('Delhivery rejected the API token.');
+        }
+
+        if (! $response->successful()) {
+            throw new RuntimeException('Delhivery label request failed.');
+        }
+
+        $path = $this->storeLabelResponse($shipment, $response);
+
+        return [
+            'label_path' => $path,
+            'generated_at' => now(),
+        ];
     }
 
     protected function resolveServiceability(string $pincode, ?string $paymentMode, bool $forceRefresh): ServiceabilityResult
@@ -206,6 +272,77 @@ class DelhiveryService
         );
     }
 
+    protected function buildShipmentPayload(Shipment $shipment): array
+    {
+        $order = $shipment->order;
+        $package = $shipment->packages->first();
+
+        if (! $order || ! $package) {
+            throw new InvalidArgumentException('Shipment requires an order and package before provider creation.');
+        }
+
+        return [
+            'shipments' => [
+                [
+                    'name' => $this->cleanText($order->customer_name, 80),
+                    'add' => $this->cleanText($order->shipping_address, 250),
+                    'pin' => preg_replace('/\D+/', '', (string) $order->shipping_pincode),
+                    'city' => $this->cleanText($order->shipping_city, 50),
+                    'state' => $this->cleanText($order->shipping_state, 50),
+                    'country' => 'India',
+                    'phone' => preg_replace('/\D+/', '', (string) $order->customer_phone),
+                    'order' => $order->order_number,
+                    'payment_mode' => $shipment->payment_mode === 'cod' ? 'COD' : 'Prepaid',
+                    'cod_amount' => $shipment->payment_mode === 'cod' ? (string) $shipment->cod_amount : '',
+                    'total_amount' => (string) $shipment->invoice_value,
+                    'products_desc' => $this->cleanText($this->productDescription($order), 300),
+                    'hsn_code' => $this->cleanText($this->hsnCodes($order), 120),
+                    'quantity' => (string) $order->items->sum('quantity'),
+                    'weight' => (string) $this->grams($package),
+                    'shipment_length' => (string) round((float) $package->length_cm, 2),
+                    'shipment_width' => (string) round((float) $package->width_cm, 2),
+                    'shipment_height' => (string) round((float) $package->height_cm, 2),
+                    'shipping_mode' => 'Surface',
+                    'seller_name' => config('app.name', 'KraftX'),
+                    'seller_inv' => $order->order_number,
+                    'seller_add' => $this->cleanText((string) config('shipping.providers.delhivery.pickup_location_name'), 120),
+                    'order_date' => optional($order->created_at)->format('Y-m-d H:i:s'),
+                    'waybill' => '',
+                    'address_type' => '',
+                ],
+            ],
+            'pickup_location' => [
+                'name' => (string) $this->config['pickup_location_name'],
+            ],
+        ];
+    }
+
+    protected function normalizeShipmentCreationResponse(array $data): array
+    {
+        $package = collect(Arr::get($data, 'packages', []))->first();
+        $success = (bool) Arr::get($data, 'success', false) && ! (bool) Arr::get($data, 'error', false);
+
+        if (is_array($package)) {
+            $status = strtolower((string) Arr::get($package, 'status', ''));
+            $success = $success || in_array($status, ['success', 'succeeded'], true);
+        }
+
+        $awb = is_array($package) ? (string) (Arr::get($package, 'waybill') ?: Arr::get($package, 'wbn')) : '';
+        $providerShipmentId = (string) (Arr::get($data, 'upload_wbn') ?: Arr::get($data, 'upload_wbn_number') ?: $awb);
+        $message = $this->providerMessage($data);
+
+        return [
+            'success' => $success && filled($awb),
+            'provider_shipment_id' => $providerShipmentId ?: null,
+            'awb' => $awb ?: null,
+            'tracking_url' => $awb ? 'https://www.delhivery.com/track/package/'.$awb : null,
+            'provider_status' => is_array($package) ? Arr::get($package, 'status') : null,
+            'provider_status_code' => is_array($package) ? Arr::get($package, 'status_code') : null,
+            'message' => $message,
+            'snapshot' => $this->sanitizePayload($data),
+        ];
+    }
+
     protected function client(): PendingRequest
     {
         $client = Http::baseUrl(rtrim((string) ($this->config['base_url'] ?? ''), '/'))
@@ -227,7 +364,7 @@ class DelhiveryService
         return $client;
     }
 
-    protected function request(string $method, string $endpoint, array $payload = [], ?Shipment $shipment = null): Response
+    protected function request(string $method, string $endpoint, array $payload = [], ?Shipment $shipment = null, string $bodyType = 'json'): Response
     {
         $started = microtime(true);
         $response = null;
@@ -242,9 +379,16 @@ class DelhiveryService
 
         try {
             $method = strtoupper($method);
-            $response = $this->client()->send($method, $endpoint, $method === 'GET'
+            $client = $this->client();
+            $options = $method === 'GET'
                 ? ['query' => $payload]
-                : ['json' => $payload]);
+                : ($bodyType === 'form' ? ['form_params' => $payload] : ['json' => $payload]);
+
+            if ($bodyType === 'form' && $method !== 'GET') {
+                $client = $client->asForm();
+            }
+
+            $response = $client->send($method, $endpoint, $options);
 
             return $response;
         } catch (\Throwable $e) {
@@ -301,7 +445,13 @@ class DelhiveryService
                 return [$key => '[redacted]'];
             }
 
-            if (in_array($normalizedKey, ['address', 'shipping_address', 'phone', 'email'], true)) {
+            if ($normalizedKey === 'data' && is_string($value)) {
+                $decoded = json_decode($value, true);
+
+                return [$key => is_array($decoded) ? $this->sanitizePayload($decoded) : '[provider_payload]'];
+            }
+
+            if (in_array($normalizedKey, ['add', 'address', 'shipping_address', 'phone', 'email', 'name'], true)) {
                 return [$key => '[redacted]'];
             }
 
@@ -340,6 +490,105 @@ class DelhiveryService
         }
 
         return null;
+    }
+
+    protected function storeLabelResponse(Shipment $shipment, Response $response): string
+    {
+        $contentType = strtolower($response->header('Content-Type', ''));
+        $body = $response->body();
+
+        if (str_contains($contentType, 'pdf') || str_starts_with($body, '%PDF')) {
+            $path = 'shipment-labels/delhivery/'.$shipment->awb.'.pdf';
+            Storage::disk('local')->put($path, $body);
+
+            return $path;
+        }
+
+        $data = $response->json();
+        if (is_array($data)) {
+            $url = $this->findUrl($data);
+            if ($url) {
+                return $url;
+            }
+
+            $path = 'shipment-labels/delhivery/'.$shipment->awb.'.json';
+            Storage::disk('local')->put($path, json_encode($this->sanitizePayload($data), JSON_PRETTY_PRINT));
+
+            return $path;
+        }
+
+        throw new RuntimeException('Delhivery returned a malformed label response.');
+    }
+
+    protected function findUrl(array $payload): ?string
+    {
+        foreach ($payload as $value) {
+            if (is_string($value) && filter_var($value, FILTER_VALIDATE_URL)) {
+                return $value;
+            }
+
+            if (is_array($value)) {
+                $url = $this->findUrl($value);
+                if ($url) {
+                    return $url;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    protected function grams(ShipmentPackage $package): int
+    {
+        return max(1, (int) round((float) $package->weight_kg * 1000));
+    }
+
+    protected function productDescription($order): string
+    {
+        return $order->items
+            ->map(fn ($item) => $item->name.' x '.$item->quantity)
+            ->implode(', ');
+    }
+
+    protected function hsnCodes($order): string
+    {
+        return $order->items
+            ->map(fn ($item) => $item->product?->hsn_code)
+            ->filter()
+            ->unique()
+            ->implode(',');
+    }
+
+    protected function providerMessage(array $payload): ?string
+    {
+        $remarks = Arr::get($payload, 'rmk') ?: Arr::get($payload, 'remarks');
+        if (is_array($remarks)) {
+            return implode(' ', array_filter($remarks));
+        }
+
+        if (is_string($remarks) && $remarks !== '') {
+            return $remarks;
+        }
+
+        $package = collect(Arr::get($payload, 'packages', []))->first();
+        if (is_array($package)) {
+            $packageRemarks = Arr::get($package, 'remarks');
+            if (is_array($packageRemarks)) {
+                return implode(' ', array_filter($packageRemarks));
+            }
+
+            return is_string($packageRemarks) ? $packageRemarks : null;
+        }
+
+        return null;
+    }
+
+    protected function cleanText(?string $value, int $limit): string
+    {
+        $value = preg_replace('/[&#%;\\\\]+/', ' ', (string) $value);
+        $value = preg_replace('/\s+/', ' ', trim($value));
+
+        return mb_substr($value, 0, $limit);
     }
 
     protected function logServiceabilityCache(string $pincode, bool $hit, bool $success): void

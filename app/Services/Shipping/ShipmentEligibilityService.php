@@ -3,11 +3,22 @@
 namespace App\Services\Shipping;
 
 use App\Models\Order;
+use App\Models\Shipment;
 use App\Services\Shipping\DTOs\ShipmentEligibilityResult;
 
 class ShipmentEligibilityService
 {
+    public function __construct(
+        protected ServiceabilityService $serviceability
+    ) {
+    }
+
     public function evaluate(Order $order): ShipmentEligibilityResult
+    {
+        return $this->evaluateForDraft($order);
+    }
+
+    public function evaluateForDraft(Order $order): ShipmentEligibilityResult
     {
         $reasons = [];
         $warnings = [];
@@ -29,7 +40,7 @@ class ShipmentEligibilityService
             $reasons[] = 'COD order is not confirmed.';
         }
 
-        if ($order->shipments->whereNotIn('shipment_status', ['cancelled', 'failed'])->isNotEmpty()) {
+        if ($order->shipments->whereIn('shipment_status', Shipment::ACTIVE_STATUSES)->isNotEmpty()) {
             $reasons[] = 'An active shipment already exists for this order.';
         }
 
@@ -62,6 +73,57 @@ class ShipmentEligibilityService
         return $reasons ? ShipmentEligibilityResult::blocked(array_values(array_unique($reasons)), $warnings) : ShipmentEligibilityResult::eligible($warnings);
     }
 
+    public function evaluateForCreation(Order $order, Shipment $shipment): ShipmentEligibilityResult
+    {
+        $result = $this->evaluateForDraft($order);
+        $reasons = $result->reasons;
+        $warnings = $result->warnings;
+
+        $order->loadMissing(['shipmentAttempts', 'shipments.packages']);
+        $shipment->loadMissing('packages');
+
+        $activeOtherShipment = $order->shipments
+            ->filter(fn ($candidate) => $candidate->id !== $shipment->id)
+            ->whereIn('shipment_status', Shipment::ACTIVE_STATUSES)
+            ->first();
+
+        if ($activeOtherShipment) {
+            $reasons[] = 'Another active shipment already exists for this order.';
+        }
+
+        if (! in_array($shipment->shipment_status, [Shipment::STATUS_DRAFT, Shipment::STATUS_READY_TO_SHIP, Shipment::STATUS_FAILED], true)) {
+            $reasons[] = 'Shipment is not in a creatable state.';
+        }
+
+        $package = $shipment->packages->first();
+        if (! $package) {
+            $reasons[] = 'Package details must be prepared before shipment creation.';
+        } elseif (! $this->hasValidPackage($package)) {
+            $reasons[] = 'Package weight and dimensions must be positive and realistic.';
+        }
+
+        $serviceability = $this->serviceability->cached($order->shipping_pincode);
+        if (! $serviceability || ! $serviceability->isServiceable) {
+            $reasons[] = 'Delhivery serviceability must be confirmed before shipment creation.';
+        }
+
+        if ($serviceability && $shipment->payment_mode === 'cod' && $serviceability->codAvailable === false) {
+            $reasons[] = 'COD is not available for this delivery pincode.';
+        }
+
+        $inProgressAttempt = $order->shipmentAttempts
+            ->where('provider', $shipment->provider)
+            ->where('action', 'create_shipment')
+            ->whereIn('status', ['processing'])
+            ->first();
+
+        if ($inProgressAttempt) {
+            $reasons[] = 'A shipment creation attempt is already in progress.';
+        }
+
+        return $reasons ? ShipmentEligibilityResult::blocked(array_values(array_unique($reasons)), $warnings) : ShipmentEligibilityResult::eligible($warnings);
+    }
+
     protected function hasValidAddress(Order $order): bool
     {
         return filled($order->customer_name)
@@ -70,5 +132,17 @@ class ShipmentEligibilityService
             && filled($order->shipping_city)
             && filled($order->shipping_state)
             && preg_match('/^[1-9][0-9]{5}$/', (string) $order->shipping_pincode);
+    }
+
+    protected function hasValidPackage(object $package): bool
+    {
+        return (float) $package->weight_kg > 0
+            && (float) $package->weight_kg <= 50
+            && (float) $package->length_cm > 0
+            && (float) $package->length_cm <= 200
+            && (float) $package->width_cm > 0
+            && (float) $package->width_cm <= 200
+            && (float) $package->height_cm > 0
+            && (float) $package->height_cm <= 200;
     }
 }

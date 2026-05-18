@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\ProductDemandController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReelController;
 use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\Admin\ShipmentController as AdminShipmentController;
 use App\Http\Controllers\Admin\TagController;
 use App\Http\Controllers\Public\AccountController;
 use App\Http\Controllers\Public\BlogController;
@@ -287,6 +288,12 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.update-status');
     Route::post('/orders/{order}/serviceability/recheck', [AdminOrderController::class, 'recheckServiceability'])->name('orders.serviceability.recheck');
+    Route::post('/orders/{order}/shipments/prepare', [AdminShipmentController::class, 'prepare'])->name('orders.shipments.prepare');
+    Route::patch('/shipments/{shipment}/package', [AdminShipmentController::class, 'updatePackage'])->name('shipments.package.update');
+    Route::post('/shipments/{shipment}/create', [AdminShipmentController::class, 'create'])->name('shipments.create');
+    Route::post('/shipments/{shipment}/label', [AdminShipmentController::class, 'generateLabel'])->name('shipments.label.generate');
+    Route::get('/shipments/{shipment}/label/download', [AdminShipmentController::class, 'downloadLabel'])->name('shipments.label.download');
+    Route::get('/shipments/{shipment}/label/print', [AdminShipmentController::class, 'printLabel'])->name('shipments.label.print');
 
     // Inventory Management
     Route::get('/inventory', [\App\Http\Controllers\Admin\InventoryController::class, 'index'])->name('inventory.index');

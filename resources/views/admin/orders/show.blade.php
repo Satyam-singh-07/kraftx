@@ -238,8 +238,23 @@
                     </div>
                 </x-admin.card>
 
-                <x-admin.card title="Shipment Foundation">
+                <x-admin.card title="Shipment Preparation">
                     <div class="mt-4 space-y-5">
+                        @if($order->shipments->isEmpty())
+                            <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-gray-300 dark:border-gray-700 p-5">
+                                <div>
+                                    <div class="text-sm font-semibold text-gray-900 dark:text-white">No shipment draft yet</div>
+                                    <div class="text-sm text-gray-500">Prepare a package draft, confirm dimensions, then create the Delhivery shipment manually.</div>
+                                </div>
+                                <form method="POST" action="{{ route('admin.orders.shipments.prepare', $order) }}">
+                                    @csrf
+                                    <button type="submit" class="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800">
+                                        Prepare Shipment
+                                    </button>
+                                </form>
+                            </div>
+                        @endif
+
                         @forelse($order->shipments as $shipment)
                             <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                                 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -247,9 +262,35 @@
                                         <div class="text-sm font-bold text-gray-900 dark:text-white">{{ ucfirst($shipment->provider) }} Shipment #{{ $shipment->id }}</div>
                                         <div class="text-xs text-gray-500">AWB: {{ $shipment->awb ?: 'Not generated' }}</div>
                                     </div>
-                                    <span class="px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs font-bold">
-                                        {{ \Illuminate\Support\Str::headline($shipment->shipment_status) }}
-                                    </span>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs font-bold">
+                                            {{ \Illuminate\Support\Str::headline($shipment->shipment_status) }}
+                                        </span>
+                                        @if(!$shipment->awb && in_array($shipment->shipment_status, ['draft', 'ready_to_ship', 'failed'], true))
+                                            <form method="POST" action="{{ route('admin.shipments.create', $shipment) }}" onsubmit="return confirm('Create Delhivery shipment and generate AWB for this order?')">
+                                                @csrf
+                                                <button type="submit" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700">
+                                                    Create Shipment
+                                                </button>
+                                            </form>
+                                        @endif
+                                        @if($shipment->awb && !$shipment->label_path)
+                                            <form method="POST" action="{{ route('admin.shipments.label.generate', $shipment) }}">
+                                                @csrf
+                                                <button type="submit" class="px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-semibold hover:bg-gray-800">
+                                                    Generate Label
+                                                </button>
+                                            </form>
+                                        @endif
+                                        @if($shipment->label_path)
+                                            <a href="{{ route('admin.shipments.label.download', $shipment) }}" class="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-800 text-xs font-semibold hover:bg-gray-200">
+                                                Download Label
+                                            </a>
+                                            <a href="{{ route('admin.shipments.label.print', $shipment) }}" target="_blank" class="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-800 text-xs font-semibold hover:bg-gray-200">
+                                                Print Label
+                                            </a>
+                                        @endif
+                                    </div>
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm mb-4">
@@ -259,20 +300,40 @@
                                     <div><span class="text-gray-500">Serviceability:</span> {{ $shipment->serviceability_status ?: 'Not checked' }}</div>
                                     <div><span class="text-gray-500">Pickup:</span> {{ $shipment->pickup_location_name ?: 'Not selected' }}</div>
                                     <div><span class="text-gray-500">Label:</span> {{ $shipment->label_path ? 'Generated' : 'Not generated' }}</div>
+                                    <div><span class="text-gray-500">Created:</span> {{ $shipment->created_at->format('d M Y H:i') }}</div>
                                 </div>
 
                                 <div class="border-t border-gray-100 dark:border-gray-700 pt-4">
                                     <div class="text-xs font-bold text-gray-500 uppercase mb-2">Package Details</div>
-                                    @forelse($shipment->packages as $package)
-                                        <div class="text-sm text-gray-700 dark:text-gray-300">
-                                            Package {{ $package->package_number }}:
-                                            {{ $package->weight_kg }} kg,
-                                            {{ $package->length_cm }} x {{ $package->width_cm }} x {{ $package->height_cm }} cm
-                                            (Volumetric {{ $package->volumetric_weight_kg }} kg)
+                                    @php($package = $shipment->packages->first())
+                                    <form method="POST" action="{{ route('admin.shipments.package.update', $shipment) }}" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+                                        @csrf
+                                        @method('PATCH')
+                                        <label class="block">
+                                            <span class="text-xs text-gray-500">Weight (kg)</span>
+                                            <input type="number" step="0.001" min="0.001" max="50" name="weight_kg" value="{{ old('weight_kg', $package?->weight_kg) }}" class="mt-1 w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                        </label>
+                                        <label class="block">
+                                            <span class="text-xs text-gray-500">Length (cm)</span>
+                                            <input type="number" step="0.01" min="1" max="200" name="length_cm" value="{{ old('length_cm', $package?->length_cm) }}" class="mt-1 w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                        </label>
+                                        <label class="block">
+                                            <span class="text-xs text-gray-500">Width (cm)</span>
+                                            <input type="number" step="0.01" min="1" max="200" name="width_cm" value="{{ old('width_cm', $package?->width_cm) }}" class="mt-1 w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                        </label>
+                                        <label class="block">
+                                            <span class="text-xs text-gray-500">Height (cm)</span>
+                                            <input type="number" step="0.01" min="1" max="200" name="height_cm" value="{{ old('height_cm', $package?->height_cm) }}" class="mt-1 w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                        </label>
+                                        <button type="submit" class="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800">
+                                            Confirm Package
+                                        </button>
+                                    </form>
+                                    @if($package)
+                                        <div class="mt-2 text-xs text-gray-500">
+                                            Package {{ $package->package_number }} · Volumetric {{ $package->volumetric_weight_kg }} kg @if($package->awb) · AWB {{ $package->awb }} @endif
                                         </div>
-                                    @empty
-                                        <div class="text-sm text-gray-500">No package rows yet. Future shipment creation must capture packed box details here.</div>
-                                    @endforelse
+                                    @endif
                                 </div>
 
                                 <div class="border-t border-gray-100 dark:border-gray-700 pt-4 mt-4">
@@ -289,9 +350,7 @@
                                 </div>
                             </div>
                         @empty
-                            <div class="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 p-5 text-sm text-gray-500">
-                                No shipment has been created. This section is ready for future serviceability checks, package capture, shipment creation, labels, pickup requests, and tracking events.
-                            </div>
+                            <div class="hidden"></div>
                         @endforelse
                     </div>
                 </x-admin.card>
@@ -307,16 +366,12 @@
                         </div>
                         <div>
                             <label class="text-xs font-bold text-gray-500 uppercase">Payment Status</label>
-                            @php
-                                $pStatusClasses = [
-                                    'pending' => 'text-yellow-600',
-                                    'paid' => 'text-green-600',
-                                    'failed' => 'text-red-600',
-                                    'refunded' => 'text-gray-600',
-                                ];
-                                $pClass = $pStatusClasses[$order->payment_status] ?? 'text-gray-600';
-                            @endphp
-                            <div class="text-sm font-bold {{ $pClass }} uppercase">{{ $order->payment_status }}</div>
+                            <div class="text-sm font-bold {{ [
+                                'pending' => 'text-yellow-600',
+                                'paid' => 'text-green-600',
+                                'failed' => 'text-red-600',
+                                'refunded' => 'text-gray-600',
+                            ][$order->payment_status] ?? 'text-gray-600' }} uppercase">{{ $order->payment_status }}</div>
                         </div>
                         @if($order->payment_provider)
                         <div>
