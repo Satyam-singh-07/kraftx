@@ -83,6 +83,11 @@ class Product extends Model
         return $this->hasMany(Review::class);
     }
 
+    public function notifyRequests(): HasMany
+    {
+        return $this->hasMany(ProductNotifyRequest::class);
+    }
+
     public function seoMeta(): MorphOne
     {
         return $this->morphOne(SeoMeta::class, 'metaable');

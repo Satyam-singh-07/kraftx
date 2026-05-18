@@ -2,6 +2,7 @@
     $links = [
         ['route' => 'account', 'label' => 'Dashboard', 'icon' => 'icon-HouseLine'],
         ['route' => 'account.orders', 'label' => 'Your Orders', 'icon' => 'icon-Package'],
+        ['route' => 'account.notify-products', 'label' => 'My Notify Products', 'icon' => 'icon-HeartStraight'],
         ['route' => 'account.addresses', 'label' => 'My Address', 'icon' => 'icon-Tag'],
         ['route' => 'account.settings', 'label' => 'Setting', 'icon' => 'icon-GearSix'],
     ];

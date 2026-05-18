@@ -23,6 +23,13 @@ class ProductController extends Controller
             ->latest()
             ->paginate(12);
 
+        $requestedProductIds = auth()->check()
+            ? auth()->user()->productNotifyRequests()
+                ->whereIn('product_id', $productsModel->getCollection()->pluck('id'))
+                ->pluck('product_id')
+                ->all()
+            : [];
+
         $resolveImageUrl = function($path) {
             if (!$path) return null;
             if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, '/')) {
@@ -34,7 +41,7 @@ class ProductController extends Controller
             return Storage::url($path);
         };
 
-        $mapProduct = function(Product $product) use ($resolveImageUrl) {
+        $mapProduct = function(Product $product) use ($resolveImageUrl, $requestedProductIds) {
             $primary = $product->images->firstWhere('is_primary', true) ?? $product->images->first();
             $secondary = $product->images->first(function ($image) use ($primary) {
                 return !$primary || $image->id !== $primary->id;
@@ -78,6 +85,10 @@ class ProductController extends Controller
                 'hasSize' => !empty($sizes),
                 'sizes' => $sizes,
                 'badges' => !empty($badges) ? $badges : null,
+                'stock' => (int) $product->stock,
+                'isInStock' => $product->stock > 0,
+                'notifyRequested' => in_array($product->id, $requestedProductIds, true),
+                'notifyUrl' => route('product.notify.store', $product),
             ];
         };
 
@@ -158,6 +169,10 @@ class ProductController extends Controller
                 ->exists();
         }
 
+        $hasNotifyRequest = $user
+            ? $product->notifyRequests()->where('user_id', $user->id)->exists()
+            : false;
+
         $seo = SeoHelper::forModel($product, [
             'title' => ($product->seoMeta?->meta_title ?: $product->name) . ' | ' . config('app.name', 'KraftX'),
             'canonical' => route('product.show', $product->slug),
@@ -187,6 +202,7 @@ class ProductController extends Controller
             'ratingCounts',
             'ratingPercentages',
             'hasPurchasedProduct',
+            'hasNotifyRequest',
             'seo'
         ));
     }
@@ -196,7 +212,14 @@ class ProductController extends Controller
         $collection = Collection::where('slug', $slug)->firstOrFail();
         $productsModel = $collection->products()->where('status', true)->with(['images', 'variants'])->paginate(16);
 
-        $products = $productsModel->getCollection()->map(function($product) {
+        $requestedProductIds = auth()->check()
+            ? auth()->user()->productNotifyRequests()
+                ->whereIn('product_id', $productsModel->getCollection()->pluck('id'))
+                ->pluck('product_id')
+                ->all()
+            : [];
+
+        $products = $productsModel->getCollection()->map(function($product) use ($requestedProductIds) {
             $image = $product->images->first() ? 'storage/' . $product->images->first()->image_path : 'assets/images/product/product-placeholder.jpg';
             $hoverImage = $product->images->get(1) ? 'storage/' . $product->images->get(1)->image_path : $image;
 
@@ -217,7 +240,11 @@ class ProductController extends Controller
                         'class' => ''
                     ];
                 }),
-                'badges' => []
+                'badges' => [],
+                'stock' => (int) $product->stock,
+                'isInStock' => $product->stock > 0,
+                'notifyRequested' => in_array($product->id, $requestedProductIds, true),
+                'notifyUrl' => route('product.notify.store', $product),
             ];
         });
 

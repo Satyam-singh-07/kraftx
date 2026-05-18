@@ -5,9 +5,14 @@
     $hoverImage = $product['hoverImage'] ?? $image;
     $imageSrc = \Illuminate\Support\Str::startsWith($image, ['http://', 'https://', '/']) ? $image : asset($image);
     $hoverSrc = \Illuminate\Support\Str::startsWith($hoverImage, ['http://', 'https://', '/']) ? $hoverImage : asset($hoverImage);
+    $isInStock = $product['isInStock'] ?? (($product['stock'] ?? 1) > 0);
+    $notifyRequested = (bool) ($product['notifyRequested'] ?? false);
+    $notifyUrl = $product['notifyUrl'] ?? route('product.notify.store', $product['id']);
+    $displayPrice = is_numeric($product['price'] ?? null) ? '₹' . number_format((float) $product['price'], 0) : ($product['price'] ?? '');
+    $oldPrice = $product['oldPrice'] ?? null;
 @endphp
 
-<div class="card-product {{ $product['hasSize'] ? 'has-size' : '' }}">
+<div class="card-product {{ ($product['hasSize'] ?? false) ? 'has-size' : '' }}">
     <div class="card-product_wrapper">
         <a href="{{ $product['url'] }}" class="product-img">
             <img class="img-product" loading="lazy" decoding="async" width="330" height="440"
@@ -44,7 +49,7 @@
                 @endforeach
             </ul>
         @endif
-        @if($product['hasSize'])
+        @if($product['hasSize'] ?? false)
             <div class="variant-box">
                 <ul class="product-size_list">
                     @foreach($product['sizes'] as $size)
@@ -54,13 +59,25 @@
             </div>
         @endif
         <div class="product-action_bot">
-            <button type="button" 
-                class="tf-btn btn-white small w-100" 
-                data-bs-toggle="modal" 
-                data-bs-target="#quickAdd"
-                data-product-id="{{ $product['id'] }}">
-                Quick Add
-            </button>
+            @if($isInStock)
+                <button type="button"
+                    class="tf-btn btn-white small w-100"
+                    data-bs-toggle="modal"
+                    data-bs-target="#quickAdd"
+                    data-product-id="{{ $product['id'] }}">
+                    Add To Cart
+                </button>
+            @else
+                <form action="{{ $notifyUrl }}" method="POST" class="product-notify-form" data-product-id="{{ $product['id'] }}">
+                    @csrf
+                    <button type="submit" class="tf-btn btn-white small w-100 product-notify-button" {{ $notifyRequested ? 'disabled' : '' }}>
+                        {{ $notifyRequested ? 'Notification Set' : 'Notify Me' }}
+                    </button>
+                    <p class="product-notify-message text-caption-01 text-white fw-bold mt-8 mb-0 {{ $notifyRequested ? '' : 'd-none' }}">
+                        We will notify you when this product is back in stock
+                    </p>
+                </form>
+            @endif
         </div>
         @if(isset($product['countdown']))
             <div class="product-countdown">
@@ -81,9 +98,9 @@
             @endfor
         </div>
         <div class="price-wrap">
-            <span class="price-new text-primary fw-semibold">{{ $product['price'] }}</span>
-            @if(isset($product['oldPrice']))
-                <span class="price-old text-caption-01 cl-text-3">{{ $product['oldPrice'] }}</span>
+            <span class="price-new text-primary fw-semibold">{{ $displayPrice }}</span>
+            @if($oldPrice)
+                <span class="price-old text-caption-01 cl-text-3">{{ $oldPrice }}</span>
             @endif
         </div>
         @if(isset($product['colors']))

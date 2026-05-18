@@ -111,6 +111,70 @@
     <script src="{{ asset('assets/js/wishlist.js') }}"></script>
 
     {{ $scripts ?? '' }}
+    <script>
+        document.addEventListener('submit', async function(event) {
+            const form = event.target.closest('.product-notify-form');
+            if (!form) return;
+
+            event.preventDefault();
+
+            const button = form.querySelector('.product-notify-button');
+            const message = form.querySelector('.product-notify-message');
+            const originalText = button.textContent.trim();
+            button.disabled = true;
+            button.textContent = 'Saving...';
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value,
+                        'Accept': 'application/json',
+                    },
+                });
+                const data = await response.json();
+
+                if (response.status === 401 && data.login_required) {
+                    button.disabled = false;
+                    button.textContent = originalText;
+                    const modalEl = document.getElementById('sign');
+                    if (modalEl && window.bootstrap) {
+                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                    } else {
+                        window.location.href = @json(route('home'));
+                    }
+                    return;
+                }
+
+                if (!response.ok || !data.success) {
+                    button.disabled = false;
+                    button.textContent = originalText;
+                    alert(data.message || 'Unable to save notification request.');
+                    return;
+                }
+
+                button.textContent = 'Notification Set';
+                document.querySelectorAll(`.product-notify-form[action="${form.action}"] .product-notify-button`)
+                    .forEach((notifyButton) => {
+                        notifyButton.disabled = true;
+                        notifyButton.textContent = 'Notification Set';
+                    });
+                document.querySelectorAll(`.product-notify-form[action="${form.action}"] .product-notify-message`)
+                    .forEach((notifyMessage) => {
+                        notifyMessage.textContent = data.message || 'We will notify you when this product is back in stock';
+                        notifyMessage.classList.remove('d-none');
+                    });
+                if (message) {
+                    message.textContent = data.message || 'We will notify you when this product is back in stock';
+                    message.classList.remove('d-none');
+                }
+            } catch (error) {
+                button.disabled = false;
+                button.textContent = originalText;
+                alert('Unable to save notification request. Please try again.');
+            }
+        });
+    </script>
 
     <x-login />
 

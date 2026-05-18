@@ -5,12 +5,17 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Services\ProductDemandService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class InventoryController extends Controller
 {
     const LOW_STOCK_THRESHOLD = 10;
+
+    public function __construct(private ProductDemandService $productDemandService)
+    {
+    }
 
     /**
      * Display inventory listing.
@@ -89,7 +94,10 @@ class InventoryController extends Controller
         ]);
 
         if ($request->type === 'product') {
-            Product::findOrFail($request->id)->update(['stock' => $request->stock]);
+            $product = Product::findOrFail($request->id);
+            $oldStock = (int) $product->stock;
+            $product->update(['stock' => $request->stock]);
+            $this->productDemandService->handleStockTransition($product->fresh(['images']), $oldStock, (int) $request->stock);
         } else {
             ProductVariant::findOrFail($request->id)->update(['stock' => $request->stock]);
         }

@@ -59,6 +59,10 @@
                                 'hasSize' => $product->variants->whereNotNull('size')->isNotEmpty(),
                                 'sizes' => $product->variants->whereNotNull('size')->unique('size')->pluck('size')->toArray(),
                                 'badges' => [],
+                                'stock' => (int) $product->stock,
+                                'isInStock' => $product->stock > 0,
+                                'notifyRequested' => auth()->check() ? auth()->user()->productNotifyRequests()->where('product_id', $product->id)->exists() : false,
+                                'notifyUrl' => route('product.notify.store', $product),
                             ]" />
                         </div>
                     @endforeach

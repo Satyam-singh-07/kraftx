@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\CartService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class CartController extends Controller
 {
@@ -45,6 +46,13 @@ class CartController extends Controller
             'color'      => 'nullable|string',
             'size'       => 'nullable|string',
         ]);
+
+        $product = Product::findOrFail($request->product_id);
+        if ($product->stock <= 0) {
+            throw ValidationException::withMessages([
+                'product_id' => 'This product is currently out of stock.',
+            ]);
+        }
 
         $variantId = null;
         if ($request->color || $request->size) {

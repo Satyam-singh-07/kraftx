@@ -14,7 +14,8 @@ use Illuminate\Support\Facades\Storage;
 class ProductService
 {
     public function __construct(
-        protected ProductRepositoryInterface $productRepository
+        protected ProductRepositoryInterface $productRepository,
+        protected ProductDemandService $productDemandService
     ) {
     }
 
@@ -118,6 +119,7 @@ class ProductService
                 Log::error('Product not found in ProductService: ' . $id);
                 throw new Exception('Product not found.');
             }
+            $oldStock = (int) $product->stock;
             
             $productData = [
                 'name' => $dto->name,
@@ -197,6 +199,8 @@ class ProductService
 
             DB::commit();
             Log::info('Product update transaction committed successfully for ID: ' . $id);
+
+            $this->productDemandService->handleStockTransition($product->fresh(['images']), $oldStock, (int) $dto->stock);
 
             // Delete old files only AFTER successful commit
             foreach ($filesToDelete as $file) {

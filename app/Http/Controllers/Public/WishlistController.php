@@ -169,6 +169,12 @@ class WishlistController extends Controller
             'hasSize' => ! empty($sizes),
             'sizes' => $sizes,
             'badges' => ! empty($badges) ? $badges : null,
+            'stock' => (int) $product->stock,
+            'isInStock' => $product->stock > 0,
+            'notifyRequested' => Auth::check()
+                ? Auth::user()->productNotifyRequests()->where('product_id', $product->id)->exists()
+                : false,
+            'notifyUrl' => route('product.notify.store', $product),
         ];
     }
 }

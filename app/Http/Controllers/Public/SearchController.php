@@ -23,7 +23,14 @@ class SearchController extends Controller
 
         $productsModel = $this->productRepository->getAllPaginated(['search' => $query], 16);
 
-        $products = $productsModel->getCollection()->map(function($product) {
+        $requestedProductIds = auth()->check()
+            ? auth()->user()->productNotifyRequests()
+                ->whereIn('product_id', $productsModel->getCollection()->pluck('id'))
+                ->pluck('product_id')
+                ->all()
+            : [];
+
+        $products = $productsModel->getCollection()->map(function($product) use ($requestedProductIds) {
             $image = $product->images->first() ? 'storage/' . $product->images->first()->image_path : 'assets/images/product/product-placeholder.jpg';
             $hoverImage = $product->images->get(1) ? 'storage/' . $product->images->get(1)->image_path : $image;
 
@@ -45,7 +52,11 @@ class SearchController extends Controller
                         'class' => ''
                     ];
                 }),
-                'badges' => []
+                'badges' => [],
+                'stock' => (int) $product->stock,
+                'isInStock' => $product->stock > 0,
+                'notifyRequested' => in_array($product->id, $requestedProductIds, true),
+                'notifyUrl' => route('product.notify.store', $product),
             ];
         });
 

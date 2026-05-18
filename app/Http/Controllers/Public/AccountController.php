@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\ProductNotifyRequest;
 use App\Models\User;
 use App\Services\OrderLinkingService;
+use App\Services\ProductDemandService;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -13,7 +16,8 @@ use Illuminate\View\View;
 class AccountController extends Controller
 {
     public function __construct(
-        protected OrderLinkingService $orderLinkingService
+        protected OrderLinkingService $orderLinkingService,
+        protected ProductDemandService $productDemandService
     ) {
     }
 
@@ -50,6 +54,23 @@ class AccountController extends Controller
             'seo' => $this->seo('My Address'),
             'user' => $request->user(),
         ]);
+    }
+
+    public function notifyProducts(Request $request): View
+    {
+        return view('account.notify-products', [
+            'seo' => $this->seo('My Notify Products'),
+            'notifyRequests' => $this->productDemandService->requestsForUser($request->user()),
+        ]);
+    }
+
+    public function removeNotifyProduct(Request $request, ProductNotifyRequest $notifyRequest): RedirectResponse
+    {
+        Gate::authorize('delete', $notifyRequest);
+
+        $notifyRequest->delete();
+
+        return back()->with('success', 'Notify request removed.');
     }
 
     public function updateAddress(Request $request): RedirectResponse

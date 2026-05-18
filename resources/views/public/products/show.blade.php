@@ -345,23 +345,34 @@
                                     @endif
 
                                     <div class="tf-product-total-quantity" id="main-quantity-container" data-base-price="{{ $product->sale_price ?? $product->price }}">
-                                        <p class="">Quantity:</p>
-                                        <div class="group-action">
-                                            <div class="wg-quantity">
-                                                <button class="btn-quantity btn-decrease"><i class="icon icon-minus"></i></button>
-                                                <input class="quantity-product" type="text" name="quantity" value="1">
-                                                <button class="btn-quantity btn-increase"><i class="icon icon-plus"></i></button>
+                                        @if($product->stock > 0)
+                                            <p class="">Quantity:</p>
+                                            <div class="group-action">
+                                                <div class="wg-quantity">
+                                                    <button class="btn-quantity btn-decrease"><i class="icon icon-minus"></i></button>
+                                                    <input class="quantity-product" type="text" name="quantity" value="1">
+                                                    <button class="btn-quantity btn-increase"><i class="icon icon-plus"></i></button>
+                                                </div>
+                                                <button type="button" id="add-to-cart-btn" class="btn-action-price tf-btn type-xl animate-btn w-100">
+                                                    Add To Cart
+                                                    <span class="d-none d-sm-block d-md-none d-lg-block">&nbsp;-&nbsp;</span>
+                                                    <span class="price-add d-none d-sm-block d-md-none d-lg-block">₹{{ number_format($product->sale_price ?? $product->price, 0) }}</span>
+                                                </button>
                                             </div>
-                                            <button type="button" id="add-to-cart-btn" class="btn-action-price tf-btn type-xl animate-btn w-100">
-                                                Add To Cart
-                                                <span class="d-none d-sm-block d-md-none d-lg-block">&nbsp;-&nbsp;</span>
-                                                <span class="price-add d-none d-sm-block d-md-none d-lg-block">₹{{ number_format($product->sale_price ?? $product->price, 0) }}</span>
+                                            <button type="button" id="buy-now-btn" class="tf-btn type-xl btn-primary animate-btn w-100 mb-10">
+                                                Buy It Now
                                             </button>
-                                        </div>
-                                        <button type="button" id="buy-now-btn" class="tf-btn type-xl btn-primary animate-btn w-100 mb-10">
-                                            Buy It Now
-                                        </button>
-                                        
+                                        @else
+                                            <form action="{{ route('product.notify.store', $product) }}" method="POST" class="product-notify-form">
+                                                @csrf
+                                                <button type="submit" class="tf-btn type-xl btn-primary animate-btn w-100 mb-10 product-notify-button" {{ $hasNotifyRequest ? 'disabled' : '' }}>
+                                                    {{ $hasNotifyRequest ? 'Notification Set' : 'Notify Me' }}
+                                                </button>
+                                                <p class="product-notify-message text-body-2 text-white fw-bold mb-0 {{ $hasNotifyRequest ? '' : 'd-none' }}">
+                                                    We will notify you when this product is back in stock
+                                                </p>
+                                            </form>
+                                        @endif
                                     </div>
                                 </div>
 
@@ -506,7 +517,7 @@
                     </div>
                     <div class="tf-sticky-atc-infos" id="sticky-quantity-container" data-base-price="{{ $product->sale_price ?? $product->price }}">
                         <div class="d-flex align-items-center gap-10">
-                            @if($sizes->isNotEmpty())
+                            @if($product->stock > 0 && $sizes->isNotEmpty())
                             <div class="tf-sticky-atc-variant-price">
                                 <p class="title">Size:</p>
                                 <div class="tf-select style-2">
@@ -518,17 +529,26 @@
                                 </div>
                             </div>
                             @endif
-                            <div class="tf-product-info-quantity">
-                                <p class="title">Quantity:</p>
-                                <div class="wg-quantity style-2">
-                                    <button class="btn-quantity minus-btn"><i class="icon icon-minus"></i></button>
-                                    <input class="quantity-product" type="text" name="quantity_sticky" value="1">
-                                    <button class="btn-quantity plus-btn"><i class="icon icon-plus"></i></button>
+                            @if($product->stock > 0)
+                                <div class="tf-product-info-quantity">
+                                    <p class="title">Quantity:</p>
+                                    <div class="wg-quantity style-2">
+                                        <button class="btn-quantity minus-btn"><i class="icon icon-minus"></i></button>
+                                        <input class="quantity-product" type="text" name="quantity_sticky" value="1">
+                                        <button class="btn-quantity plus-btn"><i class="icon icon-plus"></i></button>
+                                    </div>
                                 </div>
-                            </div>
-                            <button type="button" id="sticky-add-to-cart-btn" class="tf-btn animate-btn btn-add-to-cart">
-                                Add To Cart - ₹{{ number_format($product->sale_price ?? $product->price, 0) }}
-                            </button>
+                                <button type="button" id="sticky-add-to-cart-btn" class="tf-btn animate-btn btn-add-to-cart">
+                                    Add To Cart - ₹{{ number_format($product->sale_price ?? $product->price, 0) }}
+                                </button>
+                            @else
+                                <form action="{{ route('product.notify.store', $product) }}" method="POST" class="product-notify-form w-100">
+                                    @csrf
+                                    <button type="submit" class="tf-btn animate-btn btn-add-to-cart w-100 product-notify-button" {{ $hasNotifyRequest ? 'disabled' : '' }}>
+                                        {{ $hasNotifyRequest ? 'Notification Set' : 'Notify Me' }}
+                                    </button>
+                                </form>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -738,7 +758,11 @@
                                 'url' => route('product.show', $related->slug),
                                 'hasSize' => $related->variants->whereNotNull('size')->isNotEmpty(),
                                 'colors' => $related->variants->whereNotNull('color')->unique('color')->map(fn($v) => ['name' => $v->color, 'image' => $related->images->first() ? 'storage/' . $related->images->first()->image_path : '']),
-                                'badges' => []
+                                'badges' => [],
+                                'stock' => (int) $related->stock,
+                                'isInStock' => $related->stock > 0,
+                                'notifyRequested' => auth()->check() ? auth()->user()->productNotifyRequests()->where('product_id', $related->id)->exists() : false,
+                                'notifyUrl' => route('product.notify.store', $related),
                             ]" />
                         </div>
                         @endforeach
@@ -783,7 +807,9 @@
                 }
 
                 function updatePrice() {
-                    const quantity = parseInt(document.querySelector('input[name="quantity"]').value) || 1;
+                    const quantityInput = document.querySelector('input[name="quantity"]');
+                    if (!quantityInput) return;
+                    const quantity = parseInt(quantityInput.value) || 1;
                     const totalPrice = basePrice * quantity;
                     const priceDisplay = document.querySelector('#add-to-cart-btn .price-add');
                     if (priceDisplay) {
@@ -792,7 +818,9 @@
                 }
 
                 function updateStickyPrice() {
-                    const quantity = parseInt(document.querySelector('input[name="quantity_sticky"]').value) || 1;
+                    const quantityInput = document.querySelector('input[name="quantity_sticky"]');
+                    if (!quantityInput) return;
+                    const quantity = parseInt(quantityInput.value) || 1;
                     const totalPrice = basePrice * quantity;
                     if (stickyAddToCartBtn) {
                         stickyAddToCartBtn.textContent = `Add To Cart - ${formatPrice(totalPrice)}`;

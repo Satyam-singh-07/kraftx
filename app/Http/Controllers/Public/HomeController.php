@@ -73,7 +73,7 @@ class HomeController extends Controller
             return [
                 'id' => $product->id,
                 'name' => $product->name,
-                'url' => $product->slug ? route('product.show', $product->slug) : route('product.detail'),
+                'url' => $product->slug ? route('product.show', $product->slug) : '#',
                 'image' => $imageUrl,
                 'hoverImage' => $hoverUrl,
                 'price' => '₹' . number_format($displayPrice, 0),
@@ -81,6 +81,12 @@ class HomeController extends Controller
                 'hasSize' => !empty($sizes),
                 'sizes' => $sizes,
                 'badges' => !empty($badges) ? $badges : null,
+                'stock' => (int) $product->stock,
+                'isInStock' => $product->stock > 0,
+                'notifyRequested' => auth()->check()
+                    ? auth()->user()->productNotifyRequests()->where('product_id', $product->id)->exists()
+                    : false,
+                'notifyUrl' => route('product.notify.store', $product),
             ];
         };
 

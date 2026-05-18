@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DealController;
 use App\Http\Controllers\Admin\NewsletterController as AdminNewsletterController;
 use App\Http\Controllers\Admin\PaymentSettingsController;
+use App\Http\Controllers\Admin\ProductDemandController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReelController;
 use App\Http\Controllers\Admin\ReviewController;
@@ -29,6 +30,7 @@ use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\NewsletterController as PublicNewsletterController;
 use App\Http\Controllers\Public\PaymentController;
+use App\Http\Controllers\Public\ProductNotifyRequestController;
 use App\Http\Controllers\Public\QuickAddController;
 use App\Http\Controllers\Public\SearchController;
 use App\Models\Product;
@@ -204,6 +206,8 @@ Route::middleware('guest')->group(function () {
 Route::middleware('customer.auth')->group(function () {
     Route::get('/account', [AccountController::class, 'dashboard'])->name('account');
     Route::get('/account/orders', [AccountController::class, 'orders'])->name('account.orders');
+    Route::get('/account/notify-products', [AccountController::class, 'notifyProducts'])->name('account.notify-products');
+    Route::delete('/account/notify-products/{notifyRequest}', [AccountController::class, 'removeNotifyProduct'])->name('account.notify-products.destroy');
     Route::get('/account/addresses', [AccountController::class, 'addresses'])->name('account.addresses');
     Route::patch('/account/addresses', [AccountController::class, 'updateAddress'])->name('account.addresses.update');
     Route::get('/account/settings', [AccountController::class, 'settings'])->name('account.settings');
@@ -249,6 +253,8 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
     Route::post('products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
     Route::delete('products/images/{image}', [ProductController::class, 'deleteImage'])->name('products.delete-image');
     Route::resource('products', ProductController::class);
+    Route::get('product-demands', [ProductDemandController::class, 'index'])->name('product-demands.index');
+    Route::get('product-demands/{product}', [ProductDemandController::class, 'show'])->name('product-demands.show');
     Route::post('collections/{collection}/toggle-status', [CollectionController::class, 'toggleStatus'])->name('collections.toggle-status');
     Route::resource('collections', CollectionController::class);
     Route::resource('customers', CustomerController::class);
@@ -292,6 +298,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
 Route::get('/products', [App\Http\Controllers\Public\ProductController::class, 'index'])->name('products.index');
 Route::get('/collections', [App\Http\Controllers\Public\ProductController::class, 'collectionIndex'])->name('collections.index');
 Route::get('/product/{slug}', [App\Http\Controllers\Public\ProductController::class, 'show'])->name('product.show');
+Route::post('/product/{product}/notify', [ProductNotifyRequestController::class, 'store'])->name('product.notify.store');
 Route::post('/product/{product:slug}/reviews', [App\Http\Controllers\Public\ReviewController::class, 'store'])
     ->middleware('customer.auth')
     ->name('product.reviews.store');
