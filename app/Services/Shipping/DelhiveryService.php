@@ -104,7 +104,7 @@ class DelhiveryService
         $normalized = $this->normalizeShipmentCreationResponse($data);
 
         if (! $normalized['success']) {
-            throw new RuntimeException($normalized['message'] ?: 'Delhivery rejected the shipment payload.');
+            throw new RuntimeException($this->shipmentFailureMessage($normalized['message']));
         }
 
         return $normalized;
@@ -581,6 +581,17 @@ class DelhiveryService
         }
 
         return null;
+    }
+
+    protected function shipmentFailureMessage(?string $providerMessage): string
+    {
+        $providerMessage = trim((string) $providerMessage);
+
+        if (str_contains($providerMessage, 'ClientWarehouse matching query does not exist')) {
+            return 'Delhivery pickup warehouse was not found. Set DELHIVERY_PICKUP_LOCATION_NAME to the exact registered warehouse name in your Delhivery account, then clear config cache.';
+        }
+
+        return $providerMessage ?: 'Delhivery rejected the shipment payload.';
     }
 
     protected function cleanText(?string $value, int $limit): string
