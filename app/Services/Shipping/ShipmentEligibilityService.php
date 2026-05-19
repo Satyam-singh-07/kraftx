@@ -18,7 +18,7 @@ class ShipmentEligibilityService
         return $this->evaluateForDraft($order);
     }
 
-    public function evaluateForDraft(Order $order): ShipmentEligibilityResult
+    public function evaluateForDraft(Order $order, ?Shipment $excludeShipment = null): ShipmentEligibilityResult
     {
         $reasons = [];
         $warnings = [];
@@ -32,15 +32,22 @@ class ShipmentEligibilityService
             $reasons[] = 'Cancelled or failed orders cannot create shipments.';
         }
 
-        if ($order->payment_method === 'Prepaid' && $order->payment_status !== 'paid') {
+        $paymentMethod = strtolower((string) $order->payment_method);
+
+        if ($paymentMethod === 'prepaid' && $order->payment_status !== 'paid') {
             $reasons[] = 'Prepaid order payment is not verified.';
         }
 
-        if ($order->payment_method === 'COD' && $order->status !== 'cod_confirmed') {
+        if ($paymentMethod === 'cod' && $order->status !== 'cod_confirmed') {
             $reasons[] = 'COD order is not confirmed.';
         }
 
-        if ($order->shipments->whereIn('shipment_status', Shipment::ACTIVE_STATUSES)->isNotEmpty()) {
+        $activeShipments = $order->shipments->whereIn('shipment_status', Shipment::ACTIVE_STATUSES);
+        if ($excludeShipment) {
+            $activeShipments = $activeShipments->filter(fn ($shipment) => $shipment->id !== $excludeShipment->id);
+        }
+
+        if ($activeShipments->isNotEmpty()) {
             $reasons[] = 'An active shipment already exists for this order.';
         }
 
@@ -75,7 +82,7 @@ class ShipmentEligibilityService
 
     public function evaluateForCreation(Order $order, Shipment $shipment): ShipmentEligibilityResult
     {
-        $result = $this->evaluateForDraft($order);
+        $result = $this->evaluateForDraft($order, $shipment);
         $reasons = $result->reasons;
         $warnings = $result->warnings;
 
@@ -127,11 +134,26 @@ class ShipmentEligibilityService
     protected function hasValidAddress(Order $order): bool
     {
         return filled($order->customer_name)
-            && preg_match('/^[6-9][0-9]{9}$/', (string) $order->customer_phone)
+            && preg_match('/^[6-9][0-9]{9}$/', $this->normalizeIndianPhone($order->customer_phone))
             && filled($order->shipping_address)
             && filled($order->shipping_city)
             && filled($order->shipping_state)
             && preg_match('/^[1-9][0-9]{5}$/', (string) $order->shipping_pincode);
+    }
+
+    protected function normalizeIndianPhone(?string $phone): string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $phone);
+
+        if (strlen($digits) === 12 && str_starts_with($digits, '91')) {
+            return substr($digits, 2);
+        }
+
+        if (strlen($digits) === 11 && str_starts_with($digits, '0')) {
+            return substr($digits, 1);
+        }
+
+        return $digits;
     }
 
     protected function hasValidPackage(object $package): bool

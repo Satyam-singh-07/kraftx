@@ -290,7 +290,7 @@ class DelhiveryService
                     'city' => $this->cleanText($order->shipping_city, 50),
                     'state' => $this->cleanText($order->shipping_state, 50),
                     'country' => 'India',
-                    'phone' => preg_replace('/\D+/', '', (string) $order->customer_phone),
+                    'phone' => $this->normalizeIndianPhone($order->customer_phone),
                     'order' => $order->order_number,
                     'payment_mode' => $shipment->payment_mode === 'cod' ? 'COD' : 'Prepaid',
                     'cod_amount' => $shipment->payment_mode === 'cod' ? (string) $shipment->cod_amount : '',
@@ -589,6 +589,21 @@ class DelhiveryService
         $value = preg_replace('/\s+/', ' ', trim($value));
 
         return mb_substr($value, 0, $limit);
+    }
+
+    protected function normalizeIndianPhone(?string $phone): string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $phone);
+
+        if (strlen($digits) === 12 && str_starts_with($digits, '91')) {
+            return substr($digits, 2);
+        }
+
+        if (strlen($digits) === 11 && str_starts_with($digits, '0')) {
+            return substr($digits, 1);
+        }
+
+        return $digits;
     }
 
     protected function logServiceabilityCache(string $pincode, bool $hit, bool $success): void
