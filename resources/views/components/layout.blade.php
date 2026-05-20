@@ -4,6 +4,7 @@
 
 <head>
     <!-- Google tag (gtag.js) -->
+    <meta name="p:domain_verify" content="5e2cae3c59b883ec5de4383dbf803984" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-5ZHLTDJD5Q"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -15,12 +16,12 @@
 
         gtag('config', 'G-5ZHLTDJD5Q');
     </script>
-    <link rel="icon" type="image/png" href="{{asset('assets/images/logo/favicon-96x96.png')}}" sizes="96x96" />
-    <link rel="icon" type="image/svg+xml" href="{{asset('assets/images/logo/favicon.svg')}}" />
-    <link rel="shortcut icon" href="{{asset('assets/images/logo/favicon.ico')}}" />
-    <link rel="apple-touch-icon" sizes="180x180" href="{{asset('assets/images/logo/apple-touch-icon.png')}}" />
+    <link rel="icon" type="image/png" href="{{ asset('assets/images/logo/favicon-96x96.png') }}" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/images/logo/favicon.svg') }}" />
+    <link rel="shortcut icon" href="{{ asset('assets/images/logo/favicon.ico') }}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/images/logo/apple-touch-icon.png') }}" />
     <meta name="apple-mobile-web-app-title" content="KraftX" />
-    <link rel="manifest" href="{{asset('assets/images/logo/site.webmanifest')}}" />
+    <link rel="manifest" href="{{ asset('assets/images/logo/site.webmanifest') }}" />
     @php
         $seoData = \App\Helpers\SeoHelper::build(
             $seo ?? [
@@ -154,18 +155,22 @@
                 }
 
                 button.textContent = 'Notification Set';
-                document.querySelectorAll(`.product-notify-form[action="${form.action}"] .product-notify-button`)
+                document.querySelectorAll(
+                        `.product-notify-form[action="${form.action}"] .product-notify-button`)
                     .forEach((notifyButton) => {
                         notifyButton.disabled = true;
                         notifyButton.textContent = 'Notification Set';
                     });
-                document.querySelectorAll(`.product-notify-form[action="${form.action}"] .product-notify-message`)
+                document.querySelectorAll(
+                        `.product-notify-form[action="${form.action}"] .product-notify-message`)
                     .forEach((notifyMessage) => {
-                        notifyMessage.textContent = data.message || 'We will notify you when this product is back in stock';
+                        notifyMessage.textContent = data.message ||
+                            'We will notify you when this product is back in stock';
                         notifyMessage.classList.remove('d-none');
                     });
                 if (message) {
-                    message.textContent = data.message || 'We will notify you when this product is back in stock';
+                    message.textContent = data.message ||
+                        'We will notify you when this product is back in stock';
                     message.classList.remove('d-none');
                 }
             } catch (error) {
