@@ -178,7 +178,7 @@ class ProductController extends Controller
             'canonical' => route('product.show', $product->slug),
             'type' => 'product',
             'preload' => $product->images->first()?->image_path ? [[
-                'href' => asset('storage/' . $product->images->first()->image_path),
+                'href' => $product->images->first()->medium_url,
                 'as' => 'image',
                 'fetchpriority' => 'high',
             ]] : [],
@@ -259,7 +259,7 @@ class ProductController extends Controller
             'canonical' => route('collection.show', $collection->slug),
             'type' => 'website',
             'preload' => $collection->image ? [[
-                'href' => asset('storage/' . $collection->image),
+                'href' => $collection->thumb_url,
                 'as' => 'image',
             ]] : [],
             'json_ld' => [

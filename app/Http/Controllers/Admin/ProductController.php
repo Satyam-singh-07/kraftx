@@ -166,7 +166,7 @@ class ProductController extends Controller
 
             // Delete from storage
             if (!str_starts_with($image->image_path, 'assets/')) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($image->image_path);
+                app(\App\Services\ProductImageOptimizer::class)->deleteVariants($image->image_path);
             }
 
             $image->delete();

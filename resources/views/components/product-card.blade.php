@@ -3,8 +3,10 @@
 @php
     $image = $product['image'] ?? '';
     $hoverImage = $product['hoverImage'] ?? $image;
-    $imageSrc = \Illuminate\Support\Str::startsWith($image, ['http://', 'https://', '/']) ? $image : asset($image);
-    $hoverSrc = \Illuminate\Support\Str::startsWith($hoverImage, ['http://', 'https://', '/']) ? $hoverImage : asset($hoverImage);
+    $imageSrc = \App\Models\ProductImage::urlForVariant($image, 'thumb');
+    $hoverSrc = \App\Models\ProductImage::urlForVariant($hoverImage, 'thumb');
+    $imageMedium = \App\Models\ProductImage::urlForVariant($image, 'medium');
+    $hoverMedium = \App\Models\ProductImage::urlForVariant($hoverImage, 'medium');
     $isInStock = $product['isInStock'] ?? (($product['stock'] ?? 1) > 0);
     $notifyRequested = (bool) ($product['notifyRequested'] ?? false);
     $notifyUrl = $product['notifyUrl'] ?? route('product.notify.store', $product['id']);
@@ -16,9 +18,13 @@
     <div class="card-product_wrapper">
         <a href="{{ $product['url'] }}" class="product-img">
             <img class="img-product" loading="lazy" decoding="async" width="330" height="440"
-                src="{{ $imageSrc }}" alt="{{ $product['name'] }} primary image">
+                src="{{ $imageSrc }}" srcset="{{ $imageSrc }} 400w, {{ $imageMedium }} 900w"
+                sizes="(max-width: 575px) 50vw, (max-width: 991px) 33vw, 330px"
+                alt="{{ $product['name'] }} primary image">
             <img class="img-hover" loading="lazy" decoding="async" width="330" height="440"
-                src="{{ $hoverSrc }}" alt="{{ $product['name'] }} alternate view">
+                src="{{ $hoverSrc }}" srcset="{{ $hoverSrc }} 400w, {{ $hoverMedium }} 900w"
+                sizes="(max-width: 575px) 50vw, (max-width: 991px) 33vw, 330px"
+                alt="{{ $product['name'] }} alternate view">
         </a>
         <ul class="product-action_list">
             <li class="wishlist" data-product-id="{{ $product['id'] }}">

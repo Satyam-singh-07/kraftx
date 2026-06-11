@@ -160,11 +160,15 @@
                                         <div class="swiper-wrapper">
                                             @forelse($product->images as $image)
                                             <div class="swiper-slide">
-                                                <a href="{{ asset('storage/' . $image->image_path) }}" target="_blank"
+                                                <a href="{{ $image->zoom_url }}" target="_blank"
                                                     class="item" data-pswp-width="576px" data-pswp-height="768px">
-                                                    <img loading="lazy" width="576" height="768" class="tf-image-zoom"
-                                                        data-zoom="{{ asset('storage/' . $image->image_path) }}"
-                                                        src="{{ asset('storage/' . $image->image_path) }}"
+                                                    <img loading="{{ $loop->first ? 'eager' : 'lazy' }}"
+                                                        fetchpriority="{{ $loop->first ? 'high' : 'auto' }}"
+                                                        width="576" height="768" class="tf-image-zoom"
+                                                        data-zoom="{{ $image->zoom_url }}"
+                                                        src="{{ $image->medium_url }}"
+                                                        srcset="{{ $image->thumb_url }} 400w, {{ $image->medium_url }} 900w, {{ $image->zoom_url }} 1600w"
+                                                        sizes="(max-width: 767px) 100vw, 576px"
                                                         alt="{{ $product->name }}">
                                                 </a>
                                             </div>
@@ -172,9 +176,9 @@
                                             <div class="swiper-slide">
                                                 <a href="{{ asset('assets/images/product/product-placeholder.jpg') }}" target="_blank"
                                                     class="item" data-pswp-width="576px" data-pswp-height="768px">
-                                                    <img loading="lazy" width="576" height="768" class="tf-image-zoom"
-                                                        data-zoom="{{ asset('storage/' . $image->image_path) }}"
-                                                        src="{{ asset('storage/' . $image->image_path) }}"
+                                                    <img loading="eager" fetchpriority="high" width="576" height="768" class="tf-image-zoom"
+                                                        data-zoom="{{ asset('assets/images/product/product-placeholder.jpg') }}"
+                                                        src="{{ asset('assets/images/product/product-placeholder.jpg') }}"
                                                         alt="{{ $product->name }}">
                                                 </a>
                                             </div>
@@ -191,7 +195,7 @@
                                         <div class="swiper-slide stagger-item">
                                             <div class="item">
                                                 <img loading="lazy" width="82" height="110"
-                                                    src="{{ asset('storage/' . $image->image_path) }}" alt="{{ $product->name }}">
+                                                    src="{{ $image->thumb_url }}" alt="{{ $product->name }}">
                                             </div>
                                         </div>
                                         @endforeach
@@ -318,7 +322,7 @@
                                                 data-color="{{ $variant->color }}">
                                                 <div class="img">
                                                     <img loading="lazy" width="60" height="60"
-                                                        src="{{ $variant->image_path ? asset('storage/' . $variant->image_path) : ($product->images->first() ? asset('storage/' . $product->images->first()->image_path) : asset('assets/images/product/product-placeholder.jpg')) }}"
+                                                        src="{{ $variant->image_path ? \App\Models\ProductImage::urlForVariant($variant->image_path, 'thumb') : ($product->images->first() ? $product->images->first()->thumb_url : asset('assets/images/product/product-placeholder.jpg')) }}"
                                                         alt="{{ $variant->color }}">
                                                 </div>
                                                 <span class="tooltip">{{ $variant->color }}</span>
@@ -499,7 +503,7 @@
                         <div class="atc-product-side">
                             <div class="prd_img">
                                 <img loading="lazy" width="60" height="80"
-                                    src="{{ $product->images->first() ? asset('storage/' . $product->images->first()->image_path) : '' }}" alt="{{ $product->name }}">
+                                    src="{{ $product->images->first() ? $product->images->first()->thumb_url : '' }}" alt="{{ $product->name }}">
                             </div>
                             <div class="prd_info d-none d-lg-grid">
                                 <p class="name__prd fw-medium lh-24">{{ $product->name }}</p>
@@ -754,10 +758,10 @@
                                 'slug' => $related->slug,
                                 'price' => $related->price,
                                 'sale_price' => $related->sale_price,
-                                'image' => $related->images->first() ? 'storage/' . $related->images->first()->image_path : '',
+                                'image' => $related->images->first() ? $related->images->first()->thumb_url : '',
                                 'url' => route('product.show', $related->slug),
                                 'hasSize' => $related->variants->whereNotNull('size')->isNotEmpty(),
-                                'colors' => $related->variants->whereNotNull('color')->unique('color')->map(fn($v) => ['name' => $v->color, 'image' => $related->images->first() ? 'storage/' . $related->images->first()->image_path : '']),
+                                'colors' => $related->variants->whereNotNull('color')->unique('color')->map(fn($v) => ['name' => $v->color, 'image' => $related->images->first() ? $related->images->first()->thumb_url : '']),
                                 'badges' => [],
                                 'stock' => (int) $related->stock,
                                 'isInStock' => $related->stock > 0,

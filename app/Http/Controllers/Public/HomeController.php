@@ -135,9 +135,9 @@ class HomeController extends Controller
             'description' => 'Shop handcrafted wall decor, spiritual art, trending home accents, and unique gift ideas at KraftX.',
             'canonical' => route('home'),
             'type' => 'website',
-            'image' => $banners->first()?->image ? Storage::url($banners->first()->image) : asset('assets/images/logo/logo.png'),
+            'image' => $banners->first()?->image ? $banners->first()->desktop_url : asset('assets/images/logo/logo.png'),
             'preload' => $banners->first()?->image ? [[
-                'href' => Storage::url($banners->first()->image),
+                'href' => $banners->first()->desktop_url,
                 'as' => 'image',
                 'fetchpriority' => 'high',
             ]] : [],

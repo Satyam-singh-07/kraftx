@@ -5,67 +5,17 @@
             data-auto="true" data-delay="2000">
             <div class="swiper-wrapper">
                 @if (isset($banners) && $banners->isNotEmpty())
-                    @php
-                        $bannerWidths = [
-                            300,
-                            400,
-                            500,
-                            600,
-                            700,
-                            800,
-                            900,
-                            1000,
-                            1200,
-                            1400,
-                            1600,
-                            1800,
-                            2000,
-                            2200,
-                            2400,
-                            2600,
-                            2800,
-                            3000,
-                            3200,
-                        ];
-                    @endphp
                     @foreach ($banners as $banner)
                         <div class="swiper-slide">
                             <div class="slideshow-wrap">
                                 <div class="sld_image">
-                                    @php
-                                        $bannerUrl = Storage::url($banner->image);
-                                        $bannerSep = str_contains($bannerUrl, '?') ? '&' : '?';
-                                        $bannerSrcset = collect($bannerWidths)
-                                            ->map(fn($w) => $bannerUrl . $bannerSep . 'width=' . $w . ' ' . $w . 'w')
-                                            ->implode(', ');
-                                        $bannerSrc = $bannerUrl . $bannerSep . 'width=3840';
-
-                                        $mobileUrl = $banner->mobile_image ? Storage::url($banner->mobile_image) : null;
-                                        $mobileSep = $mobileUrl && str_contains($mobileUrl, '?') ? '&' : '?';
-                                        $mobileSrcset = $mobileUrl
-                                            ? collect($bannerWidths)
-                                                ->map(
-                                                    fn($w) => $mobileUrl . $mobileSep . 'width=' . $w . ' ' . $w . 'w',
-                                                )
-                                                ->implode(', ')
-                                            : null;
-                                        $mobileSrc = $mobileUrl ? $mobileUrl . $mobileSep . 'width=1200' : null;
-                                    @endphp
-                                    @if ($mobileUrl)
-                                        <picture>
-                                            <source media="(max-width: 767px)" srcset="{{ $mobileSrcset }}"
-                                                sizes="100vw">
-                                            <img loading="{{ $loop->first ? 'eager' : 'lazy' }}"
-                                                fetchpriority="{{ $loop->first ? 'high' : 'low' }}" width="1920"
-                                                height="730" src="{{ $bannerSrc }}" srcset="{{ $bannerSrcset }}"
-                                                sizes="100vw" alt="{{ $banner->title ?? 'KraftX banner' }}">
-                                        </picture>
-                                    @else
+                                    <picture>
+                                        <source media="(max-width: 767px)" srcset="{{ $banner->mobile_url }}">
                                         <img loading="{{ $loop->first ? 'eager' : 'lazy' }}"
                                             fetchpriority="{{ $loop->first ? 'high' : 'low' }}" width="1920"
-                                            height="730" src="{{ $bannerSrc }}" srcset="{{ $bannerSrcset }}"
-                                            sizes="100vw" alt="{{ $banner->title ?? 'KraftX banner' }}">
-                                    @endif
+                                            height="730" src="{{ $banner->desktop_url }}"
+                                            alt="{{ $banner->title ?? 'KraftX banner' }}">
+                                    </picture>
                                 </div>
                                 <div class="sld_content pst-5">
                                     <div class="container">
@@ -171,7 +121,7 @@
                                     <div class="cate-image img-style rounded-circle overflow-hidden"
                                         style="aspect-ratio: 1/1;">
                                         <img loading="lazy" width="210" height="210"
-                                            src="{{ $collection->image ? Storage::url($collection->image) : asset('assets/images/category/' . $fallbackCategoryImages[$loop->index % count($fallbackCategoryImages)]) }}"
+                                            src="{{ $collection->image ? $collection->thumb_url : asset('assets/images/category/' . $fallbackCategoryImages[$loop->index % count($fallbackCategoryImages)]) }}"
                                             alt="{{ $collection->name }}"
                                             class="rounded-circle object-fit-cover w-100 h-100">
                                     </div>

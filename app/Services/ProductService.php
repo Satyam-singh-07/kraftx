@@ -15,7 +15,8 @@ class ProductService
 {
     public function __construct(
         protected ProductRepositoryInterface $productRepository,
-        protected ProductDemandService $productDemandService
+        protected ProductDemandService $productDemandService,
+        protected ProductImageOptimizer $productImageOptimizer
     ) {
     }
 
@@ -205,7 +206,7 @@ class ProductService
             // Delete old files only AFTER successful commit
             foreach ($filesToDelete as $file) {
                 if ($file && !str_starts_with($file, 'assets/')) {
-                    Storage::disk('public')->delete($file);
+                    $this->productImageOptimizer->deleteVariants($file);
                 }
             }
 
@@ -233,17 +234,7 @@ class ProductService
 
     protected function uploadImage($product, $imageFile, bool $isPrimary)
     {
-        $filename = time() . '_' . uniqid() . '.' . $imageFile->getClientOriginalExtension();
-        $path = 'products/' . $filename;
-
-        // Resize and optimize using Intervention (simple resize for example)
-        $img = Image::decode($imageFile);
-        ;
-
-        Storage::disk('public')->put(
-            $path,
-            (string) $img->encodeUsingFileExtension($imageFile->getClientOriginalExtension(), quality: 80)
-        );
+        $path = $this->productImageOptimizer->storeUpload($product, $imageFile, $isPrimary);
 
         $product->images()->create([
             'image_path' => $path,

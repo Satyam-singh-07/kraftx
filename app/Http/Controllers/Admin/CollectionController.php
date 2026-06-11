@@ -4,14 +4,18 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Collection;
+use App\Services\CollectionImageOptimizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
-use Intervention\Image\Laravel\Facades\Image;
 use Illuminate\Support\Facades\Storage;
 
 class CollectionController extends Controller
 {
+    public function __construct(
+        protected CollectionImageOptimizer $collectionImageOptimizer
+    ) {}
+
     public function index()
     {
         $collections = Collection::withCount('products')->orderBy('sort_order')->get();
@@ -45,11 +49,16 @@ class CollectionController extends Controller
         $validated['status'] = $request->boolean('status');
         $validated['show_on_home'] = $request->boolean('show_on_home');
 
-        if ($request->hasFile('image')) {
-            $validated['image'] = $this->uploadImage($request->file('image'));
-        }
+        $image = $request->file('image');
+        unset($validated['image']);
 
         $collection = Collection::create($validated);
+
+        if ($image) {
+            $collection->update([
+                'image' => $this->collectionImageOptimizer->storeUpload($collection, $image),
+            ]);
+        }
 
         if ($request->has('seo')) {
             $seoData = $request->input('seo');
@@ -95,7 +104,7 @@ class CollectionController extends Controller
             if ($collection->image) {
                 $filesToDelete[] = $collection->image;
             }
-            $validated['image'] = $this->uploadImage($request->file('image'));
+            $validated['image'] = $this->collectionImageOptimizer->storeUpload($collection, $request->file('image'));
         }
 
         $collection->update($validated);
@@ -116,7 +125,7 @@ class CollectionController extends Controller
 
         foreach ($filesToDelete as $file) {
             if ($file) {
-                Storage::disk('public')->delete($file);
+                $this->collectionImageOptimizer->deleteLegacyPath($file);
             }
         }
 
@@ -126,7 +135,7 @@ class CollectionController extends Controller
     public function destroy(Collection $collection)
     {
         if ($collection->image) {
-            Storage::disk('public')->delete($collection->image);
+            $this->collectionImageOptimizer->deleteImage($collection);
         }
         if ($collection->seoMeta?->og_image) {
             Storage::disk('public')->delete($collection->seoMeta->og_image);
@@ -147,15 +156,4 @@ class CollectionController extends Controller
         ]);
     }
 
-    protected function uploadImage($file)
-    {
-        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-        $path = 'collections/' . $filename;
-        $img = Image::decode($file);
-        Storage::disk('public')->put(
-            $path,
-            (string) $img->encodeUsingFileExtension($file->getClientOriginalExtension(), quality: 80)
-        );
-        return $path;
-    }
 }
