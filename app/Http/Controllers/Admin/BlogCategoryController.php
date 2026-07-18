@@ -19,6 +19,7 @@ class BlogCategoryController extends Controller
     public function create()
     {
         return view('admin.blog-categories.create');
+        
     }
 
     public function store(Request $request)
