@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\OrderAdminNotificationMail;
 use App\Mail\OrderConfirmationMail;
 use App\Models\Cart;
 use App\Models\CartItem;
@@ -45,6 +46,10 @@ class CheckoutTest extends TestCase
         $this->assertSame('converted', $cart->fresh()->status);
         $this->assertSame(0, CartItem::where('cart_id', $cart->id)->count());
         Mail::assertSent(OrderConfirmationMail::class, fn ($mail) => $mail->order->is($order));
+        Mail::assertSent(
+            OrderAdminNotificationMail::class,
+            fn ($mail) => $mail->order->is($order) && $mail->hasTo('thekraftxofficial@gmail.com')
+        );
         $this->assertNotNull($order->fresh()->confirmation_email_sent_at);
     }
 
