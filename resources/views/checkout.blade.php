@@ -41,6 +41,10 @@
             .summary-row.is-savings { color: #1a7f37; }
             .summary-row.is-muted { color: #777; }
             .summary-total { border-top: 1px solid #e8e8e8; margin-top: 8px; padding-top: 16px; font-size: 20px; font-weight: 800; color: #111; }
+            .checkout-agreement { display: flex; gap: 10px; align-items: flex-start; margin-top: 18px; padding-top: 16px; border-top: 1px solid #e8e8e8; }
+            .checkout-agreement input { width: 16px; height: 16px; margin-top: 3px; accent-color: #111; flex: 0 0 16px; }
+            .checkout-agreement label { margin: 0; color: #555; font-size: 13px; line-height: 1.5; cursor: pointer; }
+            .checkout-agreement a { color: #111; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
             .checkout-submit { width: 100%; border: 0; margin-top: 20px; }
             .checkout-submit:disabled { opacity: .6; cursor: not-allowed; }
             .checkout-alert { border-radius: 10px; padding: 14px 16px; margin-bottom: 18px; }
@@ -214,6 +218,15 @@
                         <div class="summary-row is-savings" data-row="payment_discount"><span>Prepaid Savings</span><span data-summary="payment_discount">{{ $initialTotals['payment_discount_amount'] > 0 ? '-₹'.number_format($initialTotals['payment_discount_amount'], 2) : '₹0.00' }}</span></div>
                         <div class="summary-row"><span>Discount</span><span>₹0.00</span></div>
                         <div class="summary-row summary-total"><span>Total</span><span data-summary="total">₹{{ number_format($initialTotals['total_amount'], 2) }}</span></div>
+                        <div class="checkout-agreement">
+                            <input id="terms_accepted" name="terms_accepted" type="checkbox" value="1" {{ old('terms_accepted', '1') ? 'checked' : '' }}>
+                            <div>
+                                <label for="terms_accepted">
+                                    I agree to the <a href="{{ route('terms.conditions') }}" target="_blank" rel="noopener">Terms &amp; Conditions</a> and <a href="{{ route('privacy.policy') }}" target="_blank" rel="noopener">Privacy Policy</a>.
+                                </label>
+                                <div class="field-error" data-error-for="terms_accepted">@error('terms_accepted') {{ $message }} @enderror</div>
+                            </div>
+                        </div>
                         <button type="submit" id="checkout-submit" class="tf-btn type-xl btn-fill animate-btn checkout-submit" disabled>Place Order</button>
                     </aside>
                 </form>
@@ -235,6 +248,7 @@
             const serviceabilityUrl = @json(route('checkout.serviceability'));
             const pincodeInput = document.getElementById('shipping_pincode');
             const serviceabilityStatus = document.getElementById('serviceability-status');
+            const termsAccepted = document.getElementById('terms_accepted');
             let serviceabilityTimer = null;
             let serviceabilityAbort = null;
             let lastCheckedPincode = '';
@@ -310,6 +324,7 @@
                 });
                 const payment = form.querySelector('input[name="payment_method"]:checked');
                 valid = Boolean(payment) && valid;
+                valid = Boolean(termsAccepted?.checked) && valid;
                 if (submit && submit.textContent !== 'Processing...') submit.disabled = !valid;
                 return valid;
             }
@@ -434,11 +449,13 @@
                 });
             });
 
+            termsAccepted?.addEventListener('change', () => validateForm());
+
             form.addEventListener('submit', function (event) {
                 form.querySelectorAll('[data-validate]').forEach(input => touched.add(input.name));
                 if (!validateForm(true)) {
                     event.preventDefault();
-                    const firstError = form.querySelector('.checkout-field.is-invalid input, .checkout-field.is-invalid textarea');
+                    const firstError = form.querySelector('.checkout-field.is-invalid input, .checkout-field.is-invalid textarea') || (!termsAccepted?.checked ? termsAccepted : null);
                     firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     setTimeout(() => firstError?.focus(), 250);
                     return;

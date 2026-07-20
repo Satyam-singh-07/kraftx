@@ -35,6 +35,8 @@ class CheckoutTest extends TestCase
         $this->assertSame('cod_confirmed', $order->status);
         $this->assertSame('COD', $order->payment_method);
         $this->assertSame('pending', $order->payment_status);
+        $this->assertTrue($order->terms_accepted);
+        $this->assertNotNull($order->terms_accepted_at);
         $this->assertSame(250.0, (float) $order->subtotal);
         $this->assertSame(250.0, (float) $order->total_amount);
         $this->assertDatabaseHas('order_items', [
@@ -151,6 +153,24 @@ class CheckoutTest extends TestCase
         $this->assertSame(5, $product->fresh()->stock);
     }
 
+    public function test_checkout_requires_terms_acceptance(): void
+    {
+        [$cart, $product] = $this->cartWithProduct(stock: 5);
+
+        $this
+            ->withSession($this->checkoutSession($cart))
+            ->from(route('checkout'))
+            ->post(route('checkout.store'), $this->checkoutPayload([
+                'terms_accepted' => null,
+            ]))
+            ->assertSessionHasErrors('terms_accepted')
+            ->assertRedirect(route('checkout'));
+
+        $this->assertSame(0, Order::count());
+        $this->assertSame(5, $product->fresh()->stock);
+        $this->assertSame('active', $cart->fresh()->status);
+    }
+
     protected function checkoutPayload(array $overrides = []): array
     {
         return array_merge([
@@ -164,6 +184,7 @@ class CheckoutTest extends TestCase
             'shipping_pincode' => '302001',
             'shipping_country' => 'India',
             'payment_method' => 'cod',
+            'terms_accepted' => '1',
             'notes' => null,
         ], $overrides);
     }
@@ -173,6 +194,7 @@ class CheckoutTest extends TestCase
         return [
             'checkout_token' => 'test-token',
             'checkout_cart_id' => $cart->id,
+            'checkout_started_at' => now()->timestamp,
         ];
     }
 

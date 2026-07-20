@@ -185,6 +185,8 @@ class CheckoutController extends Controller
                     'payment_method' => $isPrepaid ? 'Prepaid' : 'COD',
                     'payment_status' => 'pending',
                     'payment_provider' => $isPrepaid ? 'razorpay' : null,
+                    'terms_accepted' => true,
+                    'terms_accepted_at' => now(),
                     'customer_name' => $validated['customer_name'],
                     'customer_email' => strtolower(trim($validated['customer_email'])),
                     'customer_phone' => $validated['customer_phone'],
@@ -556,6 +558,7 @@ class CheckoutController extends Controller
                 'shipping_pincode' => ['required', 'digits:6', 'regex:/^[1-9][0-9]{5}$/'],
                 'shipping_country' => ['nullable', 'string', 'max:80', 'regex:/^[A-Za-z .-]+$/'],
                 'payment_method' => ['required', 'string', 'in:'.implode(',', $paymentMethods ?: ['none'])],
+                'terms_accepted' => ['accepted'],
                 'notes' => ['nullable', 'string', 'max:1000'],
             ], [
                 'customer_name.required' => 'Please enter your full name.',
@@ -568,6 +571,7 @@ class CheckoutController extends Controller
                 'shipping_pincode.digits' => 'Enter a valid 6-digit pincode.',
                 'shipping_pincode.regex' => 'Enter a valid 6-digit pincode.',
                 'payment_method.in' => 'Please choose an available payment method.',
+                'terms_accepted.accepted' => 'Please agree to the Terms & Conditions and Privacy Policy before placing your order.',
             ]);
         } catch (ValidationException $e) {
             Log::warning('Checkout validation failed', [
