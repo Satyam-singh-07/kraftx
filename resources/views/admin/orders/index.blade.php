@@ -6,7 +6,7 @@
 
         <!-- Filters & Search -->
         <x-admin.card>
-            <form action="{{ route('admin.orders.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            <form action="{{ route('admin.orders.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Search</label>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Order #, Name, Phone..." 
@@ -19,6 +19,10 @@
                             class="block w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm">
                         <option value="">All Status</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
+                        <option value="pending_payment" {{ request('status') === 'pending_payment' ? 'selected' : '' }}>Pending Payment</option>
+                        <option value="cod_confirmed" {{ request('status') === 'cod_confirmed' ? 'selected' : '' }}>COD Confirmed</option>
+                        <option value="paid" {{ request('status') === 'paid' ? 'selected' : '' }}>Paid</option>
+                        <option value="payment_failed" {{ request('status') === 'payment_failed' ? 'selected' : '' }}>Payment Failed</option>
                         <option value="processing" {{ request('status') === 'processing' ? 'selected' : '' }}>Processing</option>
                         <option value="shipped" {{ request('status') === 'shipped' ? 'selected' : '' }}>Shipped</option>
                         <option value="delivered" {{ request('status') === 'delivered' ? 'selected' : '' }}>Delivered</option>
@@ -26,9 +30,30 @@
                     </select>
                 </div>
 
-                <div class="flex space-x-2">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">From Date</label>
+                    <input type="date" name="date_from" value="{{ request('date_from') }}"
+                           class="block w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm">
+                    @error('date_from')
+                        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">To Date</label>
+                    <input type="date" name="date_to" value="{{ request('date_to') }}"
+                           class="block w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm">
+                    @error('date_to')
+                        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="flex flex-wrap gap-2">
                     <button type="submit" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-bold text-sm shadow-sm">
                         Filter
+                    </button>
+                    <button type="submit" formaction="{{ route('admin.orders.export') }}" class="flex-1 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors font-bold text-sm shadow-sm">
+                        Download Report
                     </button>
                     <a href="{{ route('admin.orders.index') }}" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 transition-colors text-sm">
                         Reset
@@ -68,6 +93,10 @@
                             @php
                                 $statusClasses = [
                                     'pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+                                    'pending_payment' => 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
+                                    'cod_confirmed' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
+                                    'paid' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+                                    'payment_failed' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
                                     'processing' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
                                     'shipped' => 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
                                     'delivered' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
@@ -76,7 +105,7 @@
                                 $class = $statusClasses[$order->status] ?? 'bg-gray-100 text-gray-800';
                             @endphp
                             <span class="px-2.5 py-0.5 rounded-full text-xs font-medium {{ $class }}">
-                                {{ ucfirst($order->status) }}
+                                {{ str($order->status)->replace('_', ' ')->title() }}
                             </span>
                         </td>
                         <td class="px-6 py-4 text-xs text-gray-500 dark:text-gray-400">

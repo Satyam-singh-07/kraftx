@@ -9,6 +9,7 @@ use App\Services\Shipping\ServiceabilityService;
 use App\Services\Shipping\ShipmentEligibilityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OrderController extends Controller
 {
@@ -17,27 +18,58 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Order::query()->latest();
-
-        // Search
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('order_number', 'like', "%{$search}%")
-                  ->orWhere('customer_name', 'like', "%{$search}%")
-                  ->orWhere('customer_email', 'like', "%{$search}%")
-                  ->orWhere('customer_phone', 'like', "%{$search}%");
-            });
-        }
-
-        // Status Filter
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
+        $query = $this->filteredOrdersQuery($request)->latest();
 
         $orders = $query->paginate(15)->withQueryString();
 
         return view('admin.orders.index', compact('orders'));
+    }
+
+    public function export(Request $request): StreamedResponse|RedirectResponse
+    {
+        $validated = $request->validate([
+            'date_from' => ['required', 'date'],
+            'date_to' => ['required', 'date', 'after_or_equal:date_from'],
+            'search' => ['nullable', 'string', 'max:255'],
+            'status' => ['nullable', 'string', 'max:80'],
+        ], [
+            'date_from.required' => 'Please select a report start date.',
+            'date_to.required' => 'Please select a report end date.',
+            'date_to.after_or_equal' => 'Report end date must be after the start date.',
+        ]);
+
+        $fileName = 'orders-report-' . $validated['date_from'] . '-to-' . $validated['date_to'] . '.xls';
+        $orders = $this->filteredOrdersQuery($request)
+            ->with(['items.product', 'items.variant'])
+            ->oldest('created_at');
+
+        return response()->streamDownload(function () use ($orders) {
+            echo '<html><head><meta charset="UTF-8"></head><body>';
+            echo '<table border="1">';
+            echo '<thead><tr>';
+
+            foreach ($this->exportHeadings() as $heading) {
+                echo '<th>' . e($heading) . '</th>';
+            }
+
+            echo '</tr></thead><tbody>';
+
+            $orders->chunk(200, function ($chunk) {
+                foreach ($chunk as $order) {
+                    echo '<tr>';
+
+                    foreach ($this->exportRow($order) as $value) {
+                        echo '<td>' . e($value) . '</td>';
+                    }
+
+                    echo '</tr>';
+                }
+            });
+
+            echo '</tbody></table></body></html>';
+        }, $fileName, [
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+        ]);
     }
 
     /**
@@ -106,5 +138,99 @@ class OrderController extends Controller
         } catch (\Throwable $e) {
             return back()->with('error', 'Serviceability check failed. Please verify Delhivery configuration or try again later.');
         }
+    }
+
+    protected function filteredOrdersQuery(Request $request)
+    {
+        $query = Order::query();
+
+        if ($request->filled('search')) {
+            $search = $request->string('search')->toString();
+            $query->where(function ($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                  ->orWhere('customer_name', 'like', "%{$search}%")
+                  ->orWhere('customer_email', 'like', "%{$search}%")
+                  ->orWhere('customer_phone', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status')->toString());
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date('date_from')->toDateString());
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date('date_to')->toDateString());
+        }
+
+        return $query;
+    }
+
+    protected function exportHeadings(): array
+    {
+        return [
+            'Order ID',
+            'Order Number',
+            'Order Date',
+            'Customer Name',
+            'Customer Email',
+            'Customer Phone',
+            'Payment Method',
+            'Payment Status',
+            'Order Status',
+            'Fulfillment Status',
+            'Subtotal',
+            'Shipping Amount',
+            'Cash Handling Fee',
+            'Prepaid Savings',
+            'Discount Amount',
+            'Total Amount',
+            'Shipping Address',
+            'City',
+            'State',
+            'Pincode',
+            'Country',
+            'Items',
+            'Terms Accepted',
+            'Terms Accepted At',
+        ];
+    }
+
+    protected function exportRow(Order $order): array
+    {
+        return [
+            $order->id,
+            $order->order_number,
+            $order->created_at?->format('Y-m-d H:i:s'),
+            $order->customer_name,
+            $order->customer_email,
+            $order->customer_phone,
+            $order->payment_method,
+            $order->payment_status,
+            $order->status,
+            $order->fulfillment_status,
+            $order->subtotal,
+            $order->shipping_amount,
+            $order->payment_fee_amount,
+            $order->payment_discount_amount,
+            $order->discount_amount,
+            $order->total_amount,
+            $order->shipping_address,
+            $order->shipping_city,
+            $order->shipping_state,
+            $order->shipping_pincode,
+            $order->shipping_country,
+            $order->items->map(function ($item) {
+                $variant = collect([$item->variant?->color, $item->variant?->size])->filter()->implode(' / ');
+                $suffix = $variant ? " ({$variant})" : '';
+
+                return "{$item->name}{$suffix} x {$item->quantity}";
+            })->implode('; '),
+            $order->terms_accepted ? 'Yes' : 'No',
+            $order->terms_accepted_at?->format('Y-m-d H:i:s'),
+        ];
     }
 }

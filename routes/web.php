@@ -285,6 +285,7 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
 
     // Order Management
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/export', [AdminOrderController::class, 'export'])->name('orders.export');
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.update-status');
     Route::post('/orders/{order}/serviceability/recheck', [AdminOrderController::class, 'recheckServiceability'])->name('orders.serviceability.recheck');
