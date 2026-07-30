@@ -1241,9 +1241,12 @@
                             
                             itemsList.innerHTML = data.items.map(item => {
                                 if (!item.product) return '';
-                                const imagePath = item.product.images && item.product.images[0] 
-                                    ? '/storage/' + item.product.images[0].image_path 
-                                    : '/assets/images/product/product-placeholder.jpg';
+                                const variantImagePath = item.variant?.image_path
+                                    ? '/storage/' + item.variant.image_path.replace(/[^/]+$/, 'thumb.webp')
+                                    : null;
+                                const imagePath = variantImagePath || (item.product.images && item.product.images[0]
+                                    ? '/storage/' + item.product.images[0].image_path
+                                    : '/assets/images/product/product-placeholder.jpg');
                                 
                                 return `
                                     <div class="tf-mini-cart-item file-delete" data-id="${item.id}">

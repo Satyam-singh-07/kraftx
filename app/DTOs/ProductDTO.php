@@ -55,11 +55,46 @@ class ProductDTO
             is_trending: isset($data['is_trending']) ? (bool) $data['is_trending'] : false,
             collection_ids: $data['collection_ids'] ?? [],
             tag_ids: $data['tag_ids'] ?? [],
-            variants: $data['variants'] ?? [],
+            variants: self::normalizeVariants($data['variants'] ?? []),
             seo_meta: $data['seo_meta'] ?? [],
             main_image: $main_image,
             size_weight_image: $size_weight_image,
             gallery_images: $gallery_images
         );
+    }
+
+    protected static function normalizeVariants(array $variants): array
+    {
+        return collect($variants)
+            ->map(function (array $variant) {
+                return [
+                    'id' => ($variant['id'] ?? '') === '' ? null : (int) $variant['id'],
+                    'size' => trim((string) ($variant['size'] ?? '')) ?: null,
+                    'color' => trim((string) ($variant['color'] ?? '')) ?: null,
+                    'price' => ($variant['price'] ?? '') === '' ? null : (float) $variant['price'],
+                    'stock' => (int) ($variant['stock'] ?? 0),
+                    'sku' => trim((string) ($variant['sku'] ?? '')) ?: null,
+                    'images' => array_values((array) ($variant['images'] ?? [])),
+                    'existing_image_paths' => self::decodeExistingImagePaths($variant['existing_image_paths'] ?? null),
+                ];
+            })
+            ->filter(fn (array $variant) => $variant['size'] || $variant['color'] || $variant['price'] !== null || $variant['stock'] > 0 || $variant['sku'] || $variant['images'])
+            ->values()
+            ->all();
+    }
+
+    protected static function decodeExistingImagePaths(mixed $value): array
+    {
+        if (is_array($value)) {
+            return array_values(array_filter($value));
+        }
+
+        if (! is_string($value) || trim($value) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($value, true);
+
+        return is_array($decoded) ? array_values(array_filter($decoded)) : [];
     }
 }

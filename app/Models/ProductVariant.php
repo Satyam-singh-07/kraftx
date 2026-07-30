@@ -17,7 +17,21 @@ class ProductVariant extends Model
         'price',
         'stock',
         'sku',
+        'image_paths',
     ];
+
+    protected $casts = [
+        'image_paths' => 'array',
+    ];
+
+    protected $appends = [
+        'image_path',
+    ];
+
+    public function getImagePathAttribute(): ?string
+    {
+        return $this->image_paths[0] ?? null;
+    }
 
     public function product(): BelongsTo
     {

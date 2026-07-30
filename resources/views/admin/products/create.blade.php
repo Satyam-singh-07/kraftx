@@ -225,6 +225,8 @@
                 </div>
             </x-admin.card>
 
+            @include('admin.products.partials.variants')
+
             <x-admin.card title="Shipping Information">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
                     <div>
@@ -389,7 +391,56 @@
                     document.getElementById('input-' + id).value = document.getElementById('editor-' + id).innerHTML;
                 });
             });
+
+            initVariantRows();
         });
+
+        function initVariantRows() {
+            const rows = document.getElementById('variant-rows');
+            const template = document.getElementById('variant-row-template');
+            const addButton = document.getElementById('add-variant-row');
+            if (!rows || !template || !addButton) return;
+
+            let nextIndex = rows.querySelectorAll('.variant-row').length;
+
+            function wireRemove(row) {
+                row.querySelector('.remove-variant-row')?.addEventListener('click', () => row.remove());
+                row.querySelector('.variant-image-input')?.addEventListener('change', event => previewVariantImages(event.currentTarget));
+            }
+
+            rows.querySelectorAll('.variant-row').forEach(wireRemove);
+
+            addButton.addEventListener('click', () => {
+                const fragment = template.content.cloneNode(true);
+                const row = fragment.querySelector('.variant-row');
+                row.querySelectorAll('[data-name]').forEach(input => {
+                    input.name = input.dataset.name === 'images'
+                        ? `variants[${nextIndex}][images][]`
+                        : `variants[${nextIndex}][${input.dataset.name}]`;
+                    input.removeAttribute('data-name');
+                });
+                nextIndex += 1;
+                wireRemove(row);
+                rows.appendChild(row);
+            });
+        }
+
+        function previewVariantImages(input) {
+            const preview = input.closest('.variant-row')?.querySelector('.variant-image-preview');
+            if (!preview) return;
+
+            preview.innerHTML = '';
+            Array.from(input.files || []).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = event => {
+                    const image = document.createElement('img');
+                    image.src = event.target.result;
+                    image.className = 'h-14 w-14 rounded-lg object-cover border border-gray-200 dark:border-gray-700';
+                    preview.appendChild(image);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
     </script>
     @endpush
 </x-layouts.admin>

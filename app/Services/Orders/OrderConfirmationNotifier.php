@@ -57,7 +57,7 @@ class OrderConfirmationNotifier
                 return;
             }
 
-            $order = Order::with(['items.product.images'])->findOrFail($order->id);
+            $order = Order::with(['items.product.images', 'items.variant'])->findOrFail($order->id);
 
             Mail::to($order->customer_email, $order->customer_name)
                 ->sendNow(new OrderConfirmationMail($order));

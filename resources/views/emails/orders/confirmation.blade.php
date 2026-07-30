@@ -67,8 +67,9 @@
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                                 @foreach($order->items as $item)
                                     @php
-                                        $imagePath = $item->product?->images?->first()?->image_path;
-                                        $imageUrl = $imagePath ? asset('storage/' . $imagePath) : asset('assets/images/product/product-placeholder.jpg');
+                                        $imageUrl = $item->variant?->image_path
+                                            ? \App\Models\ProductImage::urlForVariant($item->variant->image_path, 'thumb')
+                                            : ($item->product?->images?->first()?->image_path ? asset('storage/' . $item->product->images->first()->image_path) : asset('assets/images/product/product-placeholder.jpg'));
                                     @endphp
                                     <tr>
                                         <td style="padding:14px 0; border-bottom:1px solid #eee6dc;" width="76">
@@ -76,7 +77,12 @@
                                         </td>
                                         <td style="padding:14px 10px; border-bottom:1px solid #eee6dc;">
                                             <div style="font-size:15px; line-height:22px; font-weight:700;">{{ $item->name }}</div>
-                                            <div style="font-size:13px; line-height:20px; color:#7b7168;">{{ $item->sku }} · Qty {{ $item->quantity }}</div>
+                                            <div style="font-size:13px; line-height:20px; color:#7b7168;">
+                                                @if($item->variant)
+                                                    {{ collect([$item->variant->color, $item->variant->size])->filter()->implode(' / ') }} ·
+                                                @endif
+                                                {{ $item->sku }} · Qty {{ $item->quantity }}
+                                            </div>
                                         </td>
                                         <td align="right" style="padding:14px 0; border-bottom:1px solid #eee6dc; font-size:15px; font-weight:700; white-space:nowrap;">
                                             ₹{{ number_format($item->total, 2) }}

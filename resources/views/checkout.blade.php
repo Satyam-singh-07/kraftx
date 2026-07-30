@@ -191,7 +191,7 @@
                         <div class="summary-items">
                             @foreach ($items as $item)
                                 @php
-                                    $image = $item->product?->images?->first()?->image_path;
+                                    $image = $item->variant?->image_path ?: $item->product?->images?->first()?->image_path;
                                 @endphp
                                 <div class="summary-item">
                                     @if($image)

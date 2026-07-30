@@ -63,7 +63,7 @@ class CartService
     public function addItem(Cart $cart, int $productId, int $quantity, ?int $variantId = null)
     {
         $product = Product::findOrFail($productId);
-        $variant = $variantId ? ProductVariant::find($variantId) : null;
+        $variant = $variantId ? ProductVariant::where('product_id', $productId)->findOrFail($variantId) : null;
 
         // Snapshot price
         $price = $variant && $variant->price ? $variant->price : ($product->sale_price ?? $product->price);
@@ -72,6 +72,14 @@ class CartService
             ->where('product_id', $productId)
             ->where('product_variant_id', $variantId)
             ->first();
+        $availableStock = $variant ? (int) $variant->stock : (int) $product->stock;
+        $newQuantity = $quantity + (int) ($cartItem?->quantity ?? 0);
+
+        if ($newQuantity > $availableStock) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'quantity' => "Only {$availableStock} available for this selection.",
+            ]);
+        }
 
         if ($cartItem) {
             $cartItem->increment('quantity', $quantity, ['price' => $price]);

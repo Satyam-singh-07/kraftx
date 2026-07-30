@@ -10,6 +10,7 @@ use Exception;
 
 use Intervention\Image\Laravel\Facades\Image;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 
 class ProductService
 {
@@ -73,9 +74,8 @@ class ProductService
                 $this->productRepository->syncRelations($product, 'tags', $dto->tag_ids);
             }
 
-            if (!empty($dto->variants)) {
-                $this->productRepository->createVariants($product, $dto->variants);
-            }
+            $filesToDelete = [];
+            $this->productRepository->createVariants($product, $this->prepareVariants($product, $dto->variants, $filesToDelete));
 
             if (!empty($dto->seo_meta)) {
                 $seoData = [
@@ -175,9 +175,7 @@ class ProductService
             $this->productRepository->syncRelations($product, 'collections', $dto->collection_ids);
             $this->productRepository->syncRelations($product, 'tags', $dto->tag_ids);
 
-            if (!empty($dto->variants)) {
-                $this->productRepository->createVariants($product, $dto->variants);
-            }
+            $this->productRepository->createVariants($product, $this->prepareVariants($product, $dto->variants, $filesToDelete));
 
             if (!empty($dto->seo_meta)) {
                 $seoData = [
@@ -216,6 +214,53 @@ class ProductService
             Log::error('Product update failed in ProductService: ' . $e->getMessage());
             throw $e;
         }
+    }
+
+    protected function prepareVariants($product, array $variants, array &$filesToDelete): array
+    {
+        $existingVariants = $product->variants()->get()->keyBy('id');
+        $incomingIds = collect($variants)->pluck('id')->filter()->map(fn ($id) => (int) $id)->all();
+
+        $existingVariants
+            ->reject(fn ($variant) => in_array((int) $variant->id, $incomingIds, true))
+            ->each(function ($variant) use (&$filesToDelete) {
+                foreach ((array) $variant->image_paths as $path) {
+                    if ($path) {
+                        $filesToDelete[] = $path;
+                    }
+                }
+            });
+
+        return collect($variants)
+            ->map(function (array $variant) use ($product, $existingVariants, &$filesToDelete) {
+                $existing = ! empty($variant['id']) ? $existingVariants->get((int) $variant['id']) : null;
+                $imagePaths = $existing?->image_paths ?? $variant['existing_image_paths'] ?? [];
+
+                if (! empty($variant['images'])) {
+                    foreach ((array) $imagePaths as $path) {
+                        if ($path) {
+                            $filesToDelete[] = $path;
+                        }
+                    }
+
+                    $imagePaths = collect($variant['images'])
+                        ->filter(fn ($image) => $image instanceof UploadedFile)
+                        ->map(fn (UploadedFile $image) => $this->productImageOptimizer->storeVariantUpload($product, $image))
+                        ->values()
+                        ->all();
+                }
+
+                return [
+                    'id' => $variant['id'] ?? null,
+                    'size' => $variant['size'],
+                    'color' => $variant['color'],
+                    'price' => $variant['price'],
+                    'stock' => $variant['stock'],
+                    'sku' => $variant['sku'],
+                    'image_paths' => $imagePaths,
+                ];
+            })
+            ->all();
     }
 
     protected function uploadSimpleImage($imageFile)

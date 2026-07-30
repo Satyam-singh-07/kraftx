@@ -72,7 +72,12 @@
                                     <tr>
                                         <td style="padding:12px 0; border-bottom:1px solid #eee6dc;">
                                             <div style="font-size:15px; line-height:22px; font-weight:700;">{{ $item->name }}</div>
-                                            <div style="font-size:13px; line-height:20px; color:#7b7168;">{{ $item->sku }} · Qty {{ $item->quantity }}</div>
+                                            <div style="font-size:13px; line-height:20px; color:#7b7168;">
+                                                @if($item->variant)
+                                                    {{ collect([$item->variant->color, $item->variant->size])->filter()->implode(' / ') }} ·
+                                                @endif
+                                                {{ $item->sku }} · Qty {{ $item->quantity }}
+                                            </div>
                                         </td>
                                         <td align="right" style="padding:12px 0; border-bottom:1px solid #eee6dc; font-size:15px; font-weight:700; white-space:nowrap;">
                                             ₹{{ number_format($item->total, 2) }}

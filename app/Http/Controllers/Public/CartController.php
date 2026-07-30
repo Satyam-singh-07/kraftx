@@ -43,36 +43,48 @@ class CartController extends Controller
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity'   => 'required|integer|min:1',
+            'variant_id' => 'nullable|integer|exists:product_variants,id',
             'color'      => 'nullable|string',
             'size'       => 'nullable|string',
         ]);
 
-        $product = Product::findOrFail($request->product_id);
-        if ($product->stock <= 0) {
-            throw ValidationException::withMessages([
-                'product_id' => 'This product is currently out of stock.',
-            ]);
-        }
+        $product = Product::with('variants')->whereKey($request->product_id)->where('status', true)->firstOrFail();
+        $quantity = (int) $request->quantity;
+        $variant = null;
 
-        $variantId = null;
-        if ($request->color || $request->size) {
-            $query = ProductVariant::where('product_id', $request->product_id);
+        if ($request->filled('variant_id')) {
+            $variant = ProductVariant::where('product_id', $product->id)->whereKey($request->integer('variant_id'))->first();
+        } elseif ($request->color || $request->size) {
+            $query = ProductVariant::where('product_id', $product->id);
             if ($request->color) {
                 $query->where('color', $request->color);
             }
             if ($request->size) {
                 $query->where('size', $request->size);
             }
-            $variantId = $query->first()?->id;
+            $variant = $query->first();
+        }
+
+        $availableStock = $variant ? (int) $variant->stock : (int) $product->stock;
+        if ($availableStock <= 0) {
+            throw ValidationException::withMessages([
+                'product_id' => 'This selection is currently out of stock.',
+            ]);
+        }
+
+        if ($quantity > $availableStock) {
+            throw ValidationException::withMessages([
+                'quantity' => "Only {$availableStock} available for this selection.",
+            ]);
         }
 
         $cart = $this->cartService->getOrCreateCart($request);
-        $this->cartService->addItem($cart, $request->product_id, $request->quantity, $variantId);
+        $this->cartService->addItem($cart, $product->id, $quantity, $variant?->id);
 
         return response()->json([
             'success' => true,
             'message' => 'Product added to cart successfully!',
-            'cart_count' => $cart->items->sum('quantity'),
+            'cart_count' => $cart->fresh('items')->items->sum('quantity'),
         ]);
     }
 
@@ -87,6 +99,14 @@ class CartController extends Controller
         ]);
 
         $cartItem = CartItem::findOrFail($request->item_id);
+        $cartItem->load(['product', 'variant']);
+        $availableStock = $cartItem->variant ? (int) $cartItem->variant->stock : (int) $cartItem->product->stock;
+        if ((int) $request->quantity > $availableStock) {
+            throw ValidationException::withMessages([
+                'quantity' => "Only {$availableStock} available for this selection.",
+            ]);
+        }
+
         $cartItem->update(['quantity' => $request->quantity]);
 
         $cart = $cartItem->cart;

@@ -21,6 +21,9 @@
                             <div class="order_prd_item">
                                 <div class="prd__info">
                                     <p class="name fw-medium">{{ $item->name }}</p>
+                                    @if($item->variant)
+                                        <p class="type cl-text-2 mb-0">Variation: {{ collect([$item->variant->color, $item->variant->size])->filter()->implode(' / ') }}</p>
+                                    @endif
                                     <p class="type cl-text-2">{{ $item->sku }}</p>
                                 </div>
                                 <div class="prd__price fw-medium">

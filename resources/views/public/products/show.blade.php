@@ -3,6 +3,21 @@
     @php
         $colors = $product->variants->whereNotNull('color')->unique('color');
         $sizes = $product->variants->whereNotNull('size')->unique('size');
+        $hasVariants = $product->variants->isNotEmpty();
+        $purchasableStock = max((int) $product->stock, (int) $product->variants->sum('stock'));
+        $variantPayload = $product->variants->map(fn ($variant) => [
+            'id' => $variant->id,
+            'size' => $variant->size,
+            'color' => $variant->color,
+            'price' => $variant->price !== null ? (float) $variant->price : (float) ($product->sale_price ?? $product->price),
+            'stock' => (int) $variant->stock,
+            'sku' => $variant->sku,
+            'images' => collect($variant->image_paths ?? [])->map(fn ($path) => [
+                'thumb' => \App\Models\ProductImage::urlForVariant($path, 'thumb'),
+                'medium' => \App\Models\ProductImage::urlForVariant($path, 'medium'),
+                'zoom' => \App\Models\ProductImage::urlForVariant($path, 'zoom'),
+            ])->values(),
+        ])->values();
     @endphp
 
     <x-slot name="styles">
@@ -141,6 +156,101 @@
             }
             .review-modal .modal-body {
                 padding: 24px;
+            }
+            .variant-picker-values .is-disabled {
+                opacity: .35;
+                cursor: not-allowed;
+                pointer-events: none;
+            }
+            .variant-stock-message {
+                margin: 10px 0 0;
+                font-size: 13px;
+                color: #666;
+            }
+            .variant-stock-message.is-out {
+                color: #b42318;
+            }
+            .product-option-list {
+                display: grid;
+                gap: 10px;
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            }
+            .product-option-heading {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+            .product-option-heading .option-hint {
+                color: #777;
+                font-size: 12px;
+            }
+            .product-option-btn {
+                border: 1px solid #dedede;
+                border-radius: 12px;
+                background: #fff;
+                padding: 9px;
+                min-height: 78px;
+                text-align: left;
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                transition: border-color .18s ease, box-shadow .18s ease, opacity .18s ease, transform .18s ease;
+            }
+            .product-option-btn.active {
+                border-color: #111;
+                box-shadow: 0 0 0 2px rgba(17, 17, 17, .08), 0 5px 14px rgba(17, 17, 17, .08);
+                transform: translateY(-1px);
+            }
+            .product-option-btn.is-disabled {
+                opacity: .45;
+                cursor: not-allowed;
+            }
+            .product-option-thumb {
+                width: 44px;
+                height: 54px;
+                border-radius: 8px;
+                object-fit: cover;
+                background: #f4f4f4;
+                flex: 0 0 auto;
+            }
+            .product-option-title {
+                display: block;
+                font-size: 13px;
+                font-weight: 700;
+                color: #111;
+                line-height: 1.25;
+            }
+            .product-option-check {
+                display: block;
+                width: 18px;
+                height: 18px;
+                margin-left: auto;
+                border: 1px solid #d5d5d5;
+                border-radius: 50%;
+                flex: 0 0 auto;
+                position: relative;
+            }
+            .product-option-btn.active .product-option-check {
+                border-color: #111;
+                background: #111;
+            }
+            .product-option-btn.active .product-option-check::after {
+                content: '';
+                position: absolute;
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: #fff;
+                inset: 5px;
+            }
+            .product-option-meta {
+                display: block;
+                margin-top: 3px;
+                font-size: 12px;
+                color: #777;
+                line-height: 1.3;
             }
         </style>
     </x-slot>
@@ -308,48 +418,49 @@
                                 </div>
                                 <div class="br-line"></div>
                                 <div class="tf-product-variant">
-                                    @if($colors->isNotEmpty())
-                                    <div class="variant-picker-item variant-color">
+                                    @if($hasVariants)
+                                    <div class="variant-picker-item product-options">
                                         <div class="variant-picker-label">
                                             <div>
-                                                Colors:
-                                                <span class="variant-picker-label-value value-currentColor text-capitalize fw-medium">{{ $colors->first()->color }}</span>
+                                                Choose an option
+                                                <span class="variant-picker-label-value value-currentOption text-capitalize fw-medium">Standard</span>
                                             </div>
+                                            <span class="option-hint">Select a style</span>
                                         </div>
-                                        <div class="variant-picker-values">
-                                            @foreach($colors as $variant)
-                                            <div class="hover-tooltip tooltip-bot color-btn style-image {{ $loop->first ? 'active' : '' }}"
-                                                data-color="{{ $variant->color }}">
-                                                <div class="img">
-                                                    <img loading="lazy" width="60" height="60"
-                                                        src="{{ $variant->image_path ? \App\Models\ProductImage::urlForVariant($variant->image_path, 'thumb') : ($product->images->first() ? $product->images->first()->thumb_url : asset('assets/images/product/product-placeholder.jpg')) }}"
-                                                        alt="{{ $variant->color }}">
-                                                </div>
-                                                <span class="tooltip">{{ $variant->color }}</span>
-                                            </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                    @endif
-
-                                    @if($sizes->isNotEmpty())
-                                    <div class="variant-picker-item variant-size">
-                                        <div class="variant-picker-label">
-                                            <div>
-                                                Size:
-                                                <span class="variant-picker-label-value value-currentSize text-capitalize fw-medium">{{ $sizes->first()->size }}</span>
-                                            </div>
-                                        </div>
-                                        <div class="variant-picker-values">
-                                            @foreach($sizes as $variant)
-                                            <span class="size-btn {{ $loop->first ? 'active' : '' }}" data-size="{{ $variant->size }}">{{ $variant->size }}</span>
+                                        <div class="product-option-list">
+                                            @php
+                                                $baseImage = $product->images->first()?->thumb_url ?: asset('assets/images/product/product-placeholder.jpg');
+                                            @endphp
+                                            <button type="button" class="product-option-btn active {{ $product->stock <= 0 ? 'is-disabled' : '' }}" data-option="standard" @disabled($product->stock <= 0)>
+                                                <img class="product-option-thumb" src="{{ $baseImage }}" alt="{{ $product->name }}">
+                                                <span>
+                                                    <span class="product-option-title">Standard</span>
+                                                    <span class="product-option-meta">₹{{ number_format($product->sale_price ?? $product->price, 0) }} · {{ $product->stock > 0 ? $product->stock.' in stock' : 'Out of stock' }}</span>
+                                                </span>
+                                                <span class="product-option-check" aria-hidden="true"></span>
+                                            </button>
+                                            @foreach($product->variants as $variant)
+                                                @php
+                                                    $variantLabel = collect([$variant->color, $variant->size])->filter()->implode(' / ') ?: 'Option '.$loop->iteration;
+                                                    $variantImage = $variant->image_path
+                                                        ? \App\Models\ProductImage::urlForVariant($variant->image_path, 'thumb')
+                                                        : $baseImage;
+                                                @endphp
+                                                <button type="button" class="product-option-btn {{ $variant->stock <= 0 ? 'is-disabled' : '' }}" data-variant-id="{{ $variant->id }}" @disabled($variant->stock <= 0)>
+                                                    <img class="product-option-thumb" src="{{ $variantImage }}" alt="{{ $variantLabel }}">
+                                                    <span>
+                                                    <span class="product-option-title">{{ $variantLabel }}</span>
+                                                    <span class="product-option-meta">₹{{ number_format($variant->price ?? $product->sale_price ?? $product->price, 0) }} · {{ $variant->stock > 0 ? $variant->stock.' in stock' : 'Out of stock' }}</span>
+                                                </span>
+                                                <span class="product-option-check" aria-hidden="true"></span>
+                                            </button>
                                             @endforeach
                                         </div>
                                     </div>
                                     @endif
 
                                     <div class="tf-product-total-quantity" id="main-quantity-container" data-base-price="{{ $product->sale_price ?? $product->price }}">
-                                        @if($product->stock > 0)
+                                        @if($purchasableStock > 0)
                                             <p class="">Quantity:</p>
                                             <div class="group-action">
                                                 <div class="wg-quantity">
@@ -363,6 +474,7 @@
                                                     <span class="price-add d-none d-sm-block d-md-none d-lg-block">₹{{ number_format($product->sale_price ?? $product->price, 0) }}</span>
                                                 </button>
                                             </div>
+                                            <p id="variant-stock-message" class="variant-stock-message"></p>
                                             <button type="button" id="buy-now-btn" class="tf-btn type-xl btn-primary animate-btn w-100 mb-10">
                                                 Buy It Now
                                             </button>
@@ -508,7 +620,7 @@
                             <div class="prd_info d-none d-lg-grid">
                                 <p class="name__prd fw-medium lh-24">{{ $product->name }}</p>
                                 <p class="distribute__prd text-caption-01 cl-text-3">
-                                    {{ $colors->first()->color ?? '' }}{{ $sizes->isNotEmpty() ? ', ' . $sizes->first()->size : '' }}
+                                    <span id="sticky-selected-variant">Standard</span>
                                 </p>
                                 <div class="d-flex align-items-center gap-10">
                                     <p class="price__prd fw-semibold">₹{{ number_format($product->sale_price ?? $product->price, 0) }}</p>
@@ -521,19 +633,7 @@
                     </div>
                     <div class="tf-sticky-atc-infos" id="sticky-quantity-container" data-base-price="{{ $product->sale_price ?? $product->price }}">
                         <div class="d-flex align-items-center gap-10">
-                            @if($product->stock > 0 && $sizes->isNotEmpty())
-                            <div class="tf-sticky-atc-variant-price">
-                                <p class="title">Size:</p>
-                                <div class="tf-select style-2">
-                                    <select id="sticky-size-select">
-                                        @foreach($sizes as $variant)
-                                        <option value="{{ $variant->size }}">{{ $variant->size }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            @endif
-                            @if($product->stock > 0)
+                            @if($purchasableStock > 0)
                                 <div class="tf-product-info-quantity">
                                     <p class="title">Quantity:</p>
                                     <div class="wg-quantity style-2">
@@ -804,17 +904,181 @@
                 // Price Update Logic
                 const mainQtyContainer = document.getElementById('main-quantity-container');
                 const stickyQtyContainer = document.getElementById('sticky-quantity-container');
+                const variants = @json($variantPayload);
+                const hasVariants = variants.length > 0;
                 const basePrice = parseFloat(mainQtyContainer?.dataset.basePrice || 0);
+                const mainSwiperEl = document.querySelector('.tf-product-media-main');
+                const thumbSwiperEl = document.querySelector('.tf-product-media-thumbs');
+                const mainWrapper = mainSwiperEl?.querySelector('.swiper-wrapper');
+                const thumbWrapper = thumbSwiperEl?.querySelector('.swiper-wrapper');
+                let mainSlides = Array.from(document.querySelectorAll('.tf-product-media-main .swiper-slide'));
+                let thumbSlides = Array.from(document.querySelectorAll('.tf-product-media-thumbs .swiper-slide'));
+                const stickyProductImage = document.querySelector('.tf-sticky-atc-product .prd_img img');
+                const originalGallery = mainSlides.map((slide, index) => {
+                    const link = slide.querySelector('a.item');
+                    const image = link?.querySelector('img');
+                    const thumb = thumbSlides[index]?.querySelector('img');
+
+                    return {
+                        slide,
+                        link,
+                        image,
+                        thumb,
+                        src: image?.getAttribute('src'),
+                        srcset: image?.getAttribute('srcset'),
+                        zoom: image?.getAttribute('data-zoom'),
+                        href: link?.getAttribute('href'),
+                        thumbSrc: thumb?.getAttribute('src'),
+                        display: slide.style.display || '',
+                        thumbDisplay: thumbSlides[index]?.style.display || '',
+                    };
+                });
+                const originalStickyImage = stickyProductImage?.getAttribute('src');
+                let selectedVariantId = null;
+                const productName = @json($product->name);
                 
                 function formatPrice(amount) {
                     return '₹' + Math.round(amount).toLocaleString('en-IN');
+                }
+
+                function currentVariant() {
+                    if (!selectedVariantId) return null;
+                    return variants.find(variant => Number(variant.id) === Number(selectedVariantId)) || null;
+                }
+
+                function currentUnitPrice() {
+                    return Number(currentVariant()?.price ?? basePrice);
+                }
+
+                function selectedVariantText() {
+                    const variant = currentVariant();
+                    if (!variant) return 'Standard';
+
+                    return [variant.color, variant.size].filter(Boolean).join(' / ') || 'Option';
+                }
+
+                function createThumbSlide() {
+                    const slide = document.createElement('div');
+                    slide.className = 'swiper-slide stagger-item';
+                    const item = document.createElement('div');
+                    item.className = 'item';
+                    const image = document.createElement('img');
+                    image.loading = 'lazy';
+                    image.width = 82;
+                    image.height = 110;
+                    image.alt = productName;
+                    item.appendChild(image);
+                    slide.appendChild(item);
+                    return slide;
+                }
+
+                function ensureGallerySlots(count) {
+                    if (!mainWrapper || mainSlides.length === 0) return;
+
+                    while (mainSlides.length < count) {
+                        const clonedMain = mainSlides[mainSlides.length - 1].cloneNode(true);
+                        clonedMain.style.display = '';
+                        mainWrapper.appendChild(clonedMain);
+                        mainSlides = Array.from(mainWrapper.querySelectorAll('.swiper-slide'));
+                    }
+
+                    if (!thumbWrapper) return;
+
+                    while (thumbSlides.length < count) {
+                        const clonedThumb = thumbSlides.length > 0
+                            ? thumbSlides[thumbSlides.length - 1].cloneNode(true)
+                            : createThumbSlide();
+                        clonedThumb.style.display = '';
+                        thumbWrapper.appendChild(clonedThumb);
+                        thumbSlides = Array.from(thumbWrapper.querySelectorAll('.swiper-slide'));
+                    }
+                }
+
+                function applyGalleryImages(variant) {
+                    const images = variant?.images || [];
+                    const usingVariantImages = images.length > 0;
+                    ensureGallerySlots(Math.max(originalGallery.length, images.length));
+
+                    mainSlides.forEach((slide, index) => {
+                        const entry = originalGallery[index];
+                        const replacement = images[index];
+                        const visible = usingVariantImages ? Boolean(replacement) : Boolean(entry);
+                        const link = slide.querySelector('a.item');
+                        const image = link?.querySelector('img');
+                        const thumb = thumbSlides[index]?.querySelector('img');
+
+                        slide.style.display = visible ? (entry?.display || '') : 'none';
+                        if (thumbSlides[index]) thumbSlides[index].style.display = visible ? (entry?.thumbDisplay || '') : 'none';
+
+                        if (!image) return;
+
+                        const src = replacement?.medium || entry?.src;
+                        const zoom = replacement?.zoom || entry?.zoom || src;
+                        const thumbSrc = replacement?.thumb || entry?.thumbSrc || src;
+                        if (!src) return;
+
+                        image.src = src;
+                        image.srcset = replacement
+                            ? `${replacement.thumb} 400w, ${replacement.medium} 900w, ${replacement.zoom} 1600w`
+                            : (entry?.srcset || src);
+                        image.dataset.zoom = zoom;
+                        if (link) link.href = zoom;
+                        if (thumb) thumb.src = thumbSrc;
+                    });
+
+                    if (stickyProductImage) {
+                        stickyProductImage.src = images[0]?.thumb || originalStickyImage || stickyProductImage.src;
+                    }
+
+                    [mainSwiperEl, thumbSwiperEl].filter(Boolean).forEach(element => {
+                        if (element.swiper) element.swiper.update();
+                    });
+                }
+
+                function syncVariantControls() {
+                    const optionLabel = document.querySelector('.value-currentOption');
+                    const stickyVariant = document.getElementById('sticky-selected-variant');
+                    const stockMessage = document.getElementById('variant-stock-message');
+                    const selected = currentVariant();
+                    const stock = selected ? Number(selected.stock || 0) : {{ (int) $product->stock }};
+                    const mainQty = document.querySelector('input[name="quantity"]');
+                    const stickyQty = document.querySelector('input[name="quantity_sticky"]');
+                    [mainQty, stickyQty].forEach(input => {
+                        if (!input || stock <= 0) return;
+                        input.value = Math.max(1, Math.min(parseInt(input.value) || 1, stock));
+                    });
+
+                    document.querySelectorAll('.product-option-btn').forEach(button => {
+                        const isStandard = button.dataset.option === 'standard';
+                        const isActive = isStandard ? selectedVariantId === null : Number(button.dataset.variantId) === Number(selectedVariantId);
+                        button.classList.toggle('active', isActive);
+                    });
+
+                    if (optionLabel) optionLabel.textContent = selectedVariantText();
+                    if (stickyVariant) stickyVariant.textContent = selectedVariantText();
+                    applyGalleryImages(selected);
+                    document.querySelectorAll('.product-infor-price h4, .price__prd').forEach(el => {
+                        el.textContent = formatPrice(currentUnitPrice());
+                    });
+                    if (stockMessage) {
+                        stockMessage.textContent = stock > 0 ? `${stock} available for ${selectedVariantText()}` : 'This selection is currently out of stock';
+                        stockMessage.classList.toggle('is-out', stock <= 0);
+                    }
+
+                    [addToCartBtn, buyNowBtn, stickyAddToCartBtn].forEach(button => {
+                        if (!button) return;
+                        button.disabled = stock <= 0;
+                    });
+
+                    updatePrice();
+                    updateStickyPrice();
                 }
 
                 function updatePrice() {
                     const quantityInput = document.querySelector('input[name="quantity"]');
                     if (!quantityInput) return;
                     const quantity = parseInt(quantityInput.value) || 1;
-                    const totalPrice = basePrice * quantity;
+                    const totalPrice = currentUnitPrice() * quantity;
                     const priceDisplay = document.querySelector('#add-to-cart-btn .price-add');
                     if (priceDisplay) {
                         priceDisplay.textContent = formatPrice(totalPrice);
@@ -825,11 +1089,19 @@
                     const quantityInput = document.querySelector('input[name="quantity_sticky"]');
                     if (!quantityInput) return;
                     const quantity = parseInt(quantityInput.value) || 1;
-                    const totalPrice = basePrice * quantity;
+                    const totalPrice = currentUnitPrice() * quantity;
                     if (stickyAddToCartBtn) {
                         stickyAddToCartBtn.textContent = `Add To Cart - ${formatPrice(totalPrice)}`;
                     }
                 }
+
+                document.querySelectorAll('.product-option-btn').forEach(button => {
+                    button.addEventListener('click', () => {
+                        if (button.classList.contains('is-disabled')) return;
+                        selectedVariantId = button.dataset.option === 'standard' ? null : button.dataset.variantId;
+                        syncVariantControls();
+                    });
+                });
 
                 // Main Quantity Listeners
                 const mainDecrease = document.querySelector('#main-quantity-container .btn-decrease');
@@ -872,8 +1144,7 @@
                 }
 
                 // Initial update
-                updatePrice();
-                updateStickyPrice();
+                syncVariantControls();
 
                 // Live viewing count update (realistic fluctuation)
                 const viewingCountEl = document.getElementById('viewing-count');
@@ -902,17 +1173,11 @@
                         ? document.querySelector('input[name="quantity_sticky"]').value 
                         : document.querySelector('input[name="quantity"]').value;
                     
-                    // Selected color
-                    const activeColorBtn = document.querySelector('.variant-color .color-btn.active');
-                    const color = activeColorBtn ? activeColorBtn.getAttribute('data-color') : null;
-                    
-                    // Selected size
-                    let size = null;
-                    if (isSticky) {
-                        size = document.getElementById('sticky-size-select')?.value;
-                    } else {
-                        const activeSizeBtn = document.querySelector('.variant-size .size-btn.active');
-                        size = activeSizeBtn ? activeSizeBtn.getAttribute('data-size') : null;
+                    const variant = currentVariant();
+                    const availableStock = variant ? Number(variant.stock || 0) : {{ (int) $product->stock }};
+                    if (availableStock <= 0) {
+                        alert('This selection is currently out of stock.');
+                        return;
                     }
 
                     fetch('{{ route('cart.add') }}', {
@@ -925,11 +1190,19 @@
                         body: JSON.stringify({
                             product_id: productId,
                             quantity: quantity,
-                            color: color,
-                            size: size
+                            variant_id: variant?.id || null,
+                            color: variant?.color || null,
+                            size: variant?.size || null
                         })
                     })
-                    .then(response => response.json())
+                    .then(async response => {
+                        const data = await response.json();
+                        if (!response.ok) {
+                            const firstError = data.errors ? Object.values(data.errors)[0]?.[0] : null;
+                            throw new Error(firstError || data.message || 'Something went wrong. Please try again.');
+                        }
+                        return data;
+                    })
                     .then(data => {
                         if (data.success) {
                             if (isBuyNow) {
@@ -952,7 +1225,7 @@
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        alert('An error occurred. Please try again.');
+                        alert(error.message || 'An error occurred. Please try again.');
                         if (isBuyNow) {
                             buyNowBtn.disabled = false;
                             buyNowBtn.textContent = 'Buy It Now';

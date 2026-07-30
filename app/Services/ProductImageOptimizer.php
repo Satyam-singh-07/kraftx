@@ -28,6 +28,16 @@ class ProductImageOptimizer
         return "{$directory}/zoom.webp";
     }
 
+    public function storeVariantUpload(Product $product, UploadedFile $file): string
+    {
+        $directory = "products/{$product->id}/variants/" . str_replace('.', '', uniqid('', true));
+
+        $this->storeVariants(Image::decode($file), $directory);
+        $this->deleteTemporaryUpload($file);
+
+        return "{$directory}/zoom.webp";
+    }
+
     public function optimizeExisting(ProductImage $productImage): bool
     {
         $sourcePath = $productImage->image_path;

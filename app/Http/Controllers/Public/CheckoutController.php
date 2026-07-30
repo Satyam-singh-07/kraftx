@@ -341,7 +341,7 @@ class CheckoutController extends Controller
                     'title' => 'Order Placed | ' . config('app.name', 'KraftX'),
                     'robots' => 'noindex,follow',
                 ],
-                'order' => $order->load('items.product'),
+                'order' => $order->load(['items.product', 'items.variant']),
             ]);
         }
 
@@ -350,7 +350,7 @@ class CheckoutController extends Controller
                 'title' => 'Complete Payment | ' . config('app.name', 'KraftX'),
                 'robots' => 'noindex,follow',
             ],
-            'order' => $order->load('items.product'),
+            'order' => $order->load(['items.product', 'items.variant']),
             'razorpayKey' => config('services.razorpay.key'),
         ]);
     }
@@ -359,7 +359,7 @@ class CheckoutController extends Controller
     {
         $this->authorizeOrderAccess($order);
 
-        $order->load('items.product');
+        $order->load(['items.product', 'items.variant']);
 
         return view('checkout-success', [
             'seo' => [

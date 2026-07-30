@@ -287,14 +287,20 @@
 
                         @foreach($order->items as $item)
                             @php
-                                $imagePath = $item->product?->images?->first()?->image_path;
-                                $imageUrl = $imagePath ? asset('storage/' . $imagePath) : asset('assets/images/product/product-placeholder.jpg');
+                                $imageUrl = $item->variant?->image_path
+                                    ? \App\Models\ProductImage::urlForVariant($item->variant->image_path, 'thumb')
+                                    : ($item->product?->images?->first()?->image_path ? asset('storage/' . $item->product->images->first()->image_path) : asset('assets/images/product/product-placeholder.jpg'));
                             @endphp
                             <div class="order-item">
                                 <img class="order-thumb" src="{{ $imageUrl }}" alt="{{ $item->name }}">
                                 <div>
                                     <div class="order-item-name">{{ $item->name }}</div>
-                                    <p class="order-item-meta">{{ $item->sku }} · Qty {{ $item->quantity }}</p>
+                                    <p class="order-item-meta">
+                                        @if($item->variant)
+                                            {{ collect([$item->variant->color, $item->variant->size])->filter()->implode(' / ') }} ·
+                                        @endif
+                                        {{ $item->sku }} · Qty {{ $item->quantity }}
+                                    </p>
                                 </div>
                                 <strong class="order-item-price">₹{{ number_format($item->total, 2) }}</strong>
                             </div>

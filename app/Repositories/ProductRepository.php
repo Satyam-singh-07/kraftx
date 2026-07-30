@@ -3,8 +3,10 @@
 namespace App\Repositories;
 
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
+use RuntimeException;
 
 class ProductRepository extends BaseRepository implements ProductRepositoryInterface
 {
@@ -84,8 +86,31 @@ class ProductRepository extends BaseRepository implements ProductRepositoryInter
 
     public function createVariants(Product $product, array $variants): void
     {
-        $product->variants()->delete(); // Reset existing
+        $skus = collect($variants)->pluck('sku')->filter()->unique()->values();
+        if ($skus->isNotEmpty()) {
+            $conflict = ProductVariant::whereIn('sku', $skus)
+                ->where('product_id', '!=', $product->id)
+                ->first();
+
+            if ($conflict) {
+                throw new RuntimeException("Variation SKU '{$conflict->sku}' is already used by another product.");
+            }
+        }
+
+        $incomingIds = collect($variants)->pluck('id')->filter()->map(fn ($id) => (int) $id)->all();
+        $product->variants()
+            ->when($incomingIds !== [], fn ($query) => $query->whereNotIn('id', $incomingIds))
+            ->delete();
+
         foreach ($variants as $variant) {
+            $id = $variant['id'] ?? null;
+            unset($variant['id']);
+
+            if ($id && $product->variants()->whereKey($id)->exists()) {
+                $product->variants()->whereKey($id)->update($variant);
+                continue;
+            }
+
             $product->variants()->create($variant);
         }
     }

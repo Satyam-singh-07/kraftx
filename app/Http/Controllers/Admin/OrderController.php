@@ -79,6 +79,7 @@ class OrderController extends Controller
     {
         $order = Order::with([
             'items.product',
+            'items.variant',
             'user',
             'shipments.packages',
             'shipments.events' => fn ($query) => $query->latest('event_time')->latest(),

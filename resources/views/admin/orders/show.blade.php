@@ -66,13 +66,20 @@
                                 @foreach($order->items as $item)
                                 <tr>
                                     <td class="px-4 py-4 flex items-center space-x-3">
-                                        @if($item->product && $item->product->primary_image)
+                                        @if($item->variant?->image_path)
+                                            <img src="{{ \App\Models\ProductImage::urlForVariant($item->variant->image_path, 'thumb') }}" class="w-10 h-10 rounded object-cover">
+                                        @elseif($item->product && $item->product->primary_image)
                                             <img src="{{ asset('storage/' . $item->product->primary_image->image_path) }}" class="w-10 h-10 rounded object-cover">
                                         @else
                                             <div class="w-10 h-10 rounded bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 text-[10px]">No Img</div>
                                         @endif
                                         <div>
                                             <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $item->name }}</div>
+                                            @if($item->variant)
+                                                <div class="text-xs text-gray-500">
+                                                    Variation: {{ collect([$item->variant->color, $item->variant->size])->filter()->implode(' / ') }}
+                                                </div>
+                                            @endif
                                             <div class="text-xs text-gray-500">SKU: {{ $item->sku }}</div>
                                         </div>
                                     </td>
