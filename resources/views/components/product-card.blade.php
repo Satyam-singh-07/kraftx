@@ -48,9 +48,9 @@
                 </a>
             </li> --}}
         </ul>
-        @if(isset($product['badges']))
+        @if(!empty($product['badges']))
             <ul class="product-badge_list">
-                @foreach($product['badges'] as $badge)
+                @foreach(($product['badges'] ?? []) as $badge)
                     <li class="product-badge_item text-caption-01 {{ $badge['type'] }}">{{ $badge['text'] }}</li>
                 @endforeach
             </ul>
@@ -58,7 +58,7 @@
         @if($product['hasSize'] ?? false)
             <div class="variant-box">
                 <ul class="product-size_list">
-                    @foreach($product['sizes'] as $size)
+                    @foreach(($product['sizes'] ?? []) as $size)
                         <li class="size-item text-caption-01">{{ $size }}</li>
                     @endforeach
                 </ul>
@@ -109,14 +109,14 @@
                 <span class="price-old text-caption-01 cl-text-3">{{ $oldPrice }}</span>
             @endif
         </div>
-        @if(isset($product['colors']))
+        @if(!empty($product['colors']))
             <ul class="product-color_list">
-                @foreach($product['colors'] as $color)
+                @foreach(($product['colors'] ?? []) as $color)
                     <li class="product-color-item color-swatch hover-tooltip tooltip-bot {{ $loop->first ? 'active' : '' }}">
-                        <span class="tooltip color-filter">{{ $color['name'] }}</span>
-                        <span class="swatch-value {{ $color['class'] }}"></span>
-                        <img src="{{ asset($color['image']) }}"
-                            data-src="{{ asset($color['image']) }}" alt="{{ $product['name'] }} in {{ $color['name'] }}">
+                        <span class="tooltip color-filter">{{ $color['name'] ?? '' }}</span>
+                        <span class="swatch-value {{ $color['class'] ?? '' }}"></span>
+                        <img src="{{ \App\Models\ProductImage::urlForVariant($color['image'] ?? $image, 'thumb') }}"
+                            data-src="{{ \App\Models\ProductImage::urlForVariant($color['image'] ?? $image, 'thumb') }}" alt="{{ $product['name'] }} in {{ $color['name'] ?? '' }}">
                     </li>
                 @endforeach
             </ul>
