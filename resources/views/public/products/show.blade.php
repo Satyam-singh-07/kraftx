@@ -186,7 +186,12 @@
             .product-option-list {
                 display: grid;
                 gap: 10px;
-                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                grid-auto-flow: column;
+                grid-auto-columns: minmax(116px, 132px);
+                grid-template-columns: none;
+                overflow-x: auto;
+                padding: 2px 2px 10px;
+                scrollbar-width: thin;
             }
             .product-option-heading {
                 display: flex;
@@ -201,19 +206,22 @@
             }
             .product-option-btn {
                 border: 1px solid #dedede;
-                border-radius: 12px;
+                border-radius: 9px;
                 background: #fff;
-                padding: 9px;
-                min-height: 78px;
+                padding: 6px;
+                min-height: 178px;
                 text-align: left;
                 display: flex;
-                gap: 10px;
-                align-items: center;
+                flex-direction: column;
+                gap: 5px;
+                align-items: stretch;
+                position: relative;
                 transition: border-color .18s ease, box-shadow .18s ease, opacity .18s ease, transform .18s ease;
             }
             .product-option-btn.active {
-                border-color: #111;
-                box-shadow: 0 0 0 2px rgba(17, 17, 17, .08), 0 5px 14px rgba(17, 17, 17, .08);
+                border: 2px solid #1677bd;
+                padding: 5px;
+                box-shadow: 0 0 0 1px rgba(22, 119, 189, .16);
                 transform: translateY(-1px);
             }
             .product-option-btn.is-disabled {
@@ -221,42 +229,73 @@
                 cursor: not-allowed;
             }
             .product-option-thumb {
-                width: 44px;
-                height: 54px;
-                border-radius: 8px;
+                width: 100%;
+                height: 102px;
+                border-radius: 6px;
                 object-fit: cover;
                 background: #f4f4f4;
-                flex: 0 0 auto;
+                display: block;
             }
             .product-option-title {
                 display: block;
+                font-size: 11px;
+                font-weight: 700;
+                color: #111;
+                line-height: 1.2;
+                min-height: 26px;
+                overflow: hidden;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+            }
+            .product-option-meta {
+                display: block;
+                margin-top: auto;
+                color: #111;
+                line-height: 1.2;
+            }
+            .product-option-price {
                 font-size: 13px;
                 font-weight: 700;
                 color: #111;
-                line-height: 1.25;
+            }
+            .product-option-mrp {
+                margin-left: 3px;
+                color: #777;
+                font-size: 10px;
+                text-decoration: line-through;
+            }
+            .product-option-discount {
+                display: block;
+                color: #16833b;
+                font-size: 10px;
+                font-weight: 700;
+                margin-top: 2px;
             }
             .product-option-check {
-                display: block;
-                width: 18px;
-                height: 18px;
-                margin-left: auto;
+                position: absolute;
+                top: 7px;
+                right: 7px;
+                width: 16px;
+                height: 16px;
                 border: 1px solid #d5d5d5;
                 border-radius: 50%;
-                flex: 0 0 auto;
-                position: relative;
+                background: rgba(255, 255, 255, .9);
             }
             .product-option-btn.active .product-option-check {
-                border-color: #111;
-                background: #111;
+                border-color: #1677bd;
+                background: #1677bd;
             }
             .product-option-btn.active .product-option-check::after {
                 content: '';
                 position: absolute;
-                width: 6px;
-                height: 6px;
-                border-radius: 50%;
-                background: #fff;
-                inset: 5px;
+                width: 5px;
+                height: 8px;
+                border-right: 2px solid #fff;
+                border-bottom: 2px solid #fff;
+                transform: rotate(45deg);
+                left: 5px;
+                top: 2px;
             }
             .product-option-meta {
                 display: block;
@@ -450,7 +489,13 @@
                                                 <img class="product-option-thumb" src="{{ $baseImage }}" alt="{{ $product->name }}">
                                                 <span>
                                                     <span class="product-option-title">{{ $product->name }}</span>
-                                                    <span class="product-option-meta">₹{{ number_format($product->sale_price ?? $product->price, 0) }} @if($product->sale_price && $product->price > 0) · {{ round((($product->price - $product->sale_price) / $product->price) * 100) }}% OFF @endif</span>
+                                                    <span class="product-option-meta">
+                                                        <span class="product-option-price">₹{{ number_format($product->sale_price ?? $product->price, 0) }}</span>
+                                                        @if($product->sale_price && $product->price > 0)
+                                                            <span class="product-option-mrp">₹{{ number_format($product->price, 0) }}</span>
+                                                            <span class="product-option-discount">{{ round((($product->price - $product->sale_price) / $product->price) * 100) }}% OFF</span>
+                                                        @endif
+                                                    </span>
                                                 </span>
                                                 <span class="product-option-check" aria-hidden="true"></span>
                                             </button>
@@ -463,9 +508,16 @@
                                                 <button type="button" class="product-option-btn {{ $option['stock'] <= 0 ? 'is-disabled' : '' }}" data-variant-id="{{ $option['id'] }}" data-linked-product-id="{{ $option['linked_product_id'] }}" @disabled($option['stock'] <= 0)>
                                                     <img class="product-option-thumb" src="{{ $optionImage }}" alt="{{ $option['name'] }}">
                                                     <span>
-                                                    <span class="product-option-title">{{ $option['name'] }}</span>
-                                                    <span class="product-option-meta">{{ $optionDetails }} · ₹{{ number_format($option['price'], 0) }} @if($option['discount_percent'] > 0) · {{ $option['discount_percent'] }}% OFF @endif</span>
-                                                </span>
+                                                        <span class="product-option-title">{{ $option['name'] }}</span>
+                                                        <span class="product-option-meta">
+                                                            <span class="product-option-price">₹{{ number_format($option['price'], 0) }}</span>
+                                                            @if($option['discount_percent'] > 0)
+                                                                <span class="product-option-mrp">₹{{ number_format($option['mrp'], 0) }}</span>
+                                                                <span class="product-option-discount">{{ $option['discount_percent'] }}% OFF</span>
+                                                            @endif
+                                                            <span class="d-block text-caption-02 cl-text-3">{{ $optionDetails }}</span>
+                                                        </span>
+                                                    </span>
                                                 <span class="product-option-check" aria-hidden="true"></span>
                                             </button>
                                             @endforeach
