@@ -67,9 +67,8 @@
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                                 @foreach($order->items as $item)
                                     @php
-                                        $imageUrl = $item->variant?->image_path
-                                            ? \App\Models\ProductImage::urlForVariant($item->variant->image_path, 'thumb')
-                                            : ($item->product?->images?->first()?->image_path ? asset('storage/' . $item->product->images->first()->image_path) : asset('assets/images/product/product-placeholder.jpg'));
+                                        $displayProduct = $item->linkedProduct ?: $item->product;
+                                        $imageUrl = $displayProduct?->images?->first()?->thumb_url ?: asset('assets/images/product/product-placeholder.jpg');
                                     @endphp
                                     <tr>
                                         <td style="padding:14px 0; border-bottom:1px solid #eee6dc;" width="76">

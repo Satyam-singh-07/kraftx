@@ -48,6 +48,7 @@ class OrderService
                 foreach ($dto->items as $item) {
                     $order->items()->create([
                         'product_id' => $item['product_id'],
+                        'linked_product_id' => $item['linked_product_id'] ?? null,
                         'variant_id' => $item['variant_id'] ?? null,
                         'sku' => $item['sku'],
                         'name' => $item['name'],

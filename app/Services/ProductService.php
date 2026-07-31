@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\DTOs\ProductDTO;
+use App\Models\ProductVariant;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -74,8 +75,8 @@ class ProductService
                 $this->productRepository->syncRelations($product, 'tags', $dto->tag_ids);
             }
 
-            $filesToDelete = [];
-            $this->productRepository->createVariants($product, $this->prepareVariants($product, $dto->variants, $filesToDelete));
+            $this->productRepository->createVariants($product, $this->prepareVariants($product, $dto->variants));
+            $this->syncReciprocalVariants($product->fresh(['variants']));
 
             if (!empty($dto->seo_meta)) {
                 $seoData = [
@@ -175,7 +176,8 @@ class ProductService
             $this->productRepository->syncRelations($product, 'collections', $dto->collection_ids);
             $this->productRepository->syncRelations($product, 'tags', $dto->tag_ids);
 
-            $this->productRepository->createVariants($product, $this->prepareVariants($product, $dto->variants, $filesToDelete));
+            $this->productRepository->createVariants($product, $this->prepareVariants($product, $dto->variants));
+            $this->syncReciprocalVariants($product->fresh(['variants']));
 
             if (!empty($dto->seo_meta)) {
                 $seoData = [
@@ -216,51 +218,98 @@ class ProductService
         }
     }
 
-    protected function prepareVariants($product, array $variants, array &$filesToDelete): array
+    protected function prepareVariants($product, array $variants): array
     {
-        $existingVariants = $product->variants()->get()->keyBy('id');
-        $incomingIds = collect($variants)->pluck('id')->filter()->map(fn ($id) => (int) $id)->all();
-
-        $existingVariants
-            ->reject(fn ($variant) => in_array((int) $variant->id, $incomingIds, true))
-            ->each(function ($variant) use (&$filesToDelete) {
-                foreach ((array) $variant->image_paths as $path) {
-                    if ($path) {
-                        $filesToDelete[] = $path;
-                    }
-                }
-            });
-
         return collect($variants)
-            ->map(function (array $variant) use ($product, $existingVariants, &$filesToDelete) {
-                $existing = ! empty($variant['id']) ? $existingVariants->get((int) $variant['id']) : null;
-                $imagePaths = $existing?->image_paths ?? $variant['existing_image_paths'] ?? [];
-
-                if (! empty($variant['images'])) {
-                    foreach ((array) $imagePaths as $path) {
-                        if ($path) {
-                            $filesToDelete[] = $path;
-                        }
-                    }
-
-                    $imagePaths = collect($variant['images'])
-                        ->filter(fn ($image) => $image instanceof UploadedFile)
-                        ->map(fn (UploadedFile $image) => $this->productImageOptimizer->storeVariantUpload($product, $image))
-                        ->values()
-                        ->all();
-                }
-
+            ->map(function (array $variant) {
                 return [
                     'id' => $variant['id'] ?? null,
                     'size' => $variant['size'],
                     'color' => $variant['color'],
-                    'price' => $variant['price'],
-                    'stock' => $variant['stock'],
-                    'sku' => $variant['sku'],
-                    'image_paths' => $imagePaths,
+                    'items_count' => $variant['items_count'],
+                    'linked_skus' => array_values(array_unique($variant['linked_skus'])),
                 ];
             })
             ->all();
+    }
+
+    protected function syncReciprocalVariants($product): void
+    {
+        $sourceSku = trim((string) $product->sku);
+        if ($sourceSku === '') {
+            return;
+        }
+
+        $desired = [];
+        foreach ($product->variants as $variant) {
+            foreach ((array) $variant->linked_skus as $linkedSku) {
+                $linkedProduct = \App\Models\Product::where('sku', $linkedSku)->first();
+                if (! $linkedProduct || (int) $linkedProduct->id === (int) $product->id) {
+                    continue;
+                }
+
+                $key = implode('|', [
+                    $linkedProduct->id,
+                    mb_strtolower((string) $variant->color),
+                    mb_strtolower((string) $variant->size),
+                    (int) $variant->items_count,
+                ]);
+                $desired[$key] = true;
+
+                $reverse = $linkedProduct->variants()
+                    ->whereJsonContains('linked_skus', $sourceSku)
+                    ->get()
+                    ->first(fn ($candidate) => mb_strtolower((string) $candidate->color) === mb_strtolower((string) $variant->color)
+                        && mb_strtolower((string) $candidate->size) === mb_strtolower((string) $variant->size)
+                        && (int) $candidate->items_count === (int) $variant->items_count);
+
+                if ($reverse) {
+                    $reverse->update([
+                        'color' => $variant->color,
+                        'size' => $variant->size,
+                        'items_count' => $variant->items_count,
+                        'linked_skus' => array_values(array_unique(array_merge(
+                            array_filter((array) $reverse->linked_skus),
+                            [$sourceSku]
+                        ))),
+                    ]);
+                } else {
+                    $linkedProduct->variants()->create([
+                        'color' => $variant->color,
+                        'size' => $variant->size,
+                        'items_count' => $variant->items_count,
+                        'linked_skus' => [$sourceSku],
+                    ]);
+                }
+            }
+        }
+
+        ProductVariant::whereJsonContains('linked_skus', $sourceSku)
+            ->whereHas('product', fn ($query) => $query->where('id', '!=', $product->id))
+            ->get()
+            ->each(function ($reverse) use ($product, $sourceSku, $desired) {
+                $key = implode('|', [
+                    $reverse->product_id,
+                    mb_strtolower((string) $reverse->color),
+                    mb_strtolower((string) $reverse->size),
+                    (int) $reverse->items_count,
+                ]);
+
+                if (isset($desired[$key])) {
+                    return;
+                }
+
+                $remaining = array_values(array_filter(
+                    (array) $reverse->linked_skus,
+                    fn ($sku) => $sku !== $sourceSku
+                ));
+
+                if ($remaining === []) {
+                    $reverse->delete();
+                } else {
+                    $reverse->update(['linked_skus' => $remaining]);
+                }
+            });
     }
 
     protected function uploadSimpleImage($imageFile)

@@ -71,30 +71,15 @@ class ProductDTO
                     'id' => ($variant['id'] ?? '') === '' ? null : (int) $variant['id'],
                     'size' => trim((string) ($variant['size'] ?? '')) ?: null,
                     'color' => trim((string) ($variant['color'] ?? '')) ?: null,
-                    'price' => ($variant['price'] ?? '') === '' ? null : (float) $variant['price'],
-                    'stock' => (int) ($variant['stock'] ?? 0),
-                    'sku' => trim((string) ($variant['sku'] ?? '')) ?: null,
-                    'images' => array_values((array) ($variant['images'] ?? [])),
-                    'existing_image_paths' => self::decodeExistingImagePaths($variant['existing_image_paths'] ?? null),
+                    'items_count' => max(1, (int) ($variant['items_count'] ?? 1)),
+                    'linked_skus' => array_values(array_unique(array_filter(array_map(
+                        fn ($sku) => trim((string) $sku),
+                        (array) ($variant['linked_skus'] ?? [])
+                    )))),
                 ];
             })
-            ->filter(fn (array $variant) => $variant['size'] || $variant['color'] || $variant['price'] !== null || $variant['stock'] > 0 || $variant['sku'] || $variant['images'])
+            ->filter(fn (array $variant) => $variant['size'] || $variant['color'] || $variant['linked_skus'])
             ->values()
             ->all();
-    }
-
-    protected static function decodeExistingImagePaths(mixed $value): array
-    {
-        if (is_array($value)) {
-            return array_values(array_filter($value));
-        }
-
-        if (! is_string($value) || trim($value) === '') {
-            return [];
-        }
-
-        $decoded = json_decode($value, true);
-
-        return is_array($decoded) ? array_values(array_filter($decoded)) : [];
     }
 }

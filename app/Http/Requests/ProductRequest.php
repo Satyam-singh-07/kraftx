@@ -43,12 +43,9 @@ class ProductRequest extends FormRequest
             'variants.*.id' => ['nullable', 'integer', 'exists:product_variants,id'],
             'variants.*.size' => ['nullable', 'string', 'max:80'],
             'variants.*.color' => ['nullable', 'string', 'max:80'],
-            'variants.*.price' => ['nullable', 'numeric', 'min:0'],
-            'variants.*.stock' => ['nullable', 'integer', 'min:0'],
-            'variants.*.sku' => ['nullable', 'string', 'max:255'],
-            'variants.*.existing_image_paths' => ['nullable', 'string'],
-            'variants.*.images' => ['nullable', 'array'],
-            'variants.*.images.*' => ['image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'variants.*.items_count' => ['nullable', 'integer', 'min:1', 'max:100000'],
+            'variants.*.linked_skus' => ['nullable', 'array'],
+            'variants.*.linked_skus.*' => ['nullable', 'string', 'max:255', 'exists:products,sku'],
             'seo_meta' => ['nullable', 'array'],
             'seo_meta.meta_title' => ['nullable', 'string', 'max:255'],
             'seo_meta.meta_description' => ['nullable', 'string'],
@@ -73,18 +70,24 @@ class ProductRequest extends FormRequest
                 foreach ((array) $this->input('variants', []) as $index => $variant) {
                     $size = trim((string) ($variant['size'] ?? ''));
                     $color = trim((string) ($variant['color'] ?? ''));
-                    $price = trim((string) ($variant['price'] ?? ''));
-                    $stock = trim((string) ($variant['stock'] ?? ''));
-                    $sku = trim((string) ($variant['sku'] ?? ''));
-                    $images = $variant['images'] ?? [];
+                    $itemsCount = (int) ($variant['items_count'] ?? 0);
+                    $linkedSkus = array_values(array_unique(array_filter(array_map('trim', (array) ($variant['linked_skus'] ?? [])))));
 
-                    if ($size === '' && $color === '' && $price === '' && $stock === '' && $sku === '' && empty($images)) {
+                    if ($size === '' && $color === '' && empty($linkedSkus)) {
                         continue;
                     }
 
                     if ($size === '' && $color === '') {
                         $validator->errors()->add("variants.{$index}.size", 'Each variation needs a size or color.');
                         continue;
+                    }
+
+                    if ($itemsCount < 1) {
+                        $validator->errors()->add("variants.{$index}.items_count", 'Enter how many items this option contains.');
+                    }
+
+                    if (empty($linkedSkus)) {
+                        $validator->errors()->add("variants.{$index}.linked_skus", 'Link at least one product SKU.');
                     }
 
                     if (! empty($variant['id']) && ! $this->variantBelongsToCurrentProduct((int) $variant['id'])) {
@@ -98,12 +101,16 @@ class ProductRequest extends FormRequest
 
                     $seen[$key] = true;
 
-                    if ($sku !== '') {
-                        $skuKey = mb_strtolower($sku);
+                    foreach ($linkedSkus as $linkedSku) {
+                        $skuKey = mb_strtolower($linkedSku);
                         if (isset($skus[$skuKey])) {
-                            $validator->errors()->add("variants.{$index}.sku", 'Duplicate variation SKUs are not allowed.');
+                            $validator->errors()->add("variants.{$index}.linked_skus", 'A linked SKU can only be used once in this product.');
                         }
                         $skus[$skuKey] = true;
+
+                        if ($this->productSkuBelongsToCurrentProduct($linkedSku)) {
+                            $validator->errors()->add("variants.{$index}.linked_skus", 'A product cannot be linked to itself.');
+                        }
                     }
                 }
             },
@@ -118,5 +125,13 @@ class ProductRequest extends FormRequest
         return \App\Models\ProductVariant::whereKey($variantId)
             ->where('product_id', $productId)
             ->exists();
+    }
+
+    protected function productSkuBelongsToCurrentProduct(string $sku): bool
+    {
+        $product = $this->route('product');
+        $productId = is_object($product) ? (int) $product->getKey() : (int) $product;
+
+        return \App\Models\Product::whereKey($productId)->where('sku', $sku)->exists();
     }
 }

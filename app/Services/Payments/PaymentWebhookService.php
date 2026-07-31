@@ -111,14 +111,10 @@ class PaymentWebhookService
 
     protected function releaseReservedStock(Order $order): void
     {
-        $order->loadMissing('items');
+        $order->loadMissing('items.linkedProduct');
 
         foreach ($order->items as $item) {
-            if ($item->variant_id) {
-                \App\Models\ProductVariant::whereKey($item->variant_id)->increment('stock', $item->quantity);
-            } elseif ($item->product_id) {
-                \App\Models\Product::whereKey($item->product_id)->increment('stock', $item->quantity);
-            }
+            \App\Models\Product::whereKey($item->linked_product_id ?: $item->product_id)->increment('stock', $item->quantity);
         }
     }
 }

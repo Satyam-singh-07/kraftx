@@ -2,14 +2,13 @@
     $variantRows = old('variants');
     if ($variantRows === null && isset($product)) {
         $variantRows = $product->variants
+            ->filter(fn ($variant) => ! empty($variant->linked_skus))
             ->map(fn ($variant) => [
                 'id' => $variant->id,
                 'size' => $variant->size,
                 'color' => $variant->color,
-                'price' => $variant->price,
-                'stock' => $variant->stock,
-                'sku' => $variant->sku,
-                'image_paths' => $variant->image_paths ?? [],
+                'items_count' => $variant->items_count ?? 1,
+                'linked_skus' => $variant->linked_skus ?? [],
             ])
             ->values()
             ->all();
@@ -17,106 +16,94 @@
     $variantRows = $variantRows ?: [];
 @endphp
 
-<x-admin.card title="Product Variations">
+<x-admin.card title="Linked Product Variations">
     <div class="mt-4 space-y-4">
         <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-900/50 dark:bg-blue-900/20 dark:text-blue-200">
-            Variations are optional. Add rows only for extra sellable options; the main product remains available as Original and uses the product stock above.
+            Link other products by SKU. Their price, stock, and product images will be used for this option, and the reverse link will be created automatically.
         </div>
 
         <div id="variant-rows" class="space-y-3">
             @foreach($variantRows as $index => $variant)
-                <div class="variant-row grid grid-cols-1 md:grid-cols-12 gap-3 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                @php($linkedSkus = array_values(array_filter((array) ($variant['linked_skus'] ?? []))))
+                <div class="variant-row rounded-xl border border-gray-200 p-4 dark:border-gray-700" data-variant-index="{{ $index }}">
                     <input type="hidden" name="variants[{{ $index }}][id]" value="{{ $variant['id'] ?? '' }}">
-                    <input type="hidden" name="variants[{{ $index }}][existing_image_paths]" value="{{ json_encode($variant['image_paths'] ?? []) }}">
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Size</label>
-                        <input type="text" name="variants[{{ $index }}][size]" value="{{ $variant['size'] ?? '' }}" placeholder="Small"
-                            class="block w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm outline-none">
+                    <div class="grid grid-cols-1 gap-3 md:grid-cols-12">
+                        <div class="md:col-span-3">
+                            <label class="mb-1 block text-xs font-bold uppercase text-gray-500">Color</label>
+                            <input type="text" name="variants[{{ $index }}][color]" value="{{ $variant['color'] ?? '' }}" placeholder="Black"
+                                class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="mb-1 block text-xs font-bold uppercase text-gray-500">Size</label>
+                            <input type="text" name="variants[{{ $index }}][size]" value="{{ $variant['size'] ?? '' }}" placeholder="Medium"
+                                class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="mb-1 block text-xs font-bold uppercase text-gray-500">Number Of Items</label>
+                            <input type="number" min="1" name="variants[{{ $index }}][items_count]" value="{{ $variant['items_count'] ?? 1 }}"
+                                class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                        </div>
+                        <div class="flex items-end md:col-span-3">
+                            <button type="button" class="remove-variant-row w-full rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-100">Remove Variation</button>
+                        </div>
                     </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Color</label>
-                        <input type="text" name="variants[{{ $index }}][color]" value="{{ $variant['color'] ?? '' }}" placeholder="Walnut"
-                            class="block w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm outline-none">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Price</label>
-                        <input type="number" step="0.01" min="0" name="variants[{{ $index }}][price]" value="{{ $variant['price'] ?? '' }}" placeholder="Optional"
-                            class="block w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm outline-none">
-                    </div>
-                    <div class="md:col-span-1">
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Stock</label>
-                        <input type="number" min="0" name="variants[{{ $index }}][stock]" value="{{ $variant['stock'] ?? 0 }}"
-                            class="block w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm outline-none">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">SKU</label>
-                        <input type="text" name="variants[{{ $index }}][sku]" value="{{ $variant['sku'] ?? '' }}" placeholder="Optional"
-                            class="block w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm outline-none">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Photos</label>
-                        <input type="file" name="variants[{{ $index }}][images][]" accept=".jpg,.jpeg,.png,.webp,image/*" multiple
-                            class="variant-image-input block w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                        @if(!empty($variant['image_paths']))
-                            <div class="variant-image-preview mt-2 flex flex-wrap gap-2">
-                                @foreach($variant['image_paths'] as $imagePath)
-                                    <img src="{{ \App\Models\ProductImage::urlForVariant($imagePath, 'thumb') }}" alt="Variant image" class="h-14 w-14 rounded-lg object-cover border border-gray-200 dark:border-gray-700">
-                                @endforeach
-                            </div>
-                        @else
-                            <div class="variant-image-preview mt-2 flex flex-wrap gap-2"></div>
-                        @endif
-                    </div>
-                    <div class="md:col-span-1 flex items-end">
-                        <button type="button" class="remove-variant-row w-full px-3 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm font-semibold">Remove</button>
+
+                    <div class="relative mt-4">
+                        <label class="mb-1 block text-xs font-bold uppercase text-gray-500">Linked Product SKUs</label>
+                        <input type="search" data-role="variant-sku-search" autocomplete="off" placeholder="Search by product name or SKU..."
+                            class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                        <div data-role="variant-sku-results" class="absolute inset-x-0 top-full z-20 mt-1 hidden max-h-56 overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"></div>
+                        <div data-role="variant-sku-chips" class="mt-2 flex flex-wrap gap-2">
+                            @foreach($linkedSkus as $sku)
+                                <span data-sku-chip="{{ $sku }}" class="inline-flex items-center gap-2 rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+                                    {{ $sku }}
+                                    <button type="button" data-role="remove-sku" class="text-blue-100 hover:text-white" aria-label="Remove {{ $sku }}">&times;</button>
+                                    <input type="hidden" name="variants[{{ $index }}][linked_skus][]" value="{{ $sku }}">
+                                </span>
+                            @endforeach
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Search and select one or more products. Each linked product gets the reverse link automatically.</p>
                     </div>
                 </div>
             @endforeach
         </div>
 
-        <button type="button" id="add-variant-row" class="px-4 py-2 rounded-lg bg-gray-900 text-white hover:bg-gray-800 text-sm font-semibold">
-            Add Variation
+        <button type="button" id="add-variant-row" class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800">
+            Add Linked Variation
         </button>
     </div>
 </x-admin.card>
 
 <template id="variant-row-template">
-    <div class="variant-row grid grid-cols-1 md:grid-cols-12 gap-3 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+    <div class="variant-row rounded-xl border border-gray-200 p-4 dark:border-gray-700">
         <input type="hidden" data-name="id">
-        <input type="hidden" data-name="existing_image_paths">
-        <div class="md:col-span-2">
-            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Size</label>
-            <input type="text" data-name="size" placeholder="Small"
-                class="block w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm outline-none">
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-12">
+            <div class="md:col-span-3">
+                <label class="mb-1 block text-xs font-bold uppercase text-gray-500">Color</label>
+                <input type="text" data-name="color" placeholder="Black"
+                    class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+            </div>
+            <div class="md:col-span-3">
+                <label class="mb-1 block text-xs font-bold uppercase text-gray-500">Size</label>
+                <input type="text" data-name="size" placeholder="Medium"
+                    class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+            </div>
+            <div class="md:col-span-3">
+                <label class="mb-1 block text-xs font-bold uppercase text-gray-500">Number Of Items</label>
+                <input type="number" min="1" value="1" data-name="items_count"
+                    class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+            </div>
+            <div class="flex items-end md:col-span-3">
+                <button type="button" class="remove-variant-row w-full rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-100">Remove Variation</button>
+            </div>
         </div>
-        <div class="md:col-span-2">
-            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Color</label>
-            <input type="text" data-name="color" placeholder="Walnut"
-                class="block w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm outline-none">
-        </div>
-        <div class="md:col-span-2">
-            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Price</label>
-            <input type="number" step="0.01" min="0" data-name="price" placeholder="Optional"
-                class="block w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm outline-none">
-        </div>
-        <div class="md:col-span-1">
-            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Stock</label>
-            <input type="number" min="0" data-name="stock" value="0"
-                class="block w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm outline-none">
-        </div>
-        <div class="md:col-span-2">
-            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">SKU</label>
-            <input type="text" data-name="sku" placeholder="Optional"
-                class="block w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm outline-none">
-        </div>
-        <div class="md:col-span-2">
-            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Photos</label>
-            <input type="file" data-name="images" accept=".jpg,.jpeg,.png,.webp,image/*" multiple
-                class="variant-image-input block w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-            <div class="variant-image-preview mt-2 flex flex-wrap gap-2"></div>
-        </div>
-        <div class="md:col-span-1 flex items-end">
-            <button type="button" class="remove-variant-row w-full px-3 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm font-semibold">Remove</button>
+        <div class="relative mt-4">
+            <label class="mb-1 block text-xs font-bold uppercase text-gray-500">Linked Product SKUs</label>
+            <input type="search" data-role="variant-sku-search" autocomplete="off" placeholder="Search by product name or SKU..."
+                class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+            <div data-role="variant-sku-results" class="absolute inset-x-0 top-full z-20 mt-1 hidden max-h-56 overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"></div>
+            <div data-role="variant-sku-chips" class="mt-2 flex flex-wrap gap-2"></div>
+            <p class="mt-1 text-xs text-gray-500">Search and select one or more products.</p>
         </div>
     </div>
 </template>

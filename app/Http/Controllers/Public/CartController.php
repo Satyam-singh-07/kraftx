@@ -25,7 +25,7 @@ class CartController extends Controller
     public function fetch(Request $request)
     {
         $cart = $this->cartService->getOrCreateCart($request);
-        $items = $cart->items()->with(['product.images', 'variant'])->get();
+        $items = $cart->items()->with(['product.images', 'variant', 'linkedProduct.images'])->get();
 
         return response()->json([
             'success' => true,
@@ -44,6 +44,7 @@ class CartController extends Controller
             'product_id' => 'required|exists:products,id',
             'quantity'   => 'required|integer|min:1',
             'variant_id' => 'nullable|integer|exists:product_variants,id',
+            'linked_product_id' => 'nullable|integer|exists:products,id',
             'color'      => 'nullable|string',
             'size'       => 'nullable|string',
         ]);
@@ -65,7 +66,27 @@ class CartController extends Controller
             $variant = $query->first();
         }
 
-        $availableStock = $variant ? (int) $variant->stock : (int) $product->stock;
+        $linkedProduct = null;
+        if ($variant && ! $request->filled('linked_product_id')) {
+            throw ValidationException::withMessages([
+                'product_id' => 'Please choose a linked product option.',
+            ]);
+        }
+
+        if ($variant && $request->filled('linked_product_id')) {
+            $linkedProduct = Product::whereKey($request->integer('linked_product_id'))
+                ->where('status', true)
+                ->first();
+
+            if (! $linkedProduct || ! in_array($linkedProduct->sku, (array) $variant->linked_skus, true)) {
+                throw ValidationException::withMessages([
+                    'product_id' => 'This linked product option is no longer available.',
+                ]);
+            }
+        }
+
+        $stockProduct = $linkedProduct ?: $product;
+        $availableStock = (int) $stockProduct->stock;
         if ($availableStock <= 0) {
             throw ValidationException::withMessages([
                 'product_id' => 'This selection is currently out of stock.',
@@ -79,7 +100,7 @@ class CartController extends Controller
         }
 
         $cart = $this->cartService->getOrCreateCart($request);
-        $this->cartService->addItem($cart, $product->id, $quantity, $variant?->id);
+        $this->cartService->addItem($cart, $product->id, $quantity, $variant?->id, $linkedProduct?->id);
 
         return response()->json([
             'success' => true,
@@ -99,8 +120,8 @@ class CartController extends Controller
         ]);
 
         $cartItem = CartItem::findOrFail($request->item_id);
-        $cartItem->load(['product', 'variant']);
-        $availableStock = $cartItem->variant ? (int) $cartItem->variant->stock : (int) $cartItem->product->stock;
+        $cartItem->load(['product', 'variant', 'linkedProduct']);
+        $availableStock = (int) ($cartItem->linkedProduct?->stock ?? $cartItem->product->stock);
         if ((int) $request->quantity > $availableStock) {
             throw ValidationException::withMessages([
                 'quantity' => "Only {$availableStock} available for this selection.",

@@ -1,23 +1,36 @@
 <x-layout :seo="$seo">
 
     @php
-        $colors = $product->variants->whereNotNull('color')->unique('color');
-        $sizes = $product->variants->whereNotNull('size')->unique('size');
-        $hasVariants = $product->variants->isNotEmpty();
-        $purchasableStock = max((int) $product->stock, (int) $product->variants->sum('stock'));
-        $variantPayload = $product->variants->map(fn ($variant) => [
-            'id' => $variant->id,
-            'size' => $variant->size,
-            'color' => $variant->color,
-            'price' => $variant->price !== null ? (float) $variant->price : (float) ($product->sale_price ?? $product->price),
-            'stock' => (int) $variant->stock,
-            'sku' => $variant->sku,
-            'images' => collect($variant->image_paths ?? [])->map(fn ($path) => [
-                'thumb' => \App\Models\ProductImage::urlForVariant($path, 'thumb'),
-                'medium' => \App\Models\ProductImage::urlForVariant($path, 'medium'),
-                'zoom' => \App\Models\ProductImage::urlForVariant($path, 'zoom'),
-            ])->values(),
-        ])->values();
+        $linkedOptions = $product->variants
+            ->flatMap(function ($variant) {
+                return $variant->linkedProducts()->map(function ($linkedProduct) use ($variant) {
+                    return [
+                        'id' => $variant->id,
+                        'linked_product_id' => $linkedProduct->id,
+                        'name' => $linkedProduct->name,
+                        'sku' => $linkedProduct->sku,
+                        'size' => $variant->size,
+                        'color' => $variant->color,
+                        'items_count' => (int) ($variant->items_count ?: 1),
+                        'mrp' => (float) $linkedProduct->price,
+                        'sale_price' => $linkedProduct->sale_price !== null ? (float) $linkedProduct->sale_price : null,
+                        'discount_percent' => $linkedProduct->sale_price !== null && (float) $linkedProduct->price > (float) $linkedProduct->sale_price
+                            ? (int) round(100 * (1 - ((float) $linkedProduct->sale_price / (float) $linkedProduct->price)))
+                            : 0,
+                        'price' => (float) ($linkedProduct->sale_price ?? $linkedProduct->price),
+                        'stock' => (int) $linkedProduct->stock,
+                        'images' => $linkedProduct->images->map(fn ($image) => [
+                            'thumb' => $image->thumb_url,
+                            'medium' => $image->medium_url,
+                            'zoom' => $image->zoom_url,
+                        ])->values()->all(),
+                    ];
+                });
+            })
+            ->values();
+        $hasVariants = $linkedOptions->isNotEmpty();
+        $purchasableStock = max((int) $product->stock, (int) $linkedOptions->max('stock'));
+        $variantPayload = $linkedOptions;
     @endphp
 
     <x-slot name="styles">
@@ -345,13 +358,15 @@
                                     </div>
                                     <div class="product-infor-price mb-12"> 
                                         @if($product->sale_price)
-                                            <h4 class="price-on-sale" data-price="{{ $product->sale_price }}">₹{{ number_format($product->sale_price, 0) }}</h4>
-                                            <p class="cl-text-3 text-decoration-line-through">₹{{ number_format($product->price, 0) }}</p>
-                                            <span class="badge-sale text-white fw-semibold text-caption-02">
+                                            <h4 id="display-sale-price" class="price-on-sale" data-price="{{ $product->sale_price }}">₹{{ number_format($product->sale_price, 0) }}</h4>
+                                            <p id="display-mrp" class="cl-text-3 text-decoration-line-through">₹{{ number_format($product->price, 0) }}</p>
+                                            <span id="display-discount" class="badge-sale text-white fw-semibold text-caption-02">
                                                 {{ round((($product->price - $product->sale_price) / $product->price) * 100) }}% OFF
                                             </span>
                                         @else
-                                            <h4 class="price" data-price="{{ $product->price }}">₹{{ number_format($product->price, 0) }}</h4>
+                                            <h4 id="display-sale-price" class="price" data-price="{{ $product->price }}">₹{{ number_format($product->price, 0) }}</h4>
+                                            <p id="display-mrp" class="cl-text-3 text-decoration-line-through d-none"></p>
+                                            <span id="display-discount" class="badge-sale text-white fw-semibold text-caption-02 d-none"></span>
                                         @endif
                                     </div>
 
@@ -423,9 +438,9 @@
                                         <div class="variant-picker-label">
                                             <div>
                                                 Choose an option
-                                                <span class="variant-picker-label-value value-currentOption text-capitalize fw-medium">Standard</span>
+                                                <span class="variant-picker-label-value value-currentOption text-capitalize fw-medium">{{ $product->name }}</span>
                                             </div>
-                                            <span class="option-hint">Select a style</span>
+                                            <span class="option-hint">Select a product</span>
                                         </div>
                                         <div class="product-option-list">
                                             @php
@@ -434,23 +449,22 @@
                                             <button type="button" class="product-option-btn active {{ $product->stock <= 0 ? 'is-disabled' : '' }}" data-option="standard" @disabled($product->stock <= 0)>
                                                 <img class="product-option-thumb" src="{{ $baseImage }}" alt="{{ $product->name }}">
                                                 <span>
-                                                    <span class="product-option-title">Standard</span>
-                                                    <span class="product-option-meta">₹{{ number_format($product->sale_price ?? $product->price, 0) }} · {{ $product->stock > 0 ? $product->stock.' in stock' : 'Out of stock' }}</span>
+                                                    <span class="product-option-title">{{ $product->name }}</span>
+                                                    <span class="product-option-meta">₹{{ number_format($product->sale_price ?? $product->price, 0) }} @if($product->sale_price && $product->price > 0) · {{ round((($product->price - $product->sale_price) / $product->price) * 100) }}% OFF @endif</span>
                                                 </span>
                                                 <span class="product-option-check" aria-hidden="true"></span>
                                             </button>
-                                            @foreach($product->variants as $variant)
+                                            @foreach($linkedOptions as $option)
                                                 @php
-                                                    $variantLabel = collect([$variant->color, $variant->size])->filter()->implode(' / ') ?: 'Option '.$loop->iteration;
-                                                    $variantImage = $variant->image_path
-                                                        ? \App\Models\ProductImage::urlForVariant($variant->image_path, 'thumb')
-                                                        : $baseImage;
+                                                    $optionDetails = collect([$option['color'], $option['size']])->filter()->implode(' / ');
+                                                    $optionDetails = $optionDetails ? $optionDetails.' · Pack of '.$option['items_count'] : 'Pack of '.$option['items_count'];
+                                                    $optionImage = $option['images'][0]['thumb'] ?? $baseImage;
                                                 @endphp
-                                                <button type="button" class="product-option-btn {{ $variant->stock <= 0 ? 'is-disabled' : '' }}" data-variant-id="{{ $variant->id }}" @disabled($variant->stock <= 0)>
-                                                    <img class="product-option-thumb" src="{{ $variantImage }}" alt="{{ $variantLabel }}">
+                                                <button type="button" class="product-option-btn {{ $option['stock'] <= 0 ? 'is-disabled' : '' }}" data-variant-id="{{ $option['id'] }}" data-linked-product-id="{{ $option['linked_product_id'] }}" @disabled($option['stock'] <= 0)>
+                                                    <img class="product-option-thumb" src="{{ $optionImage }}" alt="{{ $option['name'] }}">
                                                     <span>
-                                                    <span class="product-option-title">{{ $variantLabel }}</span>
-                                                    <span class="product-option-meta">₹{{ number_format($variant->price ?? $product->sale_price ?? $product->price, 0) }} · {{ $variant->stock > 0 ? $variant->stock.' in stock' : 'Out of stock' }}</span>
+                                                    <span class="product-option-title">{{ $option['name'] }}</span>
+                                                    <span class="product-option-meta">{{ $optionDetails }} · ₹{{ number_format($option['price'], 0) }} @if($option['discount_percent'] > 0) · {{ $option['discount_percent'] }}% OFF @endif</span>
                                                 </span>
                                                 <span class="product-option-check" aria-hidden="true"></span>
                                             </button>
@@ -620,13 +634,12 @@
                             <div class="prd_info d-none d-lg-grid">
                                 <p class="name__prd fw-medium lh-24">{{ $product->name }}</p>
                                 <p class="distribute__prd text-caption-01 cl-text-3">
-                                    <span id="sticky-selected-variant">Standard</span>
+                                    <span id="sticky-selected-variant">{{ $product->name }}</span>
                                 </p>
                                 <div class="d-flex align-items-center gap-10">
-                                    <p class="price__prd fw-semibold">₹{{ number_format($product->sale_price ?? $product->price, 0) }}</p>
-                                    @if($product->sale_price)
-                                        <p class="cl-text-3 text-decoration-line-through text-caption-02">₹{{ number_format($product->price, 0) }}</p>
-                                    @endif
+                                    <p id="sticky-sale-price" class="price__prd fw-semibold">₹{{ number_format($product->sale_price ?? $product->price, 0) }}</p>
+                                    <p id="sticky-mrp" class="cl-text-3 text-decoration-line-through text-caption-02 {{ $product->sale_price ? '' : 'd-none' }}">₹{{ number_format($product->price, 0) }}</p>
+                                    <span id="sticky-discount" class="badge-sale text-white fw-semibold text-caption-02 {{ $product->sale_price ? '' : 'd-none' }}">{{ $product->sale_price ? round((($product->price - $product->sale_price) / $product->price) * 100).'%' : '' }}</span>
                                 </div>
                             </div>
                         </div>
@@ -907,6 +920,8 @@
                 const variants = @json($variantPayload);
                 const hasVariants = variants.length > 0;
                 const basePrice = parseFloat(mainQtyContainer?.dataset.basePrice || 0);
+                const baseMrp = @json((float) $product->price);
+                const baseSalePrice = @json($product->sale_price !== null ? (float) $product->sale_price : null);
                 const mainSwiperEl = document.querySelector('.tf-product-media-main');
                 const thumbSwiperEl = document.querySelector('.tf-product-media-thumbs');
                 const mainWrapper = mainSwiperEl?.querySelector('.swiper-wrapper');
@@ -935,7 +950,9 @@
                 });
                 const originalStickyImage = stickyProductImage?.getAttribute('src');
                 let selectedVariantId = null;
+                let selectedLinkedProductId = null;
                 const productName = @json($product->name);
+                const baseOptionLabel = @json($product->name);
                 
                 function formatPrice(amount) {
                     return '₹' + Math.round(amount).toLocaleString('en-IN');
@@ -943,18 +960,56 @@
 
                 function currentVariant() {
                     if (!selectedVariantId) return null;
-                    return variants.find(variant => Number(variant.id) === Number(selectedVariantId)) || null;
+                    return variants.find(variant =>
+                        Number(variant.id) === Number(selectedVariantId)
+                        && Number(variant.linked_product_id) === Number(selectedLinkedProductId)
+                    ) || null;
                 }
 
                 function currentUnitPrice() {
                     return Number(currentVariant()?.price ?? basePrice);
                 }
 
+                function syncDisplayedPricing(variant) {
+                    const mrp = Number(variant?.mrp ?? baseMrp);
+                    const salePrice = variant
+                        ? (variant.sale_price === null || variant.sale_price === undefined ? null : Number(variant.sale_price))
+                        : baseSalePrice;
+                    const hasDiscount = salePrice !== null && salePrice < mrp;
+                    const displayPrice = hasDiscount ? salePrice : mrp;
+                    const salePriceElement = document.getElementById('display-sale-price');
+                    const mrpElement = document.getElementById('display-mrp');
+                    const discountElement = document.getElementById('display-discount');
+                    const stickyPriceElement = document.getElementById('sticky-sale-price');
+                    const stickyMrpElement = document.getElementById('sticky-mrp');
+                    const stickyDiscountElement = document.getElementById('sticky-discount');
+
+                    if (salePriceElement) {
+                        salePriceElement.textContent = formatPrice(displayPrice);
+                        salePriceElement.classList.toggle('price-on-sale', hasDiscount);
+                        salePriceElement.classList.toggle('price', !hasDiscount);
+                    }
+                    [mrpElement, stickyMrpElement].forEach(element => {
+                        if (!element) return;
+                        element.textContent = formatPrice(mrp);
+                        element.classList.toggle('d-none', !hasDiscount);
+                    });
+                    [discountElement, stickyDiscountElement].forEach(element => {
+                        if (!element) return;
+                        const discount = hasDiscount
+                            ? Math.max(0, Math.round(100 * (1 - (displayPrice / mrp))))
+                            : 0;
+                        element.textContent = discount ? discount + '% OFF' : '';
+                        element.classList.toggle('d-none', !discount);
+                    });
+                    if (stickyPriceElement) stickyPriceElement.textContent = formatPrice(displayPrice);
+                }
+
                 function selectedVariantText() {
                     const variant = currentVariant();
-                    if (!variant) return 'Standard';
+                    if (!variant) return baseOptionLabel;
 
-                    return [variant.color, variant.size].filter(Boolean).join(' / ') || 'Option';
+                    return variant.name || [variant.color, variant.size].filter(Boolean).join(' / ') || 'Option';
                 }
 
                 function createThumbSlide() {
@@ -1050,18 +1105,19 @@
 
                     document.querySelectorAll('.product-option-btn').forEach(button => {
                         const isStandard = button.dataset.option === 'standard';
-                        const isActive = isStandard ? selectedVariantId === null : Number(button.dataset.variantId) === Number(selectedVariantId);
+                        const isActive = isStandard
+                            ? selectedVariantId === null
+                            : Number(button.dataset.variantId) === Number(selectedVariantId)
+                                && Number(button.dataset.linkedProductId) === Number(selectedLinkedProductId);
                         button.classList.toggle('active', isActive);
                     });
 
                     if (optionLabel) optionLabel.textContent = selectedVariantText();
                     if (stickyVariant) stickyVariant.textContent = selectedVariantText();
                     applyGalleryImages(selected);
-                    document.querySelectorAll('.product-infor-price h4, .price__prd').forEach(el => {
-                        el.textContent = formatPrice(currentUnitPrice());
-                    });
+                    syncDisplayedPricing(selected);
                     if (stockMessage) {
-                        stockMessage.textContent = stock > 0 ? `${stock} available for ${selectedVariantText()}` : 'This selection is currently out of stock';
+                        stockMessage.textContent = stock > 0 ? 'Available' : 'This selection is currently out of stock';
                         stockMessage.classList.toggle('is-out', stock <= 0);
                     }
 
@@ -1099,6 +1155,7 @@
                     button.addEventListener('click', () => {
                         if (button.classList.contains('is-disabled')) return;
                         selectedVariantId = button.dataset.option === 'standard' ? null : button.dataset.variantId;
+                        selectedLinkedProductId = button.dataset.option === 'standard' ? null : button.dataset.linkedProductId;
                         syncVariantControls();
                     });
                 });
@@ -1191,6 +1248,7 @@
                             product_id: productId,
                             quantity: quantity,
                             variant_id: variant?.id || null,
+                            linked_product_id: variant?.linked_product_id || null,
                             color: variant?.color || null,
                             size: variant?.size || null
                         })

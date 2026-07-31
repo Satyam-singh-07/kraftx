@@ -392,8 +392,95 @@
                 });
             });
 
-            initVariantRows();
+            initLinkedSkuRows();
         });
+
+        function initLinkedSkuRows() {
+            const rows = document.getElementById('variant-rows');
+            const template = document.getElementById('variant-row-template');
+            const addButton = document.getElementById('add-variant-row');
+            if (!rows || !template || !addButton) return;
+
+            let nextIndex = rows.querySelectorAll('.variant-row').length;
+            const searchUrl = @json(route('admin.products.search'));
+            const currentProductId = @json(isset($product) ? $product->id : null);
+
+            function addSkuChip(row, product) {
+                const chips = row.querySelector('[data-role="variant-sku-chips"]');
+                if (!chips || !product.sku || Array.from(chips.querySelectorAll('[data-sku-chip]')).some(chip => chip.dataset.skuChip === product.sku)) return;
+                const index = row.dataset.variantIndex;
+                const chip = document.createElement('span');
+                chip.dataset.skuChip = product.sku;
+                chip.className = 'inline-flex items-center gap-2 rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white shadow-sm';
+                chip.innerHTML = product.sku + '<button type="button" data-role="remove-sku" class="text-blue-100 hover:text-white" aria-label="Remove ' + product.sku + '">&times;</button><input type="hidden" name="variants[' + index + '][linked_skus][]" value="' + product.sku + '">';
+                chips.appendChild(chip);
+                chip.querySelector('[data-role="remove-sku"]').addEventListener('click', () => chip.remove());
+            }
+
+            function wireSkuSearch(row) {
+                const input = row.querySelector('[data-role="variant-sku-search"]');
+                const results = row.querySelector('[data-role="variant-sku-results"]');
+                if (!input || !results) return;
+                row.querySelectorAll('[data-role="remove-sku"]').forEach(button => {
+                    button.addEventListener('click', () => button.closest('[data-sku-chip]')?.remove());
+                });
+                let timer;
+                input.addEventListener('input', () => {
+                    clearTimeout(timer);
+                    const query = input.value.trim();
+                    if (query.length < 2) {
+                        results.classList.add('hidden');
+                        results.innerHTML = '';
+                        return;
+                    }
+                    timer = setTimeout(async () => {
+                        try {
+                            const response = await fetch(searchUrl + '?q=' + encodeURIComponent(query), { headers: { 'Accept': 'application/json' } });
+                            const products = await response.json();
+                            results.innerHTML = '';
+                            products.filter(product => Number(product.id) !== Number(currentProductId)).forEach(product => {
+                                const button = document.createElement('button');
+                                button.type = 'button';
+                                button.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700';
+                                button.innerHTML = '<strong>' + (product.sku || 'No SKU') + '</strong><span class="ml-2 text-gray-500">' + product.name + '</span>';
+                                button.addEventListener('click', () => {
+                                    addSkuChip(row, product);
+                                    input.value = '';
+                                    results.classList.add('hidden');
+                                    results.innerHTML = '';
+                                });
+                                results.appendChild(button);
+                            });
+                            results.classList.toggle('hidden', results.children.length === 0);
+                        } catch (error) {
+                            results.classList.add('hidden');
+                        }
+                    }, 250);
+                });
+                document.addEventListener('click', event => {
+                    if (!row.contains(event.target)) results.classList.add('hidden');
+                });
+            }
+
+            function wireRow(row) {
+                row.querySelector('.remove-variant-row')?.addEventListener('click', () => row.remove());
+                wireSkuSearch(row);
+            }
+
+            rows.querySelectorAll('.variant-row').forEach(wireRow);
+            addButton.addEventListener('click', () => {
+                const index = nextIndex++;
+                const fragment = template.content.cloneNode(true);
+                const row = fragment.querySelector('.variant-row');
+                row.dataset.variantIndex = index;
+                row.querySelectorAll('[data-name]').forEach(input => {
+                    input.name = 'variants[' + index + '][' + input.dataset.name + ']';
+                    input.removeAttribute('data-name');
+                });
+                wireRow(row);
+                rows.appendChild(row);
+            });
+        }
 
         function initVariantRows() {
             const rows = document.getElementById('variant-rows');

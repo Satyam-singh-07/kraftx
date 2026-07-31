@@ -35,7 +35,7 @@ class CheckoutController extends Controller
     public function show(Request $request): View|RedirectResponse
     {
         $cart = $this->cartService->getOrCreateCart($request);
-        $cart->load(['items.product.images', 'items.variant']);
+        $cart->load(['items.product.images', 'items.variant', 'items.linkedProduct.images']);
 
         if ($cart->items->isEmpty()) {
             return redirect()->route('home')->with('error', 'Your cart is empty.');
@@ -145,7 +145,7 @@ class CheckoutController extends Controller
                     ]);
                 }
 
-                $cart->load(['items.product', 'items.variant']);
+                $cart->load(['items.product', 'items.variant', 'items.linkedProduct']);
 
                 if ($cart->items->isEmpty()) {
                     throw ValidationException::withMessages(['cart' => 'Your cart is empty.']);
@@ -215,19 +215,16 @@ class CheckoutController extends Controller
                 foreach ($checkoutItems as $item) {
                     $order->items()->create([
                         'product_id' => $item['product']->id,
+                        'linked_product_id' => $item['linked_product']?->id,
                         'variant_id' => $item['variant']?->id,
-                        'sku' => $item['variant']?->sku ?? $item['product']->sku ?? 'N/A',
-                        'name' => $item['product']->name,
+                        'sku' => $item['linked_product']?->sku ?? $item['product']->sku ?? 'N/A',
+                        'name' => $item['linked_product']?->name ?? $item['product']->name,
                         'quantity' => $item['quantity'],
                         'price' => $item['price'],
                         'total' => $item['price'] * $item['quantity'],
                     ]);
 
-                    if ($item['variant']) {
-                        $item['variant']->decrement('stock', $item['quantity']);
-                    } else {
-                        $item['product']->decrement('stock', $item['quantity']);
-                    }
+                    ($item['linked_product'] ?: $item['product'])->decrement('stock', $item['quantity']);
                 }
 
                 if ($isPrepaid) {
@@ -430,12 +427,25 @@ class CheckoutController extends Controller
                     throw ValidationException::withMessages(['cart' => 'One or more products are no longer available.']);
                 }
 
-                if ($variant->stock < $quantity) {
+                $linkedProduct = null;
+                if (! $item->linked_product_id) {
+                    throw ValidationException::withMessages(['cart' => 'One or more linked product options are no longer available.']);
+                }
+
+                if ($item->linked_product_id) {
+                    $linkedProduct = Product::whereKey($item->linked_product_id)->where('status', true)->lockForUpdate()->first();
+                    if (! $linkedProduct || ! in_array($linkedProduct->sku, (array) $variant->linked_skus, true)) {
+                        throw ValidationException::withMessages(['cart' => 'One or more linked product options are no longer available.']);
+                    }
+                }
+
+                $stockProduct = $linkedProduct ?: $product;
+                if ($stockProduct->stock < $quantity) {
                     Log::warning('Checkout stock failure', [
-                        'product_id' => $product->id,
+                        'product_id' => $stockProduct->id,
                         'variant_id' => $variant->id,
                         'requested_quantity' => $quantity,
-                        'available_stock' => $variant->stock,
+                        'available_stock' => $stockProduct->stock,
                     ]);
 
                     throw ValidationException::withMessages(['cart' => 'One or more selected variants are out of stock.']);
@@ -444,8 +454,9 @@ class CheckoutController extends Controller
                 return [
                     'product' => $product,
                     'variant' => $variant,
+                    'linked_product' => $linkedProduct,
                     'quantity' => $quantity,
-                    'price' => $this->currentPrice($product, $variant),
+                    'price' => $this->currentPrice($linkedProduct ?: $product),
                 ];
             }
 
@@ -467,20 +478,20 @@ class CheckoutController extends Controller
             return [
                 'product' => $product,
                 'variant' => null,
+                'linked_product' => null,
                 'quantity' => $quantity,
                 'price' => $this->currentPrice($product),
             ];
         })->values();
     }
 
-    protected function currentPrice(Product $product, ?ProductVariant $variant = null): float
+    protected function currentPrice(Product $product): float
     {
-        $price = $variant?->price ?? $product->sale_price ?? $product->price;
+        $price = $product->sale_price ?? $product->price;
 
         if ((float) $price < 0) {
             Log::warning('Checkout price integrity failure', [
                 'product_id' => $product->id,
-                'variant_id' => $variant?->id,
                 'price' => $price,
             ]);
 
@@ -645,12 +656,10 @@ class CheckoutController extends Controller
 
     protected function releaseReservedStock(Order $order): void
     {
+        $order->loadMissing('items');
+
         foreach ($order->items as $item) {
-            if ($item->variant_id) {
-                ProductVariant::whereKey($item->variant_id)->increment('stock', $item->quantity);
-            } elseif ($item->product_id) {
-                Product::whereKey($item->product_id)->increment('stock', $item->quantity);
-            }
+            Product::whereKey($item->linked_product_id ?: $item->product_id)->increment('stock', $item->quantity);
         }
     }
 

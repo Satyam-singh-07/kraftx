@@ -14,23 +14,25 @@ class ProductVariant extends Model
         'product_id',
         'size',
         'color',
-        'price',
-        'stock',
-        'sku',
-        'image_paths',
+        'items_count',
+        'linked_skus',
     ];
 
     protected $casts = [
-        'image_paths' => 'array',
+        'linked_skus' => 'array',
+        'items_count' => 'integer',
     ];
 
-    protected $appends = [
-        'image_path',
-    ];
-
-    public function getImagePathAttribute(): ?string
+    public function linkedProducts()
     {
-        return $this->image_paths[0] ?? null;
+        $skus = array_values(array_filter((array) $this->linked_skus));
+
+        return Product::with('images')
+            ->whereIn('sku', $skus)
+            ->where('status', true)
+            ->get()
+            ->sortBy(fn (Product $product) => array_search($product->sku, $skus, true))
+            ->values();
     }
 
     public function product(): BelongsTo

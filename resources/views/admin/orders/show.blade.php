@@ -66,8 +66,8 @@
                                 @foreach($order->items as $item)
                                 <tr>
                                     <td class="px-4 py-4 flex items-center space-x-3">
-                                        @if($item->variant?->image_path)
-                                            <img src="{{ \App\Models\ProductImage::urlForVariant($item->variant->image_path, 'thumb') }}" class="w-10 h-10 rounded object-cover">
+                                        @if(($item->linkedProduct ?: $item->product)?->images?->first())
+                                            <img src="{{ (($item->linkedProduct ?: $item->product)->images->first())->thumb_url }}" class="w-10 h-10 rounded object-cover">
                                         @elseif($item->product && $item->product->primary_image)
                                             <img src="{{ asset('storage/' . $item->product->primary_image->image_path) }}" class="w-10 h-10 rounded object-cover">
                                         @else

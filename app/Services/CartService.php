@@ -60,19 +60,23 @@ class CartService
     /**
      * Add an item to the cart with snapshot price.
      */
-    public function addItem(Cart $cart, int $productId, int $quantity, ?int $variantId = null)
+    public function addItem(Cart $cart, int $productId, int $quantity, ?int $variantId = null, ?int $linkedProductId = null)
     {
         $product = Product::findOrFail($productId);
         $variant = $variantId ? ProductVariant::where('product_id', $productId)->findOrFail($variantId) : null;
+        $linkedProduct = $linkedProductId
+            ? Product::whereKey($linkedProductId)->where('status', true)->firstOrFail()
+            : null;
 
-        // Snapshot price
-        $price = $variant && $variant->price ? $variant->price : ($product->sale_price ?? $product->price);
+        $priceProduct = $linkedProduct ?: $product;
+        $price = $priceProduct->sale_price ?? $priceProduct->price;
 
         $cartItem = CartItem::where('cart_id', $cart->id)
             ->where('product_id', $productId)
+            ->where('linked_product_id', $linkedProductId)
             ->where('product_variant_id', $variantId)
             ->first();
-        $availableStock = $variant ? (int) $variant->stock : (int) $product->stock;
+        $availableStock = (int) $priceProduct->stock;
         $newQuantity = $quantity + (int) ($cartItem?->quantity ?? 0);
 
         if ($newQuantity > $availableStock) {
@@ -87,6 +91,7 @@ class CartService
             CartItem::create([
                 'cart_id' => $cart->id,
                 'product_id' => $productId,
+                'linked_product_id' => $linkedProductId,
                 'product_variant_id' => $variantId,
                 'quantity' => $quantity,
                 'price' => $price,
@@ -124,6 +129,7 @@ class CartService
         foreach ($guestCart->items as $item) {
             $existingItem = CartItem::where('cart_id', $userCart->id)
                 ->where('product_id', $item->product_id)
+                ->where('linked_product_id', $item->linked_product_id)
                 ->where('product_variant_id', $item->product_variant_id)
                 ->first();
 

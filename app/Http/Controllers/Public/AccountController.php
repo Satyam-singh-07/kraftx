@@ -108,7 +108,7 @@ class AccountController extends Controller
     private function ordersQuery(User $user)
     {
         return $this->orderLinkingService->scopeForUser(
-            Order::with(['items.product', 'items.variant']),
+            Order::with(['items.product', 'items.linkedProduct.images', 'items.variant']),
             $user
         );
     }

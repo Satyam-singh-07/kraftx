@@ -40,7 +40,7 @@ class OrderController extends Controller
 
         $fileName = 'orders-report-' . $validated['date_from'] . '-to-' . $validated['date_to'] . '.xls';
         $orders = $this->filteredOrdersQuery($request)
-            ->with(['items.product', 'items.variant'])
+            ->with(['items.product', 'items.linkedProduct.images', 'items.variant'])
             ->oldest('created_at');
 
         return response()->streamDownload(function () use ($orders) {
