@@ -314,9 +314,33 @@
                 .bulk-order-modal .bulk-order-actions {
                     flex-direction: column-reverse;
                 }
-                .bulk-order-modal .bulk-order-actions .tf-btn {
+            .bulk-order-modal .bulk-order-actions .tf-btn {
                     width: 100%;
                 }
+            }
+            .bulk-order-submit {
+                min-width: 210px;
+            }
+            .bulk-order-submit .bulk-order-loader {
+                display: none;
+                width: 16px;
+                height: 16px;
+                margin-right: 8px;
+                border: 2px solid currentColor;
+                border-right-color: transparent;
+                border-radius: 50%;
+                animation: bulk-order-spin .7s linear infinite;
+                vertical-align: -3px;
+            }
+            .bulk-order-submit.is-loading .bulk-order-loader {
+                display: inline-block;
+            }
+            .bulk-order-submit.is-loading {
+                cursor: wait;
+                opacity: .85;
+            }
+            @keyframes bulk-order-spin {
+                to { transform: rotate(360deg); }
             }
 
             .product-option-list {
@@ -459,6 +483,14 @@
     </x-slot>
 
     <main id="wrapper">
+        @if(session('bulk_order_success'))
+            <div class="container pt-20">
+                <div class="alert alert-success d-flex align-items-center gap-2 mb-0" role="alert">
+                    <i class="icon icon-check-circle" aria-hidden="true"></i>
+                    <span>{{ session('bulk_order_success') }}</span>
+                </div>
+            </div>
+        @endif
 
         <!-- Product Single -->
         <section class="section-product-single tf-main-product section-image-zoom pb-80">
@@ -1267,9 +1299,6 @@
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        @if(session('bulk_order_success'))
-                            <div class="alert alert-success mb-20">{{ session('bulk_order_success') }}</div>
-                        @endif
                         <p class="cl-text-2 mb-20">Tell us what you need and our team will contact you with availability and pricing.</p>
                         <div class="bulk-order-product d-flex align-items-center gap-3 rounded-3 bg-light p-3 mb-20">
                             @if($product->images->first())
@@ -1305,7 +1334,10 @@
                                 </div>
                                 <div class="bulk-order-actions col-12 d-flex justify-content-end gap-2 pt-2">
                                     <button type="button" class="tf-btn btn-stroke" data-bs-dismiss="modal">Cancel</button>
-                                    <button type="submit" class="tf-btn btn-primary animate-btn">Send bulk enquiry</button>
+                                    <button type="submit" class="tf-btn btn-primary animate-btn bulk-order-submit">
+                                        <span class="bulk-order-loader" aria-hidden="true"></span>
+                                        <span class="bulk-order-submit-label">Send bulk enquiry</span>
+                                    </button>
                                 </div>
                             </div>
                         </form>
@@ -1330,6 +1362,21 @@
                 const stickyAddToCartBtn = document.getElementById('sticky-add-to-cart-btn');
                 const reviewModalElement = document.getElementById('reviewModal');
                 const bulkOrderModalElement = document.getElementById('bulkOrderModal');
+                const bulkOrderForm = bulkOrderModalElement?.querySelector('form');
+                const bulkOrderSubmit = bulkOrderForm?.querySelector('.bulk-order-submit');
+
+                bulkOrderForm?.addEventListener('submit', function(event) {
+                    if (bulkOrderSubmit?.classList.contains('is-loading')) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    bulkOrderSubmit?.classList.add('is-loading');
+                    bulkOrderSubmit?.setAttribute('disabled', 'disabled');
+                    bulkOrderSubmit?.setAttribute('aria-busy', 'true');
+                    const submitLabel = bulkOrderSubmit?.querySelector('.bulk-order-submit-label');
+                    if (submitLabel) submitLabel.textContent = 'Sending...';
+                });
 
                 @if ($errors->any() && auth()->check() && $hasPurchasedProduct)
                     if (reviewModalElement && typeof bootstrap !== 'undefined') {
@@ -1338,7 +1385,7 @@
                     }
                 @endif
 
-                @if(session('bulk_order_success') || (old('quantity') && ($errors->has('quantity') || $errors->has('phone') || $errors->has('email') || $errors->has('name') || $errors->has('message'))))
+                @if(old('quantity') && ($errors->has('quantity') || $errors->has('phone') || $errors->has('email') || $errors->has('name') || $errors->has('message')))
                     if (bulkOrderModalElement && typeof bootstrap !== 'undefined') {
                         bootstrap.Modal.getOrCreateInstance(bulkOrderModalElement).show();
                     }

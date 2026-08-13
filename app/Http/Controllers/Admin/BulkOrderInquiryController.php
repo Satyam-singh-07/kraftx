@@ -27,8 +27,12 @@ class BulkOrderInquiryController extends Controller
             ->latest()
             ->paginate(20)
             ->withQueryString();
+        $statusCounts = BulkOrderInquiry::query()
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
 
-        return view('admin.bulk-orders.index', compact('inquiries', 'filters'));
+        return view('admin.bulk-orders.index', compact('inquiries', 'filters', 'statusCounts'));
     }
 
     public function show(BulkOrderInquiry $bulkOrder): View
