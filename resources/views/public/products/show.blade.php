@@ -233,16 +233,16 @@
                 background: #fff !important;
             }
             .bulk-order-modal .modal-dialog {
-                width: calc(100% - 32px);
-                max-width: 720px;
-                max-height: calc(100vh - 32px);
+                width: calc(100% - 32px) !important;
+                max-width: 720px !important;
+                max-height: calc(100vh - 32px) !important;
             }
             .bulk-order-modal .modal-content {
                 border: 0;
                 border-radius: 16px;
                 overflow: hidden;
                 box-shadow: 0 18px 55px rgba(0, 0, 0, .18);
-                max-height: calc(100vh - 32px);
+                max-height: calc(100vh - 32px) !important;
                 display: flex;
                 flex-direction: column;
             }
@@ -253,7 +253,7 @@
                 padding: 28px 32px;
             }
             .bulk-order-modal .modal-body {
-                padding: 36px 40px 40px;
+                padding: 36px 40px 40px !important;
                 overflow-y: auto;
                 min-height: 0;
             }
@@ -289,6 +289,8 @@
             }
             .bulk-order-modal form .row {
                 row-gap: 22px;
+                margin-right: 0;
+                margin-left: 0;
             }
             .bulk-order-modal form {
                 margin: 0;
@@ -303,11 +305,11 @@
                     padding: 22px 18px;
                 }
                 .bulk-order-modal .modal-body {
-                    padding: 24px 20px 28px;
+                    padding: 24px 20px 28px !important;
                 }
                 .bulk-order-modal .modal-dialog,
                 .bulk-order-modal .modal-content {
-                    max-height: calc(100vh - 16px);
+                    max-height: calc(100vh - 16px) !important;
                 }
                 .bulk-order-modal .bulk-order-actions {
                     flex-direction: column-reverse;
