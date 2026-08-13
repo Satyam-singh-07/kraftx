@@ -253,7 +253,7 @@
                 padding: 28px 32px;
             }
             .bulk-order-modal .modal-body {
-                padding: 32px;
+                padding: 36px 40px 40px;
                 overflow-y: auto;
                 min-height: 0;
             }
@@ -265,7 +265,7 @@
                 padding: 16px !important;
                 border: 1px solid #ededed;
                 background: #fafafa !important;
-                margin-bottom: 28px !important;
+                margin: 0 0 32px !important;
             }
             .bulk-order-modal .bulk-order-product img {
                 flex: 0 0 auto;
@@ -288,11 +288,14 @@
                 font-weight: 700;
             }
             .bulk-order-modal form .row {
-                row-gap: 18px;
+                row-gap: 22px;
+            }
+            .bulk-order-modal form {
+                margin: 0;
             }
             .bulk-order-modal .bulk-order-actions {
-                margin-top: 8px;
-                padding-top: 22px;
+                margin-top: 10px;
+                padding-top: 26px;
                 border-top: 1px solid #ededed;
             }
             @media (max-width: 575.98px) {
@@ -300,7 +303,7 @@
                     padding: 22px 18px;
                 }
                 .bulk-order-modal .modal-body {
-                    padding: 22px 18px;
+                    padding: 24px 20px 28px;
                 }
                 .bulk-order-modal .modal-dialog,
                 .bulk-order-modal .modal-content {
