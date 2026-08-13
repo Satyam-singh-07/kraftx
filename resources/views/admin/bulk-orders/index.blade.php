@@ -54,8 +54,10 @@
             <table class="w-full text-left">
                 <thead class="bg-gray-50 dark:bg-gray-900/50">
                     <tr>
-                        <th class="whitespace-nowrap px-5 py-4 text-xs font-bold uppercase tracking-wide text-gray-500">Customer</th>
+                        <th class="whitespace-nowrap px-5 py-4 text-xs font-bold uppercase tracking-wide text-gray-500">Name</th>
+                        <th class="whitespace-nowrap px-5 py-4 text-xs font-bold uppercase tracking-wide text-gray-500">Contact</th>
                         <th class="whitespace-nowrap px-5 py-4 text-xs font-bold uppercase tracking-wide text-gray-500">Product</th>
+                        <th class="whitespace-nowrap px-5 py-4 text-xs font-bold uppercase tracking-wide text-gray-500">SKU</th>
                         <th class="whitespace-nowrap px-5 py-4 text-center text-xs font-bold uppercase tracking-wide text-gray-500">Qty.</th>
                         <th class="whitespace-nowrap px-5 py-4 text-xs font-bold uppercase tracking-wide text-gray-500">Status</th>
                         <th class="whitespace-nowrap px-5 py-4 text-xs font-bold uppercase tracking-wide text-gray-500">Received</th>
@@ -64,15 +66,22 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                     @forelse($inquiries as $inquiry)
-                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/40">
+                        <tr>
                             <td class="px-5 py-4">
                                 <p class="text-sm font-bold text-gray-900 dark:text-white">{{ $inquiry->name }}</p>
+                            </td>
+                            <td class="px-5 py-4">
                                 <a href="mailto:{{ $inquiry->email }}" class="mt-1 block text-xs text-blue-600 hover:underline">{{ $inquiry->email }}</a>
                                 <a href="tel:{{ $inquiry->phone }}" class="mt-0.5 block text-xs text-gray-500 hover:text-gray-700">{{ $inquiry->phone }}</a>
                             </td>
                             <td class="px-5 py-4">
-                                <p class="max-w-sm truncate text-sm font-semibold text-gray-900 dark:text-white">{{ $inquiry->product_name }}</p>
-                                <p class="text-xs font-mono text-gray-500">{{ $inquiry->product_sku ?: 'No SKU' }}</p>
+                                @php($shortProductName = mb_substr($inquiry->product_name, 0, 10))
+                                <p class="whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white" title="{{ $inquiry->product_name }}">
+                                    {{ $shortProductName }}{{ mb_strlen($inquiry->product_name) > 10 ? '...' : '' }}
+                                </p>
+                            </td>
+                            <td class="px-5 py-4">
+                                <span class="whitespace-nowrap font-mono text-xs text-gray-600 dark:text-gray-300">{{ $inquiry->product_sku ?: 'No SKU' }}</span>
                             </td>
                             <td class="px-5 py-4 text-center text-sm font-bold text-gray-900 dark:text-white">{{ number_format($inquiry->quantity) }}</td>
                             <td class="px-5 py-4">
@@ -90,7 +99,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="px-5 py-10 text-center text-sm text-gray-500">No bulk order inquiries found.</td></tr>
+                        <tr><td colspan="8" class="px-5 py-10 text-center text-sm text-gray-500">No bulk order inquiries found.</td></tr>
                     @endforelse
                 </tbody>
             </table>
