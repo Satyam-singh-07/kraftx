@@ -220,31 +220,84 @@
             }
             .bulk-order-trigger {
                 border: 1px solid #d7d7d7;
-                color: #1f1f1f;
+                color: #1f1f1f !important;
                 background: #fff;
                 font-weight: 700;
+                text-decoration: none;
             }
-            .bulk-order-trigger:hover {
-                border-color: #111;
-                background: #fafafa;
+            .bulk-order-trigger:hover,
+            .bulk-order-trigger:focus,
+            .bulk-order-trigger:active {
+                border-color: #111 !important;
+                color: #111 !important;
+                background: #fff !important;
             }
             .bulk-order-modal .modal-content {
                 border: 0;
                 border-radius: 16px;
                 overflow: hidden;
+                box-shadow: 0 18px 55px rgba(0, 0, 0, .18);
             }
             .bulk-order-modal .modal-header {
                 background: #111;
                 color: #fff;
                 border: 0;
-                padding: 22px 24px;
+                padding: 28px 32px;
             }
             .bulk-order-modal .modal-body {
-                padding: 24px;
+                padding: 32px;
+            }
+            .bulk-order-modal .modal-body > p {
+                line-height: 1.6;
+                margin-bottom: 24px !important;
+            }
+            .bulk-order-modal .bulk-order-product {
+                padding: 16px !important;
+                border: 1px solid #ededed;
+                background: #fafafa !important;
+                margin-bottom: 28px !important;
+            }
+            .bulk-order-modal .bulk-order-product img {
+                flex: 0 0 auto;
+                border: 1px solid #e6e6e6;
             }
             .bulk-order-modal .form-control {
-                min-height: 46px;
+                min-height: 48px;
                 border-radius: 8px;
+                padding: 11px 13px;
+                border-color: #dcdcdc;
+            }
+            .bulk-order-modal textarea.form-control {
+                min-height: 120px;
+                resize: vertical;
+            }
+            .bulk-order-modal .form-label {
+                margin-bottom: 8px;
+                color: #333;
+                font-size: 13px;
+                font-weight: 700;
+            }
+            .bulk-order-modal form .row {
+                row-gap: 18px;
+            }
+            .bulk-order-modal .bulk-order-actions {
+                margin-top: 8px;
+                padding-top: 22px;
+                border-top: 1px solid #ededed;
+            }
+            @media (max-width: 575.98px) {
+                .bulk-order-modal .modal-header {
+                    padding: 22px 18px;
+                }
+                .bulk-order-modal .modal-body {
+                    padding: 22px 18px;
+                }
+                .bulk-order-modal .bulk-order-actions {
+                    flex-direction: column-reverse;
+                }
+                .bulk-order-modal .bulk-order-actions .tf-btn {
+                    width: 100%;
+                }
             }
 
             .product-option-list {
@@ -1199,7 +1252,7 @@
                             <div class="alert alert-success mb-20">{{ session('bulk_order_success') }}</div>
                         @endif
                         <p class="cl-text-2 mb-20">Tell us what you need and our team will contact you with availability and pricing.</p>
-                        <div class="d-flex align-items-center gap-3 rounded-3 bg-light p-3 mb-20">
+                        <div class="bulk-order-product d-flex align-items-center gap-3 rounded-3 bg-light p-3 mb-20">
                             @if($product->images->first())
                                 <img src="{{ $product->images->first()->thumb_url }}" width="58" height="70" class="rounded object-fit-cover" alt="{{ $product->name }}">
                             @endif
@@ -1231,7 +1284,7 @@
                                     <label for="bulk-message" class="form-label">Additional details <span class="text-muted">(optional)</span></label>
                                     <textarea id="bulk-message" name="message" rows="4" maxlength="2000" class="form-control" placeholder="Tell us about your delivery timeline, customization, or any other requirement.">{{ old('message') }}</textarea>
                                 </div>
-                                <div class="col-12 d-flex justify-content-end gap-2 pt-2">
+                                <div class="bulk-order-actions col-12 d-flex justify-content-end gap-2 pt-2">
                                     <button type="button" class="tf-btn btn-stroke" data-bs-dismiss="modal">Cancel</button>
                                     <button type="submit" class="tf-btn btn-primary animate-btn">Send bulk enquiry</button>
                                 </div>
