@@ -88,6 +88,11 @@ class Product extends Model
         return $this->hasMany(ProductNotifyRequest::class);
     }
 
+    public function bulkOrderInquiries(): HasMany
+    {
+        return $this->hasMany(BulkOrderInquiry::class);
+    }
+
     public function seoMeta(): MorphOne
     {
         return $this->morphOne(SeoMeta::class, 'metaable');

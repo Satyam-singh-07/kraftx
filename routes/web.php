@@ -257,6 +257,10 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
     Route::resource('products', ProductController::class);
     Route::get('product-demands', [ProductDemandController::class, 'index'])->name('product-demands.index');
     Route::get('product-demands/{product}', [ProductDemandController::class, 'show'])->name('product-demands.show');
+    Route::get('bulk-orders', [\App\Http\Controllers\Admin\BulkOrderInquiryController::class, 'index'])->name('bulk-orders.index');
+    Route::get('bulk-orders/{bulkOrder}', [\App\Http\Controllers\Admin\BulkOrderInquiryController::class, 'show'])->name('bulk-orders.show');
+    Route::patch('bulk-orders/{bulkOrder}/status', [\App\Http\Controllers\Admin\BulkOrderInquiryController::class, 'updateStatus'])->name('bulk-orders.status');
+    Route::delete('bulk-orders/{bulkOrder}', [\App\Http\Controllers\Admin\BulkOrderInquiryController::class, 'destroy'])->name('bulk-orders.destroy');
     Route::post('collections/{collection}/toggle-status', [CollectionController::class, 'toggleStatus'])->name('collections.toggle-status');
     Route::resource('collections', CollectionController::class);
     Route::resource('customers', CustomerController::class);
@@ -308,6 +312,9 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
 Route::get('/products', [App\Http\Controllers\Public\ProductController::class, 'index'])->name('products.index');
 Route::get('/collections', [App\Http\Controllers\Public\ProductController::class, 'collectionIndex'])->name('collections.index');
 Route::get('/product/{slug}', [App\Http\Controllers\Public\ProductController::class, 'show'])->name('product.show');
+Route::post('/product/{product}/bulk-order', [App\Http\Controllers\Public\BulkOrderInquiryController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('product.bulk-order.store');
 Route::post('/product/{product}/notify', [ProductNotifyRequestController::class, 'store'])->name('product.notify.store');
 Route::post('/product/{product:slug}/reviews', [App\Http\Controllers\Public\ReviewController::class, 'store'])
     ->middleware('customer.auth')

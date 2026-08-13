@@ -44,6 +44,7 @@
                     ['label' => 'Products', 'icon' => 'shopping-bag', 'route' => 'admin.products.index'],
                     ['label' => 'Inventory', 'icon' => 'tag', 'route' => 'admin.inventory.index'],
                     ['label' => 'Product Demands', 'icon' => 'mail', 'route' => 'admin.product-demands.index'],
+                    ['label' => 'Bulk Orders', 'icon' => 'shopping-cart', 'route' => 'admin.bulk-orders.index'],
                     ['label' => 'Collections', 'icon' => 'layers', 'route' => 'admin.collections.index'],
                     ['label' => 'Tags', 'icon' => 'tag', 'route' => 'admin.tags.index'],
                 ],
