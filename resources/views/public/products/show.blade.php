@@ -219,9 +219,9 @@
                 color: #b42318;
             }
             .bulk-order-trigger {
-                border: 1px solid #d7d7d7;
+                border: 1px solid #111 !important;
                 color: #1f1f1f !important;
-                background: #fff;
+                background: #fff !important;
                 font-weight: 700;
                 text-decoration: none;
             }
@@ -232,11 +232,19 @@
                 color: #111 !important;
                 background: #fff !important;
             }
+            .bulk-order-modal .modal-dialog {
+                width: calc(100% - 32px);
+                max-width: 720px;
+                max-height: calc(100vh - 32px);
+            }
             .bulk-order-modal .modal-content {
                 border: 0;
                 border-radius: 16px;
                 overflow: hidden;
                 box-shadow: 0 18px 55px rgba(0, 0, 0, .18);
+                max-height: calc(100vh - 32px);
+                display: flex;
+                flex-direction: column;
             }
             .bulk-order-modal .modal-header {
                 background: #111;
@@ -246,6 +254,8 @@
             }
             .bulk-order-modal .modal-body {
                 padding: 32px;
+                overflow-y: auto;
+                min-height: 0;
             }
             .bulk-order-modal .modal-body > p {
                 line-height: 1.6;
@@ -291,6 +301,10 @@
                 }
                 .bulk-order-modal .modal-body {
                     padding: 22px 18px;
+                }
+                .bulk-order-modal .modal-dialog,
+                .bulk-order-modal .modal-content {
+                    max-height: calc(100vh - 16px);
                 }
                 .bulk-order-modal .bulk-order-actions {
                     flex-direction: column-reverse;
