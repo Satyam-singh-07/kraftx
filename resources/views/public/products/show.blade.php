@@ -1299,7 +1299,13 @@
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p class="cl-text-2 mb-20">Tell us what you need and our team will contact you with availability and pricing.</p>
+                        <p class="cl-text-2 mb-20">
+                            @if(session('bulk_order_otp'))
+                                Enter the 6 digit code sent to <strong>{{ data_get(session('bulk_order_otp'), 'draft.email') }}</strong> to submit your enquiry.
+                            @else
+                                Tell us what you need and our team will contact you with availability and pricing.
+                            @endif
+                        </p>
                         <div class="bulk-order-product d-flex align-items-center gap-3 rounded-3 bg-light p-3 mb-20">
                             @if($product->images->first())
                                 <img src="{{ $product->images->first()->thumb_url }}" width="58" height="70" class="rounded object-fit-cover" alt="{{ $product->name }}">
@@ -1309,7 +1315,32 @@
                                 <p class="mb-0 text-caption-01 cl-text-2">SKU: {{ $product->sku ?: 'N/A' }}</p>
                             </div>
                         </div>
-                        <form action="{{ route('product.bulk-order.store', $product) }}" method="POST">
+                        @if(session('bulk_order_otp'))
+                            <form action="{{ route('product.bulk-order.verify', $product) }}" method="POST" class="bulk-order-submit-form">
+                                @csrf
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label for="bulk-otp" class="form-label">Email verification code *</label>
+                                        <input id="bulk-otp" type="text" name="otp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" class="form-control" placeholder="Enter 6 digit code" required autofocus>
+                                        @error('otp')
+                                            <small class="mt-2 d-block text-danger">{{ $message }}</small>
+                                        @enderror
+                                    </div>
+                                    <div class="bulk-order-actions col-12 d-flex justify-content-end gap-2 pt-2">
+                                        <button type="button" class="tf-btn btn-stroke" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="tf-btn btn-primary animate-btn bulk-order-submit">
+                                            <span class="bulk-order-loader" aria-hidden="true"></span>
+                                            <span class="bulk-order-submit-label">Verify &amp; submit enquiry</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                            <form action="{{ route('product.bulk-order.resend-otp', $product) }}" method="POST" class="mt-3 text-center">
+                                @csrf
+                                <button type="submit" class="border-0 bg-transparent p-0 text-primary text-decoration-underline">Resend code</button>
+                            </form>
+                        @else
+                        <form action="{{ route('product.bulk-order.store', $product) }}" method="POST" class="bulk-order-submit-form">
                             @csrf
                             <div class="row g-3">
                                 <div class="col-md-6">
@@ -1336,11 +1367,12 @@
                                     <button type="button" class="tf-btn btn-stroke" data-bs-dismiss="modal">Cancel</button>
                                     <button type="submit" class="tf-btn btn-primary animate-btn bulk-order-submit">
                                         <span class="bulk-order-loader" aria-hidden="true"></span>
-                                        <span class="bulk-order-submit-label">Send bulk enquiry</span>
+                                        <span class="bulk-order-submit-label">Send verification code</span>
                                     </button>
                                 </div>
                             </div>
                         </form>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -1362,20 +1394,20 @@
                 const stickyAddToCartBtn = document.getElementById('sticky-add-to-cart-btn');
                 const reviewModalElement = document.getElementById('reviewModal');
                 const bulkOrderModalElement = document.getElementById('bulkOrderModal');
-                const bulkOrderForm = bulkOrderModalElement?.querySelector('form');
-                const bulkOrderSubmit = bulkOrderForm?.querySelector('.bulk-order-submit');
+                bulkOrderModalElement?.querySelectorAll('.bulk-order-submit-form').forEach(function(form) {
+                    form.addEventListener('submit', function(event) {
+                        const bulkOrderSubmit = form.querySelector('.bulk-order-submit');
+                        if (bulkOrderSubmit?.classList.contains('is-loading')) {
+                            event.preventDefault();
+                            return;
+                        }
 
-                bulkOrderForm?.addEventListener('submit', function(event) {
-                    if (bulkOrderSubmit?.classList.contains('is-loading')) {
-                        event.preventDefault();
-                        return;
-                    }
-
-                    bulkOrderSubmit?.classList.add('is-loading');
-                    bulkOrderSubmit?.setAttribute('disabled', 'disabled');
-                    bulkOrderSubmit?.setAttribute('aria-busy', 'true');
-                    const submitLabel = bulkOrderSubmit?.querySelector('.bulk-order-submit-label');
-                    if (submitLabel) submitLabel.textContent = 'Sending...';
+                        bulkOrderSubmit?.classList.add('is-loading');
+                        bulkOrderSubmit?.setAttribute('disabled', 'disabled');
+                        bulkOrderSubmit?.setAttribute('aria-busy', 'true');
+                        const submitLabel = bulkOrderSubmit?.querySelector('.bulk-order-submit-label');
+                        if (submitLabel) submitLabel.textContent = 'Please wait...';
+                    });
                 });
 
                 @if ($errors->any() && auth()->check() && $hasPurchasedProduct)
@@ -1385,7 +1417,7 @@
                     }
                 @endif
 
-                @if(old('quantity') && ($errors->has('quantity') || $errors->has('phone') || $errors->has('email') || $errors->has('name') || $errors->has('message')))
+                @if(session('bulk_order_otp') || old('quantity') && ($errors->has('quantity') || $errors->has('phone') || $errors->has('email') || $errors->has('name') || $errors->has('message') || $errors->has('otp')))
                     if (bulkOrderModalElement && typeof bootstrap !== 'undefined') {
                         bootstrap.Modal.getOrCreateInstance(bulkOrderModalElement).show();
                     }

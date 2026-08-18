@@ -118,6 +118,7 @@ class OtpAuthController extends Controller
             'email' => $email,
             'otp_hash' => Hash::make($otp),
             'expires_at' => now()->addMinutes(10)->timestamp,
+            'attempts' => 0,
         ]);
 
         Mail::send('emails.auth-otp', [
@@ -143,6 +144,16 @@ class OtpAuthController extends Controller
 
             return 'This OTP has expired. Please request a new one.';
         }
+
+        $attempts = (int) ($pending['attempts'] ?? 0) + 1;
+        if ($attempts > 5) {
+            $request->session()->forget('otp_auth');
+
+            return 'Too many incorrect attempts. Please request a new OTP.';
+        }
+
+        $pending['attempts'] = $attempts;
+        $request->session()->put('otp_auth', $pending);
 
         if (! Hash::check($otp, $pending['otp_hash'] ?? '')) {
             return 'The OTP is incorrect.';

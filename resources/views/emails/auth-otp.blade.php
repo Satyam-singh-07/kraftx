@@ -1,6 +1,6 @@
 @php
     $brand = config('seo.site_name', config('app.name', 'KraftX'));
-    $supportEmail = config('seo.support_email', 'thekraftxofficial@gmail.com');
+    $supportEmail = config('seo.support_email', 'no-reply@thekraftx.com');
 @endphp
 <!doctype html>
 <html lang="en">

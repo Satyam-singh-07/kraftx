@@ -201,8 +201,8 @@ Route::post('/contact-us', [ContactController::class, 'store'])->name('contact.u
 Route::post('/newsletter', [PublicNewsletterController::class, 'store'])->name('newsletter.store');
 
 Route::middleware('guest')->group(function () {
-    Route::post('/auth/send-otp', [OtpAuthController::class, 'sendOtp'])->name('auth.otp.send');
-    Route::post('/auth/verify-otp', [OtpAuthController::class, 'verifyOtp'])->name('auth.otp.verify');
+    Route::post('/auth/send-otp', [OtpAuthController::class, 'sendOtp'])->middleware('throttle:5,1')->name('auth.otp.send');
+    Route::post('/auth/verify-otp', [OtpAuthController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('auth.otp.verify');
 });
 
 Route::middleware('customer.auth')->group(function () {
@@ -312,9 +312,15 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
 Route::get('/products', [App\Http\Controllers\Public\ProductController::class, 'index'])->name('products.index');
 Route::get('/collections', [App\Http\Controllers\Public\ProductController::class, 'collectionIndex'])->name('collections.index');
 Route::get('/product/{slug}', [App\Http\Controllers\Public\ProductController::class, 'show'])->name('product.show');
-Route::post('/product/{product}/bulk-order', [App\Http\Controllers\Public\BulkOrderInquiryController::class, 'store'])
+Route::post('/product/{product}/bulk-order', [\App\Http\Controllers\Public\BulkOrderInquiryController::class, 'requestOtp'])
     ->middleware('throttle:10,1')
     ->name('product.bulk-order.store');
+Route::post('/product/{product}/bulk-order/resend-otp', [\App\Http\Controllers\Public\BulkOrderInquiryController::class, 'resendOtp'])
+    ->middleware('throttle:5,1')
+    ->name('product.bulk-order.resend-otp');
+Route::post('/product/{product}/bulk-order/verify', [\App\Http\Controllers\Public\BulkOrderInquiryController::class, 'verifyOtp'])
+    ->middleware('throttle:10,1')
+    ->name('product.bulk-order.verify');
 Route::post('/product/{product}/notify', [ProductNotifyRequestController::class, 'store'])->name('product.notify.store');
 Route::post('/product/{product:slug}/reviews', [App\Http\Controllers\Public\ReviewController::class, 'store'])
     ->middleware('customer.auth')

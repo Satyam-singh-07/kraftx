@@ -12,7 +12,6 @@ use Throwable;
 class OrderConfirmationNotifier
 {
     private const ADMIN_EMAILS = [
-        'thekraftxofficial@gmail.com',
         'sanjayadav448@gmail.com',
         'swatidayal2004@gmail.com',
         'satyamsingh962572@gmail.com'        

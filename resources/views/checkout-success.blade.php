@@ -1,6 +1,6 @@
 <x-layout :seo="$seo" title="Order Confirmed">
     @php
-        $supportEmail = config('seo.support_email', 'thekraftxofficial@gmail.com');
+        $supportEmail = config('seo.support_email', 'no-reply@thekraftx.com');
         $isCod = $order->payment_method === 'COD';
         $paymentLabel = $isCod ? 'Cash on Delivery' : 'Online payment';
         $deliveryMessage = $order->estimated_delivery_date

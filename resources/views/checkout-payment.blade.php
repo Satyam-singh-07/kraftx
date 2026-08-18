@@ -1,7 +1,7 @@
 <x-layout :seo="$seo" title="Complete Payment">
     @php
         $itemCount = $order->items->sum('quantity');
-        $supportEmail = config('seo.support_email', 'thekraftxofficial@gmail.com');
+        $supportEmail = config('seo.support_email', 'no-reply@thekraftx.com');
     @endphp
 
     <x-slot:styles>

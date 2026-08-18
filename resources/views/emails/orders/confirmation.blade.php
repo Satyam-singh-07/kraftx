@@ -1,6 +1,6 @@
 @php
     $brand = config('seo.site_name', config('app.name', 'KraftX'));
-    $supportEmail = config('seo.support_email', 'thekraftxofficial@gmail.com');
+    $supportEmail = config('seo.support_email', 'no-reply@thekraftx.com');
     $supportPhone = config('seo.support_phone');
     $logo = asset('assets/images/logo/logo.png');
     $billing = $order->billing_address_data ?: $order->shipping_address_data;
