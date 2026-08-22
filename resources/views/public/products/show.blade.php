@@ -1281,7 +1281,6 @@
                                 </div>
                             @endforeach
                         </div>
-                        <div class="sw-line-default style-2 tf-sw-pagination"></div>
                     </div>
                 </div>
             </div>
