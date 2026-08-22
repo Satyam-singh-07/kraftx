@@ -63,13 +63,6 @@ class HomeController extends Controller
                 $badges[] = ['type' => 'new', 'text' => 'NEW'];
             }
 
-            $sizes = $product->variants
-                ->pluck('size')
-                ->filter()
-                ->unique()
-                ->values()
-                ->all();
-
             return [
                 'id' => $product->id,
                 'name' => $product->name,
@@ -78,8 +71,8 @@ class HomeController extends Controller
                 'hoverImage' => $hoverUrl,
                 'price' => '₹' . number_format($displayPrice, 0),
                 'oldPrice' => $oldPrice !== null ? '₹' . number_format($oldPrice, 0) : null,
-                'hasSize' => !empty($sizes),
-                'sizes' => $sizes,
+                'hasSize' => false,
+                'sizes' => [],
                 'badges' => !empty($badges) ? $badges : null,
                 'stock' => (int) $product->stock,
                 'isInStock' => $product->stock > 0,
