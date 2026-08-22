@@ -273,7 +273,7 @@
                 <h1 class="mb-14">Your order is confirmed.</h1>
                 <p class="success-copy">
                     Thank you, {{ $order->customer_name }}. We have received your order and sent the confirmation details to {{ $order->customer_email }}.
-                    Our team will prepare your KraftX pieces with care and keep you updated as the order moves forward.
+                    Our team will prepare your KraftX pieces with care and keep you updated as the order moves forward. If you do not see the email shortly, please check your Inbox, Spam, or Promotions folder.
                 </p>
             </div>
 
@@ -370,7 +370,7 @@
                                 <span class="step-number">1</span>
                                 <div>
                                     <strong>Confirmation email sent</strong>
-                                    <p>Your order details, payment summary, and delivery address have been emailed to you.</p>
+                                    <p>Your order details, payment summary, and delivery address have been emailed to you. Please check your Inbox, Spam, or Promotions folder if needed.</p>
                                 </div>
                             </div>
                             <div class="step-item">

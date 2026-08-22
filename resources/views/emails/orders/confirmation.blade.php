@@ -39,6 +39,9 @@
                             <p style="margin:0 0 16px; font-size:16px; line-height:26px; color:#4f463f;">
                                 We have received your order and will prepare it with care. This email is your confirmation for <strong style="color:#1f1a16;">{{ $order->order_number }}</strong>.
                             </p>
+                            <p style="margin:0 0 16px; font-size:13px; line-height:21px; color:#6f665e;">
+                                If you do not see this email in your Inbox, please check your Spam or Promotions folder.
+                            </p>
 
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:22px 0; border:1px solid #eadfd3;">
                                 <tr>

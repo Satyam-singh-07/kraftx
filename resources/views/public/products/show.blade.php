@@ -1299,6 +1299,11 @@
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
+                        @if(session('bulk_order_otp_sent'))
+                            <div class="alert alert-info mb-20" role="status">
+                                {{ session('bulk_order_otp_sent') }}
+                            </div>
+                        @endif
                         <p class="cl-text-2 mb-20">
                             @if(session('bulk_order_otp'))
                                 Enter the 6 digit code sent to <strong>{{ data_get(session('bulk_order_otp'), 'draft.email') }}</strong> to submit your enquiry.

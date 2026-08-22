@@ -50,6 +50,7 @@
                                         <p style="margin:0; font-size:14px; line-height:22px; color:#5c4330;">
                                             <strong style="color:#25170c;">Do not share this OTP.</strong> KraftX will never ask for your OTP by phone, message, or email. If you did not request this code, you can safely ignore this email.
                                         </p>
+                                        <p style="margin:10px 0 0; font-size:13px; line-height:20px; color:#6d6259;">If you do not see this email in your Inbox, please check your Spam or Promotions folder.</p>
                                     </td>
                                 </tr>
                             </table>

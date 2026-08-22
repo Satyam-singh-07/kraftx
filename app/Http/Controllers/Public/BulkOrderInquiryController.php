@@ -84,7 +84,7 @@ class BulkOrderInquiryController extends Controller
         $this->sendInquiryNotifications($inquiry);
 
         return back()
-            ->with('bulk_order_success', 'Thank you. Your bulk order request has been received. Our team will contact you shortly.')
+            ->with('bulk_order_success', 'Thank you. Your bulk order request has been received. Our team will contact you shortly. Please also check your Inbox, Spam, or Promotions folder for our confirmation email.')
             ->with('bulk_order_inquiry_id', $inquiry->id);
     }
 
@@ -122,7 +122,7 @@ class BulkOrderInquiryController extends Controller
             return back()->withInput()->withErrors(['email' => 'We could not send the verification email. Please try again shortly.']);
         }
 
-        return back()->withInput()->with('bulk_order_otp_sent', 'We sent a 6 digit verification code to your email.');
+        return back()->withInput()->with('bulk_order_otp_sent', 'We sent a 6 digit verification code to your email. Please check your Inbox, Spam, or Promotions folder if you do not see it shortly.');
     }
 
     private function createInquiry(Product $product, array $draft): BulkOrderInquiry
