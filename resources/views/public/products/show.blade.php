@@ -1247,13 +1247,8 @@
                                             ? $related->images->first()->thumb_url
                                             : '',
                                         'url' => route('product.show', $related->slug),
-                                        'hasSize' => $related->variants->whereNotNull('size')->isNotEmpty(),
-                                        'sizes' => $related->variants
-                                            ->whereNotNull('size')
-                                            ->unique('size')
-                                            ->pluck('size')
-                                            ->values()
-                                            ->all(),
+                                        'hasSize' => false,
+                                        'sizes' => [],
                                         'colors' => [],
                                         'badges' => [],
                                         'stock' => (int) $related->stock,
