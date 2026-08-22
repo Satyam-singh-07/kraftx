@@ -694,8 +694,6 @@
                                             <div class="variant-picker-label">
                                                 <div>
                                                     Choose an option
-                                                    <span
-                                                        class="variant-picker-label-value value-currentOption text-capitalize fw-medium">{{ $product->name }}</span>
                                                 </div>
                                                 <span class="option-hint">Select a product</span>
                                             </div>
