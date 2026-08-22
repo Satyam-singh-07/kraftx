@@ -1254,18 +1254,7 @@
                                             ->pluck('size')
                                             ->values()
                                             ->all(),
-                                        'colors' => $related->variants
-                                            ->whereNotNull('color')
-                                            ->unique('color')
-                                            ->map(
-                                                fn($v) => [
-                                                    'name' => $v->color,
-                                                    'image' => $related->images->first()
-                                                        ? $related->images->first()->thumb_url
-                                                        : '',
-                                                    'class' => '',
-                                                ],
-                                            ),
+                                        'colors' => [],
                                         'badges' => [],
                                         'stock' => (int) $related->stock,
                                         'isInStock' => $related->stock > 0,
