@@ -68,6 +68,13 @@
                 class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Back to List</a>
         </div>
 
+        @if(session('error'))
+            <div class="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300" role="alert">
+                <p class="font-bold">Product could not be saved</p>
+                <p class="mt-1 break-words font-mono text-xs">{{ session('error') }}</p>
+            </div>
+        @endif
+
         @if ($errors->any())
             <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400">
                 <ul class="list-disc list-inside">

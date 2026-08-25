@@ -78,7 +78,7 @@ class ProductController extends Controller
             $product = $this->productService->createProduct($dto);
 
             return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
 
             return back()->withInput()->with('error', $e->getMessage());
         }
@@ -114,8 +114,10 @@ class ProductController extends Controller
             $this->productService->updateProduct($id, $dto);
 
             return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Product update controller error: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Product update controller error: ' . $e->getMessage(), [
+                'exception' => $e::class,
+            ]);
             return back()->withInput()->with('error', $e->getMessage());
         }
     }
