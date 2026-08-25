@@ -232,15 +232,9 @@ class ProductController extends Controller
                 'hoverImage' => $hoverImage,
                 'price' => '₹' . number_format($product->sale_price ?? $product->price, 0),
                 'oldPrice' => $product->sale_price ? '₹' . number_format($product->price, 0) : null,
-                'hasSize' => $product->variants->whereNotNull('size')->isNotEmpty(),
-                'sizes' => $product->variants->whereNotNull('size')->unique('size')->pluck('size')->toArray(),
-                'colors' => $product->variants->whereNotNull('color')->unique('color')->map(function($v) use ($image) {
-                    return [
-                        'name' => $v->color,
-                        'image' => $v->image_path ? 'storage/' . $v->image_path : $image,
-                        'class' => ''
-                    ];
-                }),
+                'hasSize' => false,
+                'sizes' => [],
+                'colors' => [],
                 'badges' => [],
                 'stock' => (int) $product->stock,
                 'isInStock' => $product->stock > 0,
