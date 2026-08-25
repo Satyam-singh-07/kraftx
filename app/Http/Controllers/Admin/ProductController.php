@@ -66,11 +66,12 @@ class ProductController extends Controller
 
 
         try {
+            $galleryImages = array_values(array_filter((array) $request->file('gallery_images', [])));
             $dto = ProductDTO::fromRequest(
                 $request->validated(),
                 $request->file('main_image'),
                 $request->file('size_weight_image'),
-                $request->file('gallery_images') ?? []
+                $galleryImages
             );
 
 
@@ -103,11 +104,12 @@ class ProductController extends Controller
         }
 
         try {
+            $galleryImages = array_values(array_filter((array) $request->file('gallery_images', [])));
             $dto = ProductDTO::fromRequest(
                 $request->validated(),
                 $request->file('main_image'),
                 $request->file('size_weight_image'),
-                $request->file('gallery_images') ?? []
+                $galleryImages
             );
             $this->productService->updateProduct($id, $dto);
 
