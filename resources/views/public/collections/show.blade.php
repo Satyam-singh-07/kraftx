@@ -41,6 +41,14 @@
             height: auto;
         }
 
+        .collection-products-grid > .collection-product-item {
+            display: flex;
+        }
+
+        .collection-products-grid .card-product {
+            width: 100%;
+        }
+
         .collection-empty {
             padding: 64px 24px;
             border: 1px solid var(--line);
@@ -92,19 +100,10 @@
                 </div>
 
                 @if($products->count())
-                    <div dir="ltr" class="swiper tf-swiper wrap-sw-over collection-products-slider"
-                        data-preview="4" data-tablet="3" data-mobile-sm="2" data-mobile="1.2"
-                        data-space-lg="30" data-space-md="20" data-space="12"
-                        data-pagination="1" data-pagination-sm="2" data-pagination-md="3" data-pagination-lg="4">
-                        <div class="swiper-wrapper">
-                            @foreach($products as $product)
-                                <div class="swiper-slide wow fadeInUp">
-                                    <x-product-card :product="$product" />
-                                </div>
-                            @endforeach
-                        </div>
-                        <div class="sw-dot-default tf-sw-pagination"></div>
+                    <div id="collection-products-grid" class="collection-products-grid row g-3 g-md-4">
+                        @include('public.collections._products', ['products' => $products->getCollection()])
                     </div>
+                    <div id="collection-load-status" class="mt-30 text-center text-body-2 cl-text-2" aria-live="polite"></div>
                 @else
                     <div class="collection-empty text-center">
                         <p class="text-body-1 cl-text-2 mb-0">No products found in this collection.</p>
@@ -113,12 +112,59 @@
                 @endif
             </div>
 
-            @if($products->hasPages())
-                <div class="tf-pagination mt-40">
-                    {{ $products->links('vendor.pagination.bootstrap-5') }}
-                </div>
-            @endif
         </div>
     </section>
     <!-- /Shop -->
+    <x-slot name="scripts">
+        @if($products->hasMorePages())
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const grid = document.getElementById('collection-products-grid');
+                    const status = document.getElementById('collection-load-status');
+                    if (!grid || !status) return;
+
+                    let nextPage = {{ $products->currentPage() + 1 }};
+                    let hasMore = true;
+                    let loading = false;
+
+                    const loadMoreProducts = async function () {
+                        if (loading || !hasMore) return;
+                        loading = true;
+                        status.textContent = 'Loading more products...';
+
+                        try {
+                            const url = new URL(@json(route('collection.show', $collection->slug)), window.location.origin);
+                            url.searchParams.set('page', nextPage);
+                            url.searchParams.set('load_more', '1');
+
+                            const response = await fetch(url, {
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json'
+                                }
+                            });
+
+                            if (!response.ok) throw new Error('Unable to load products');
+                            const data = await response.json();
+                            grid.insertAdjacentHTML('beforeend', data.html || '');
+                            hasMore = Boolean(data.has_more);
+                            nextPage = Number(data.next_page || nextPage + 1);
+                            status.textContent = hasMore ? '' : 'You have reached the end of this collection.';
+                        } catch (error) {
+                            status.textContent = 'Unable to load more products. Please try again.';
+                        } finally {
+                            loading = false;
+                        }
+                    };
+
+                    const sentinel = document.createElement('div');
+                    sentinel.setAttribute('aria-hidden', 'true');
+                    status.before(sentinel);
+                    new IntersectionObserver(function (entries) {
+                        if (entries.some(entry => entry.isIntersecting)) loadMoreProducts();
+                    }, { rootMargin: '500px 0px' }).observe(sentinel);
+                });
+            </script>
+        @endif
+    </x-slot>
 </x-layout>

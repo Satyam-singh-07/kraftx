@@ -9,6 +9,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
@@ -207,7 +208,7 @@ class ProductController extends Controller
         ));
     }
     
-    public function collectionShow(string $slug)
+    public function collectionShow(Request $request, string $slug)
     {
         $collection = Collection::where('slug', $slug)->firstOrFail();
         $productsModel = $collection->products()->where('status', true)->with(['images', 'variants'])->paginate(16);
@@ -250,6 +251,14 @@ class ProductController extends Controller
 
         // Replace the collection in the paginator with the mapped one
         $productsModel->setCollection($products);
+
+        if ($request->ajax() || $request->boolean('load_more')) {
+            return response()->json([
+                'html' => view('public.collections._products', ['products' => $productsModel->getCollection()])->render(),
+                'has_more' => $productsModel->hasMorePages(),
+                'next_page' => $productsModel->currentPage() + 1,
+            ]);
+        }
 
         $seo = SeoHelper::forModel($collection, [
             'title' => ($collection->seoMeta?->meta_title ?: $collection->name) . ' Collection | ' . config('app.name', 'KraftX'),
