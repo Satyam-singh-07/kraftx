@@ -8,14 +8,18 @@
         </div>
 
         @if(session('bulk_update_result'))
-            @php($bulkResult = session('bulk_update_result'))
+            @php
+                $bulkResult = session('bulk_update_result');
+            @endphp
             <div class="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800 dark:border-green-900/50 dark:bg-green-900/20 dark:text-green-200">
                 <div class="font-semibold">Bulk update finished</div>
                 <div class="mt-1">{{ $bulkResult['updated'] }} product(s) updated successfully.</div>
                 @if(!empty($bulkResult['errors']))
                     <div class="mt-3 font-semibold">Rows needing attention</div>
                     <ul class="mt-1 list-disc space-y-1 pl-5">
-                        @foreach($bulkResult['errors'] as $error)<li>{{ $error }}</li>@endforeach
+                        @foreach($bulkResult['errors'] as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
                     </ul>
                 @endif
             </div>
