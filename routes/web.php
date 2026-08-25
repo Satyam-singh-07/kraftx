@@ -252,6 +252,8 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
     // Product Management
     Route::get('products/search', [ProductController::class, 'search'])->name('products.search');
     Route::post('products/bulk-delete', [ProductController::class, 'bulkDelete'])->name('products.bulk-delete');
+    Route::get('products/bulk-update/export', [\App\Http\Controllers\Admin\ProductBulkUpdateController::class, 'export'])->name('products.bulk-update.export');
+    Route::post('products/bulk-update/import', [\App\Http\Controllers\Admin\ProductBulkUpdateController::class, 'import'])->name('products.bulk-update.import');
     Route::post('products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
     Route::delete('products/images/{image}', [ProductController::class, 'deleteImage'])->name('products.delete-image');
     Route::resource('products', ProductController::class);

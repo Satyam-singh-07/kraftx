@@ -7,6 +7,38 @@
             </a>
         </div>
 
+        @if(session('bulk_update_result'))
+            @php($bulkResult = session('bulk_update_result'))
+            <div class="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800 dark:border-green-900/50 dark:bg-green-900/20 dark:text-green-200">
+                <div class="font-semibold">Bulk update finished</div>
+                <div class="mt-1">{{ $bulkResult['updated'] }} product(s) updated successfully.</div>
+                @if(!empty($bulkResult['errors']))
+                    <div class="mt-3 font-semibold">Rows needing attention</div>
+                    <ul class="mt-1 list-disc space-y-1 pl-5">
+                        @foreach($bulkResult['errors'] as $error)<li>{{ $error }}</li>@endforeach
+                    </ul>
+                @endif
+            </div>
+        @endif
+
+        <x-admin.card title="Bulk product update">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div class="text-sm text-gray-600 dark:text-gray-300">
+                    <p class="font-semibold text-gray-800 dark:text-white">Update existing products from Excel</p>
+                    <p class="mt-1">Download the workbook, edit the rows, and upload the same `.xlsx` file. Products are matched by SKU. Images are not changed.</p>
+                </div>
+                <div class="flex flex-col gap-3 sm:flex-row">
+                    <a href="{{ route('admin.products.bulk-update.export') }}" class="inline-flex items-center justify-center rounded-lg bg-gray-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-900">Download XLSX list</a>
+                    <form action="{{ route('admin.products.bulk-update.import') }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        @csrf
+                        <input type="file" name="bulk_update_file" accept=".xlsx" required class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                        <button type="submit" class="whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Upload updates</button>
+                    </form>
+                </div>
+            </div>
+            <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">Every column has an Excel comment and the workbook includes an Instructions sheet. Blank cells keep existing values; use <code>[CLEAR]</code> only to intentionally remove a value.</p>
+        </x-admin.card>
+
         <!-- Filters & Search -->
         <x-admin.card>
             <form action="{{ route('admin.products.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
