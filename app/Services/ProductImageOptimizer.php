@@ -19,7 +19,7 @@ class ProductImageOptimizer
     public function storeUpload(Product $product, UploadedFile $file, bool $isPrimary): string
     {
         $directory = $isPrimary
-            ? "products/{$product->id}"
+            ? "products/{$product->id}/primary/" . str_replace('.', '', uniqid('', true))
             : "products/{$product->id}/gallery/" . str_replace('.', '', uniqid('', true));
 
         $this->storeVariants(Image::decode($file), $directory);
@@ -110,7 +110,9 @@ class ProductImageOptimizer
 
     private function targetDirectory(ProductImage $productImage): string
     {
-        if ($productImage->is_primary) {
+        $sourcePath = (string) $productImage->image_path;
+
+        if ($productImage->is_primary && ! str_contains($sourcePath, '/primary/')) {
             return "products/{$productImage->product_id}";
         }
 
