@@ -159,11 +159,15 @@ class ProductService
             if ($dto->main_image) {
                 Log::info('Updating main_image');
                 $oldPrimaries = $product->images()->where('is_primary', true)->get();
+
+                // Store the replacement before removing the current primary image.
+                // This keeps the product intact if image processing or storage fails.
+                $this->uploadImage($product, $dto->main_image, true);
+
                 foreach ($oldPrimaries as $oldPrimary) {
                     $filesToDelete[] = $oldPrimary->image_path;
                     $oldPrimary->delete();
                 }
-                $this->uploadImage($product, $dto->main_image, true);
             }
 
             if (!empty($dto->gallery_images)) {
