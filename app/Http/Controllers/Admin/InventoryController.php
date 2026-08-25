@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class InventoryController extends Controller
 {
-    private const LOW_STOCK_THRESHOLD = 10;
+    public const LOW_STOCK_THRESHOLD = 10;
 
     public function __construct(private ProductDemandService $productDemandService)
     {
