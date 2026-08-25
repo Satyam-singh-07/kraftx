@@ -3,7 +3,6 @@
 namespace App\Services\Admin;
 
 use App\DTOs\ProductDTO;
-use App\Models\Category;
 use App\Models\Collection;
 use App\Models\Product;
 use App\Models\Tag;
@@ -16,8 +15,6 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use RuntimeException;
 
 class ProductBulkUpdateService
@@ -46,7 +43,6 @@ class ProductBulkUpdateService
         'Status' => 'Use Active or Inactive to control store visibility.',
         'Featured' => 'Use Yes or No to control featured placement.',
         'Trending' => 'Use Yes or No to control trending placement.',
-        'Category Slug' => 'Existing category slug. Leave blank to keep it; type [CLEAR] to remove the category.',
         'Collections' => 'Comma-separated existing collection slugs or names. Blank keeps current; [CLEAR] removes all.',
         'Tags' => 'Comma-separated existing tag slugs or names. Blank keeps current; [CLEAR] removes all.',
         'Variations' => 'Use: Color=Red; Size=Large; Items=1; SKUs=PB1 || Color=Blue; Size=Medium; Items=2; SKUs=PB2. Blank keeps current; [CLEAR] removes all.',
@@ -88,7 +84,7 @@ class ProductBulkUpdateService
         $sheet->freezePane('A2');
         $sheet->setAutoFilter('A1:' . Coordinate::stringFromColumnIndex(count($headers)) . '1');
 
-        Product::with(['collections', 'tags', 'variants', 'seoMeta', 'category'])
+        Product::with(['collections', 'tags', 'variants', 'seoMeta'])
             ->orderBy('id')
             ->chunk(200, function ($products) use ($sheet, $headers): void {
                 foreach ($products as $product) {
@@ -209,10 +205,6 @@ class ProductBulkUpdateService
             if ($input !== '') $data[$field] = $this->boolean($input, $header);
         }
 
-        $category = $value('Category Slug');
-        if ($category !== '') {
-            $data['category_id'] = $category === self::CLEAR ? null : (Category::where('slug', $category)->orWhere('name', $category)->value('id') ?: throw new RuntimeException("Category '{$category}' was not found."));
-        }
         $collectionInput = $value('Collections');
         $tagInput = $value('Tags');
         $collectionIds = $collectionInput === '' ? $product->collections->pluck('id')->all() : $this->relationIds($collectionInput, Collection::class);
@@ -226,8 +218,8 @@ class ProductBulkUpdateService
                 ...array_merge((array) $dto, ['collection_ids' => $collectionIds, 'tag_ids' => $tagIds, 'variants' => $variants, 'seo_meta' => $seo])
             ));
             $product->refresh();
-            if (array_key_exists('category_id', $data) || array_key_exists('size_weight_content', $data) || array_key_exists('size_details', $data)) {
-                $product->update(array_intersect_key($data, array_flip(['category_id', 'size_weight_content', 'size_details'])));
+            if (array_key_exists('size_weight_content', $data) || array_key_exists('size_details', $data)) {
+                $product->update(array_intersect_key($data, array_flip(['size_weight_content', 'size_details'])));
             }
         });
     }
@@ -241,7 +233,7 @@ class ProductBulkUpdateService
             'Price' => $product->price, 'Sale Price' => $product->sale_price, 'Stock' => $product->stock, 'Weight (Kg)' => $product->weight,
             'Length (Cm)' => $product->length, 'Width (Cm)' => $product->width, 'Height (Cm)' => $product->height, 'HSN Code' => $product->hsn_code,
             'Status' => $product->status ? 'Active' : 'Inactive', 'Featured' => $product->featured ? 'Yes' : 'No', 'Trending' => $product->is_trending ? 'Yes' : 'No',
-            'Category Slug' => $product->category?->slug, 'Collections' => $product->collections->pluck('slug')->implode(', '), 'Tags' => $product->tags->pluck('slug')->implode(', '),
+            'Collections' => $product->collections->pluck('slug')->implode(', '), 'Tags' => $product->tags->pluck('slug')->implode(', '),
             'Variations' => $product->variants->map(fn ($variant) => "Color={$variant->color}; Size={$variant->size}; Items={$variant->items_count}; SKUs=" . implode(',', (array) $variant->linked_skus))->implode(' || '),
             'Meta Title' => $product->seoMeta?->meta_title, 'Meta Description' => $product->seoMeta?->meta_description, 'Meta Keywords' => $product->seoMeta?->meta_keywords,
             'Canonical URL' => $product->seoMeta?->canonical_url, 'Meta Robots' => $product->seoMeta?->meta_robots,
@@ -302,8 +294,4 @@ class ProductBulkUpdateService
         return Coordinate::stringFromColumnIndex($position + 1);
     }
 
-    public function download(Spreadsheet $spreadsheet): void
-    {
-        (new Xlsx($spreadsheet))->save('php://output');
-    }
 }

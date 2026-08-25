@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
-use App\Models\Category;
 
 class Product extends Model
 {
@@ -37,7 +36,6 @@ class Product extends Model
         'status',
         'featured',
         'is_trending',
-        'category_id',
     ];
 
     public function wishlists(): HasMany
@@ -53,11 +51,6 @@ class Product extends Model
     public function collections(): BelongsToMany
     {
         return $this->belongsToMany(Collection::class);
-    }
-
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(Category::class);
     }
 
     public function tags(): BelongsToMany
