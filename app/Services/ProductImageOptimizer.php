@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Product;
 use App\Models\ProductImage;
 use Illuminate\Http\UploadedFile;
+use RuntimeException;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Interfaces\ImageInterface;
 use Intervention\Image\Laravel\Facades\Image;
@@ -87,20 +88,27 @@ class ProductImageOptimizer
 
     private function storeVariants(ImageInterface $image, string $directory): void
     {
-        Storage::disk('public')->put(
-            "{$directory}/thumb.webp",
-            (string) $this->resizeForWidth($image, self::THUMB_WIDTH)->encodeUsingFileExtension('webp', quality: self::QUALITY)
-        );
+        $disk = Storage::disk('public');
 
-        Storage::disk('public')->put(
-            "{$directory}/medium.webp",
-            (string) $this->resizeForWidth($image, self::MEDIUM_WIDTH)->encodeUsingFileExtension('webp', quality: self::QUALITY)
-        );
+        if (! $disk->makeDirectory($directory)) {
+            throw new RuntimeException("Unable to create image directory: {$directory}");
+        }
 
-        Storage::disk('public')->put(
-            "{$directory}/zoom.webp",
-            (string) $this->resizeForWidth($image, self::ZOOM_WIDTH)->encodeUsingFileExtension('webp', quality: self::QUALITY)
-        );
+        $variants = [
+            'thumb' => self::THUMB_WIDTH,
+            'medium' => self::MEDIUM_WIDTH,
+            'zoom' => self::ZOOM_WIDTH,
+        ];
+
+        foreach ($variants as $name => $width) {
+            $path = "{$directory}/{$name}.webp";
+            $contents = (string) $this->resizeForWidth($image, $width)
+                ->encodeUsingFileExtension('webp', quality: self::QUALITY);
+
+            if (! $disk->put($path, $contents)) {
+                throw new RuntimeException("Unable to write product image: {$path}");
+            }
+        }
     }
 
     private function resizeForWidth(ImageInterface $image, int $width): ImageInterface
