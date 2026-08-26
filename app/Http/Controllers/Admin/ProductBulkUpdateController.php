@@ -37,7 +37,16 @@ class ProductBulkUpdateController extends Controller
 
         try {
             $result = $this->bulkUpdateService->import($request->file('bulk_update_file')->getRealPath());
-            return redirect()->route('admin.products.index')->with('bulk_update_result', $result);
+            $message = "Bulk update finished: {$result['updated']} product(s) updated";
+            if (! empty($result['errors'])) {
+                $message .= ', ' . count($result['errors']) . ' row(s) failed. First error: ' . $result['errors'][0];
+            } else {
+                $message .= ' successfully.';
+            }
+
+            return redirect()->route('admin.products.index')
+                ->with('bulk_update_result', $result)
+                ->with(! empty($result['errors']) ? 'error' : 'success', $message);
         } catch (\Throwable $e) {
             report($e);
             return back()->withInput()->with('error', $e->getMessage());
