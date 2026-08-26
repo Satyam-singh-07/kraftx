@@ -286,7 +286,18 @@ class ProductBulkUpdateService
 
     private function label(string $field): string
     {
-        return ['short_description' => 'Short Description', 'description' => 'Description', 'video_url' => 'Video URL', 'perfect_placement' => 'Perfect Placement', 'hsn_code' => 'HSN Code'][$field] ?? Str::headline($field);
+        return [
+            'name' => 'Product Name',
+            'short_description' => 'Short Description',
+            'description' => 'Description',
+            'video_url' => 'Video URL',
+            'perfect_placement' => 'Perfect Placement',
+            'weight' => 'Weight (Kg)',
+            'length' => 'Length (Cm)',
+            'width' => 'Width (Cm)',
+            'height' => 'Height (Cm)',
+            'hsn_code' => 'HSN Code',
+        ][$field] ?? Str::headline($field);
     }
 
     private function columnLetter(int $position): string
