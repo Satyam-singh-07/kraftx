@@ -25,6 +25,22 @@
             </div>
         @endif
 
+        @if(session('error'))
+            <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-200">
+                <div class="font-semibold">Bulk update failed</div>
+                <p class="mt-1 break-words font-mono text-xs">{{ session('error') }}</p>
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-200">
+                <div class="font-semibold">Bulk update failed</div>
+                @foreach($errors->all() as $error)
+                    <p class="mt-1 break-words font-mono text-xs">{{ $error }}</p>
+                @endforeach
+            </div>
+        @endif
+
         <x-admin.card title="Bulk product update">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div class="text-sm text-gray-600 dark:text-gray-300">

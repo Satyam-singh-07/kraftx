@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Services\Admin\ProductBulkUpdateService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ProductBulkUpdateController extends Controller
@@ -24,11 +25,15 @@ class ProductBulkUpdateController extends Controller
 
     public function import(Request $request)
     {
-        $request->validate([
-            'bulk_update_file' => ['required', 'file', 'mimes:xlsx', 'max:20480'],
-        ], [
-            'bulk_update_file.mimes' => 'Please upload an Excel .xlsx file downloaded from the product bulk update section.',
-        ]);
+        try {
+            $request->validate([
+                'bulk_update_file' => ['required', 'file', 'mimes:xlsx', 'max:20480'],
+            ], [
+                'bulk_update_file.mimes' => 'Please upload an Excel .xlsx file downloaded from the product bulk update section.',
+            ]);
+        } catch (ValidationException $e) {
+            return back()->withInput()->with('error', implode(' ', $e->validator->errors()->all()));
+        }
 
         try {
             $result = $this->bulkUpdateService->import($request->file('bulk_update_file')->getRealPath());
