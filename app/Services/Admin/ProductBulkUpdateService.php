@@ -212,11 +212,15 @@ class ProductBulkUpdateService
         $variants = $this->variants($value('Variations'), $product);
         $seo = $this->seo($value, $product);
 
-        $dto = ProductDTO::fromRequest($data, null, null, []);
-        DB::transaction(function () use ($product, $data, $dto, $collectionIds, $tagIds, $variants, $seo): void {
-            $this->productService->updateProduct($product->id, new ProductDTO(
-                ...array_merge((array) $dto, ['collection_ids' => $collectionIds, 'tag_ids' => $tagIds, 'variants' => $variants, 'seo_meta' => $seo])
-            ));
+        $dto = ProductDTO::fromRequest(array_merge($data, [
+            'collection_ids' => $collectionIds,
+            'tag_ids' => $tagIds,
+            'variants' => $variants,
+            'seo_meta' => $seo,
+        ]), null, null, []);
+        DB::transaction(function () use ($product, $data, $dto): void {
+            // Bulk updates never include media; the DTO above explicitly carries null image values.
+            $this->productService->updateProduct($product->id, $dto);
             $product->refresh();
             if (array_key_exists('size_weight_content', $data) || array_key_exists('size_details', $data)) {
                 $product->update(array_intersect_key($data, array_flip(['size_weight_content', 'size_details'])));
