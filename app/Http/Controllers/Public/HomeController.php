@@ -86,7 +86,7 @@ class HomeController extends Controller
         $topPicks = Product::with(['images', 'variants'])
             ->where('status', 1)
             ->where('featured', 1)
-            ->orderByDesc('created_at')
+            ->inRandomOrder()
             ->take(8)
             ->get()
             ->map($mapProduct);
@@ -94,7 +94,7 @@ class HomeController extends Controller
         $trendingProducts = Product::with(['images', 'variants'])
             ->where('status', 1)
             ->where('is_trending', 1)
-            ->orderByDesc('created_at')
+            ->inRandomOrder()
             ->take(8)
             ->get()
             ->map($mapProduct);
