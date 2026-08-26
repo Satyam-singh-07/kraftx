@@ -277,6 +277,8 @@ class ProductBulkUpdateService
     private function seo(\Closure $value, Product $product): array
     {
         $seo = $product->seoMeta?->toArray() ?? [];
+        // Bulk updates exclude all images. Never pass the stored OG image path as an upload.
+        unset($seo['og_image']);
         foreach (['Meta Title' => 'meta_title', 'Meta Description' => 'meta_description', 'Meta Keywords' => 'meta_keywords', 'Canonical URL' => 'canonical_url', 'Meta Robots' => 'meta_robots'] as $header => $field) {
             $input = $value($header); if ($input !== '') $seo[$field] = $input === self::CLEAR ? null : $input;
         }
