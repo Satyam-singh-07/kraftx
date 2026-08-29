@@ -258,5 +258,53 @@ Not just a simple product catalogue.
 Focus on:
 👉 Trust
 👉 Speed
+
+## Image Optimization Commands
+
+The project converts existing uploaded images to WebP through Laravel Artisan commands. Run these commands from the project root:
+
+```bash
+php artisan images:optimize-products
+php artisan images:optimize-collections
+php artisan images:optimize-banners
+```
+
+### What Each Command Does
+
+`php artisan images:optimize-products`
+
+- Reads existing product image records from the database.
+- Creates WebP derivatives for each product image: `thumb.webp`, `medium.webp`, and `zoom.webp`.
+- Keeps the product image record connected to the optimized image set.
+- Processes images in batches of 100 to reduce memory usage.
+- Prints how many images were optimized and skipped.
+
+`php artisan images:optimize-collections`
+
+- Reads existing collection images.
+- Creates a 420px WebP thumbnail for each collection image.
+- Updates the collection image path to the optimized file.
+- Processes records in batches of 100 and prints optimized/skipped totals.
+
+`php artisan images:optimize-banners`
+
+- Reads existing banner images.
+- Creates desktop and mobile WebP versions using the banner optimizer.
+- Updates the banner paths to the optimized files.
+- Processes records in batches of 100 and prints optimized/skipped totals.
+
+### Recommended Server Sequence
+
+Back up the database and storage files before converting existing production images. Then run only the command for the image type you need:
+
+```bash
+cd /var/www/kraftx
+php artisan images:optimize-products
+php artisan images:optimize-collections
+php artisan images:optimize-banners
+php artisan optimize:clear
+```
+
+The commands are safe to run again: images that are already optimized are skipped by the optimizer. They do not upload new images and they do not delete the original source files unless the optimizer's cleanup rules explicitly allow it.
 👉 Mobile UX
 👉 Conversion optimization

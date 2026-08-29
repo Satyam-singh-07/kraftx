@@ -30,7 +30,7 @@ class PaymentController extends Controller
             $confirmationNotifier->send($order, 'razorpay_callback');
             session(['last_order_id' => $order->id]);
 
-            return redirect()->route('checkout.success', $order)->with('success', 'Payment verified successfully.');
+            return redirect()->route('checkout.success', $order)->with('success', 'Payment verified successfully. Please check your Inbox, Spam, or Promotions folder for the order confirmation email.');
         } catch (\Throwable $e) {
             Log::warning('Payment verification failed', [
                 'order_id' => $order->id,

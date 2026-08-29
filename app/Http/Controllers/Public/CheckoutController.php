@@ -323,7 +323,7 @@ class CheckoutController extends Controller
 
         $this->confirmationNotifier->send($order, 'cod_checkout');
 
-        return redirect()->route('checkout.success', $order)->with('success', 'Order placed successfully.');
+        return redirect()->route('checkout.success', $order)->with('success', 'Order placed successfully. Please check your Inbox, Spam, or Promotions folder for the confirmation email.');
     }
 
     public function payment(Order $order): View

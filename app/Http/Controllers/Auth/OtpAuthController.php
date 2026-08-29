@@ -41,7 +41,7 @@ class OtpAuthController extends Controller
         return back()->with([
             'auth_modal' => 'sign',
             'otp_email' => $validated['email'],
-            'success' => 'We sent a 6 digit OTP to your email.',
+            'success' => 'We sent a 6 digit OTP to your email. If you do not see it in your Inbox, please check your Spam or Promotions folder.',
         ]);
     }
 

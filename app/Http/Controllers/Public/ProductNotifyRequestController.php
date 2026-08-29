@@ -43,10 +43,10 @@ class ProductNotifyRequestController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'We will notify you when this product is back in stock',
+                'message' => 'We will notify you when this product is back in stock. Please check your Inbox, Spam, or Promotions folder when the email is sent.',
             ]);
         }
 
-        return back()->with('success', 'We will notify you when this product is back in stock');
+        return back()->with('success', 'We will notify you when this product is back in stock. Please check your Inbox, Spam, or Promotions folder when the email is sent.');
     }
 }
