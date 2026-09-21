@@ -274,7 +274,7 @@
         <div class="container">
             <div class="banner-image-text type-abs style-2">
                 <div class="bn-image">
-                    <img loading="lazy" width="1600" height="500" src="assets/images/banners/banner2.png"
+                    <img loading="lazy" width="1600" height="500" src="assets/images/banners/banner2.webp"
                         alt="Static Banner">
                 </div>
             </div>
