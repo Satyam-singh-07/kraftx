@@ -41,8 +41,50 @@
     <link rel="stylesheet" href="{{ asset('assets/icon/icomoon/style.css') }}">
     <!-- css -->
     <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/swiper-bundle.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/animate.css') }}">
+    <style>
+        .swiper {
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            overflow: hidden;
+            list-style: none;
+            padding: 0;
+            z-index: 1;
+            display: block;
+        }
+
+        .swiper-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            display: flex;
+            box-sizing: content-box;
+        }
+
+        .swiper-slide {
+            flex-shrink: 0;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: block;
+        }
+
+        .swiper-button-lock,
+        .swiper-pagination-lock {
+            display: none;
+        }
+    </style>
+    <link rel="preload" href="{{ asset('assets/css/swiper-bundle.min.css') }}" as="style"
+        onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="{{ asset('assets/css/swiper-bundle.min.css') }}">
+    </noscript>
+    <link rel="preload" href="{{ asset('assets/css/animate.css') }}" as="style"
+        onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="{{ asset('assets/css/animate.css') }}">
+    </noscript>
     {{ $styles ?? '' }}
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/styles.css') }}">
 
@@ -93,18 +135,8 @@
     <!-- Javascript -->
     <script src="{{ asset('assets/js/plugin/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugin/bootstrap.min.js') }}"></script>
-    <script>
-        // Polyfill for bootstrap-select to work with Bootstrap 5
-        window.Dropdown = bootstrap.Dropdown;
-        // Explicitly set Bootstrap version
-        if (typeof $ !== 'undefined' && $.fn && $.fn.selectpicker) {
-            $.fn.selectpicker.Constructor.BootstrapVersion = '5';
-        }
-    </script>
     <script src="{{ asset('assets/js/plugin/swiper-bundle.min.js') }}"></script>
-    <script src="{{ asset('assets/js/plugin/bootstrap-select.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugin/count-down.js') }}"></script>
-    <script src="{{ asset('assets/js/plugin/infinityslide.js') }}"></script>
     <script src="{{ asset('assets/js/plugin/wow.min.js') }}"></script>
 
     <script src="{{ asset('assets/js/carousel.js') }}"></script>

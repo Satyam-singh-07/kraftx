@@ -524,7 +524,7 @@
                         if (isBuyNow) {
                             window.location.href = '/checkout';
                         } else {
-                            if (window.refreshCartDrawer) window.refreshCartDrawer();
+                            if (window.refreshCartDrawer) window.refreshCartDrawer({ recommendations: true });
                             const cartOffcanvas = document.getElementById('shoppingCart');
                             if (cartOffcanvas) {
                                 bootstrap.Offcanvas.getOrCreateInstance(cartOffcanvas).show();
@@ -1214,9 +1214,11 @@
         }
 
         let isFetching = false;
-        window.refreshCartDrawer = function() {
+        window.refreshCartDrawer = function(options = {}) {
             if (isFetching) return;
             isFetching = true;
+
+            const loadRecommendations = options.recommendations === true;
 
             // Fetch Cart Items
             fetch('{{ route('cart.fetch') }}')
@@ -1285,31 +1287,32 @@
                 .catch(error => console.error('Error fetching cart:', error))
                 .finally(() => { isFetching = false; });
 
-            // Fetch Recommendations
-            fetch('{{ route('cart.recommendations') }}')
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        recommendationsList.innerHTML = data.products.map(product => `
-                            <a class="cart-recommendation-card" href="/product/${product.slug}">
-                                <div class="cart-recommendation-media">
-                                        <img src="${product.images && product.images[0] ? '/storage/' + product.images[0].image_path : '/assets/images/product/product-placeholder.jpg'}" alt="${product.name}">
-                                </div>
-                                <div>
-                                    <p class="cart-recommendation-name">${product.name}</p>
-                                    <div class="cart-recommendation-price">
-                                        <span class="sale">${formatCurrency(product.sale_price ?? product.price)}</span>
-                                        ${product.sale_price ? `<span class="compare">${formatCurrency(product.price)}</span>` : ''}
+            if (loadRecommendations) {
+                fetch('{{ route('cart.recommendations') }}')
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            recommendationsList.innerHTML = data.products.map(product => `
+                                <a class="cart-recommendation-card" href="/product/${product.slug}">
+                                    <div class="cart-recommendation-media">
+                                            <img src="${product.images && product.images[0] ? '/storage/' + product.images[0].image_path : '/assets/images/product/product-placeholder.jpg'}" alt="${product.name}">
                                     </div>
-                                </div>
-                            </a>
-                        `).join('');
-                    }
-                })
-                .catch(error => console.error('Error fetching recommendations:', error));
+                                    <div>
+                                        <p class="cart-recommendation-name">${product.name}</p>
+                                        <div class="cart-recommendation-price">
+                                            <span class="sale">${formatCurrency(product.sale_price ?? product.price)}</span>
+                                            ${product.sale_price ? `<span class="compare">${formatCurrency(product.price)}</span>` : ''}
+                                        </div>
+                                    </div>
+                                </a>
+                            `).join('');
+                        }
+                    })
+                    .catch(error => console.error('Error fetching recommendations:', error));
+            }
         };
 
         function updateShippingProgress(total) {
@@ -1394,7 +1397,7 @@
         }
 
         // Initial fetch when drawer opens
-        cartDrawer.addEventListener('show.bs.offcanvas', refreshCartDrawer);
+        cartDrawer.addEventListener('show.bs.offcanvas', () => refreshCartDrawer({ recommendations: true }));
 
         // Global listener for Quick Add buttons on product cards
         document.addEventListener('click', function(e) {
@@ -1422,7 +1425,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    refreshCartDrawer();
+                    refreshCartDrawer({ recommendations: true });
                     const bsOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(cartDrawer);
                     bsOffcanvas.show();
                 } else {
@@ -1439,8 +1442,15 @@
             });
         });
 
-        // Initial sync of counts and items on page load
-        refreshCartDrawer();
+        // Hydrate the cart count after the initial page render, outside the critical path.
+        const hydrateCart = () => refreshCartDrawer();
+        window.addEventListener('load', () => {
+            if ('requestIdleCallback' in window) {
+                window.requestIdleCallback(hydrateCart, { timeout: 1500 });
+            } else {
+                window.setTimeout(hydrateCart, 250);
+            }
+        }, { once: true });
     });
 </script>
 <!-- /Shopping Cart -->

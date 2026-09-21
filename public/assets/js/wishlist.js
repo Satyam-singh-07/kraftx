@@ -5,8 +5,18 @@ const Wishlist = {
     items: [],
 
     init: function() {
-        this.fetchWishlist();
         this.bindEvents();
+
+        const scheduleHydration = () => {
+            const hydrate = () => this.fetchWishlist();
+            if ('requestIdleCallback' in window) {
+                window.requestIdleCallback(hydrate, { timeout: 1500 });
+            } else {
+                window.setTimeout(hydrate, 250);
+            }
+        };
+
+        window.addEventListener('load', scheduleHydration, { once: true });
     },
 
     fetchWishlist: function() {

@@ -53,6 +53,10 @@
     -------------------------------------------------------------------------*/
     var dropdownSelect = function () {
         if ($(".tf-dropdown-select").length > 0) {
+            if (!$.fn.selectpicker) {
+                return;
+            }
+
             const selectIMG = $(".tf-dropdown-select");
 
             selectIMG.find("option").each((idx, elem) => {
@@ -570,6 +574,10 @@
     -------------------------------------------------------------------------*/
     var infiniteSlide = function () {
         if ($(".infiniteSlide").length > 0) {
+            if (!$.fn.infiniteslide) {
+                return;
+            }
+
             $(".infiniteSlide").each(function () {
                 var $this = $(this);
                 var style = $this.data("style") || "left";
