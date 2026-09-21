@@ -23,7 +23,7 @@
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                         <td class="px-6 py-4 flex items-center space-x-3">
                             @if($post->featured_image)
-                                <img src="{{ Storage::url($post->featured_image) }}" alt="{{ $post->title }}" class="w-12 h-12 rounded object-cover">
+                                <img src="{{ $post->thumb_url }}" alt="{{ $post->title }}" class="w-12 h-12 rounded object-cover">
                             @else
                                 <div class="w-12 h-12 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-400 text-[10px]">No Img</div>
                             @endif

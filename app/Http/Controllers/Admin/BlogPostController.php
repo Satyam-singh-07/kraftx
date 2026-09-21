@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BlogPost;
 use App\Models\BlogCategory;
 use App\Models\Tag;
+use App\Services\BlogImageOptimizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -26,13 +27,13 @@ class BlogPostController extends Controller
         return view('admin.blog-posts.create', compact('categories', 'tags'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, BlogImageOptimizer $imageOptimizer)
     {
         $request->validate([
             'title' => 'required|max:255',
             'blog_category_id' => 'required|exists:blog_categories,id',
             'content' => 'required',
-            'featured_image' => 'nullable|image|max:5120', // Increased to 5MB
+            'featured_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
             'slug' => 'nullable|unique:blog_posts,slug',
             'status' => 'nullable',
             'is_featured' => 'nullable',
@@ -51,12 +52,12 @@ class BlogPostController extends Controller
         $post->is_home = $request->has('is_home');
         $post->published_at = $request->published_at ?? now();
 
-        if ($request->hasFile('featured_image')) {
-            $path = $request->file('featured_image')->store('blog/posts', 'public');
-            $post->featured_image = $path;
-        }
-
         $post->save();
+
+        if ($request->hasFile('featured_image')) {
+            $post->featured_image = $imageOptimizer->storeUpload($post, $request->file('featured_image'));
+            $post->save();
+        }
 
         // Handle Tags
         if ($request->has('tags')) {
@@ -93,7 +94,7 @@ class BlogPostController extends Controller
         return view('admin.blog-posts.edit', compact('blogPost', 'categories', 'tags'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $id, BlogImageOptimizer $imageOptimizer)
     {
         $blogPost = BlogPost::findOrFail($id);
 
@@ -101,7 +102,7 @@ class BlogPostController extends Controller
             'title' => 'required|max:255',
             'blog_category_id' => 'required|exists:blog_categories,id',
             'content' => 'required',
-            'featured_image' => 'nullable|image|max:5120', // Increased to 5MB
+            'featured_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
             'slug' => 'nullable|unique:blog_posts,slug,' . $id,
             'status' => 'nullable',
             'is_featured' => 'nullable',
@@ -122,14 +123,10 @@ class BlogPostController extends Controller
         }
 
         $filesToDelete = [];
+        $oldFeaturedImage = null;
         if ($request->hasFile('featured_image')) {
-            // Collect old image for deletion
-            if ($blogPost->featured_image) {
-                $filesToDelete[] = $blogPost->featured_image;
-            }
-            // Store new image
-            $path = $request->file('featured_image')->store('blog/posts', 'public');
-            $blogPost->featured_image = $path;
+            $oldFeaturedImage = $blogPost->featured_image;
+            $blogPost->featured_image = $imageOptimizer->storeUpload($blogPost, $request->file('featured_image'));
         }
 
         $blogPost->save();
@@ -171,15 +168,17 @@ class BlogPostController extends Controller
             }
         }
 
+        if ($oldFeaturedImage) {
+            $imageOptimizer->deleteLegacyPath($oldFeaturedImage);
+        }
+
         return redirect()->route('admin.blog-posts.index')->with('success', 'Post updated successfully.');
     }
 
-    public function destroy($id)
+    public function destroy($id, BlogImageOptimizer $imageOptimizer)
     {
         $blogPost = BlogPost::findOrFail($id);
-        if ($blogPost->featured_image) {
-            Storage::disk('public')->delete($blogPost->featured_image);
-        }
+        $imageOptimizer->deleteVariants($blogPost);
         
         if ($blogPost->seoMeta && $blogPost->seoMeta->og_image) {
             Storage::disk('public')->delete($blogPost->seoMeta->og_image);

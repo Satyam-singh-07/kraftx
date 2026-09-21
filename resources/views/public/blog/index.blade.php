@@ -44,9 +44,15 @@
                             <div class="blog-image">
                                 <a href="{{ route('blog.show', $post->slug) }}">
                                     @if($post->featured_image)
-                                        <img src="{{ Storage::url($post->featured_image) }}" alt="{{ $post->title }}">
+                                        <img loading="{{ $loop->first ? 'eager' : 'lazy' }}"
+                                            @if($loop->first) fetchpriority="high" @endif
+                                            width="900" height="563"
+                                            src="{{ $post->medium_url }}"
+                                            srcset="{{ $post->thumb_url }} 450w, {{ $post->medium_url }} 900w"
+                                            sizes="(max-width: 767px) 100vw, 50vw"
+                                            alt="{{ $post->title }}">
                                     @else
-                                        <img src="{{ asset('assets/images/blog/blog-placeholder.jpg') }}" alt="{{ $post->title }}">
+                                        <img loading="lazy" width="900" height="563" src="{{ asset('assets/images/blog/blog-placeholder.jpg') }}" alt="{{ $post->title }}">
                                     @endif
                                 </a>
                             </div>
@@ -104,9 +110,9 @@
                                 <div class="recent-post-img">
                                     <a href="{{ route('blog.show', $recent->slug) }}">
                                         @if($recent->featured_image)
-                                            <img src="{{ Storage::url($recent->featured_image) }}" alt="{{ $recent->title }}">
+                                            <img loading="lazy" width="450" height="281" src="{{ $recent->thumb_url }}" alt="{{ $recent->title }}">
                                         @else
-                                            <img src="{{ asset('assets/images/blog/blog-placeholder.jpg') }}" alt="{{ $recent->title }}">
+                                            <img loading="lazy" width="450" height="281" src="{{ asset('assets/images/blog/blog-placeholder.jpg') }}" alt="{{ $recent->title }}">
                                         @endif
                                     </a>
                                 </div>

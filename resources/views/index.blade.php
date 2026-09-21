@@ -653,11 +653,13 @@
                             <article class="article-blog hover-img wow fadeInUp">
                                 <a href="{{ route('blog.show', $post->slug) }}" class="blog-image img-style">
                                     @if ($post->featured_image)
-                                        <img loading="lazy" width="450" height="337"
-                                            src="{{ Storage::url($post->featured_image) }}"
+                                        <img loading="lazy" width="450" height="281"
+                                            src="{{ $post->thumb_url }}"
+                                            srcset="{{ $post->thumb_url }} 450w, {{ $post->medium_url }} 900w"
+                                            sizes="(max-width: 575px) 100vw, (max-width: 991px) 50vw, 450px"
                                             alt="{{ $post->title }}">
                                     @else
-                                        <img loading="lazy" width="450" height="337"
+                                        <img loading="lazy" width="450" height="281"
                                             src="{{ asset('assets/images/blog/blog-placeholder.jpg') }}"
                                             alt="{{ $post->title }}">
                                     @endif

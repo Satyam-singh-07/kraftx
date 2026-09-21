@@ -40,7 +40,11 @@
             <div class="max-w-800 mx-auto">
                 @if($post->featured_image)
                     <div class="mb-40">
-                        <img src="{{ Storage::url($post->featured_image) }}" alt="{{ $post->title }}" class="w-100 rounded-20 shadow-sm">
+                        <img loading="eager" fetchpriority="high" width="1400"
+                            src="{{ $post->hero_url }}"
+                            srcset="{{ $post->medium_url }} 900w, {{ $post->hero_url }} 1400w"
+                            sizes="(max-width: 991px) 100vw, 800px"
+                            alt="{{ $post->title }}" class="w-100 rounded-20 shadow-sm">
                     </div>
                 @endif
 
@@ -126,7 +130,11 @@
                         <div class="blog-image">
                             <a href="{{ route('blog.show', $rel->slug) }}">
                                 @if($rel->featured_image)
-                                    <img src="{{ Storage::url($rel->featured_image) }}" alt="{{ $rel->title }}" style="width: 100%; aspect-ratio: 16/10; object-fit: cover;">
+                                    <img loading="lazy" width="450" height="281"
+                                        src="{{ $rel->thumb_url }}"
+                                        srcset="{{ $rel->thumb_url }} 450w, {{ $rel->medium_url }} 900w"
+                                        sizes="(max-width: 767px) 100vw, 33vw"
+                                        alt="{{ $rel->title }}" style="width: 100%; aspect-ratio: 16/10; object-fit: cover;">
                                 @endif
                             </a>
                         </div>

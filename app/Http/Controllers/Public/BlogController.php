@@ -76,7 +76,7 @@ class BlogController extends Controller
             'canonical' => route('blog.show', $post->slug),
             'type' => 'article',
             'preload' => $post->featured_image ? [[
-                'href' => asset('storage/' . $post->featured_image),
+                'href' => $post->hero_url,
                 'as' => 'image',
             ]] : [],
             'json_ld' => [
