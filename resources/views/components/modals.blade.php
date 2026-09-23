@@ -1442,15 +1442,6 @@
             });
         });
 
-        // Hydrate the cart count after the initial page render, outside the critical path.
-        const hydrateCart = () => refreshCartDrawer();
-        window.addEventListener('load', () => {
-            if ('requestIdleCallback' in window) {
-                window.requestIdleCallback(hydrateCart, { timeout: 1500 });
-            } else {
-                window.setTimeout(hydrateCart, 250);
-            }
-        }, { once: true });
     });
 </script>
 <!-- /Shopping Cart -->
