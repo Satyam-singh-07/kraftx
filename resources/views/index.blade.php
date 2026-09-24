@@ -298,7 +298,7 @@
                             <div class="lookbook-product">
                                 @if (isset($lookbook1))
                                     <a href="{{ $lookbook1['url'] }}" class="image">
-                                        <img width="88" height="88" src="{{ $lookbook1['image'] }}"
+                                        <img width="88" height="88" src="{{ \App\Models\ProductImage::urlForVariant($lookbook1['image'], 'thumb') }}"
                                             alt="{{ $lookbook1['name'] }}">
                                     </a>
                                     <div class="content">
@@ -332,7 +332,7 @@
                             <div class="lookbook-product">
                                 @if (isset($lookbook2))
                                     <a href="{{ $lookbook2['url'] }}" class="image">
-                                        <img width="88" height="88" src="{{ $lookbook2['image'] }}"
+                                        <img width="88" height="88" src="{{ \App\Models\ProductImage::urlForVariant($lookbook2['image'], 'thumb') }}"
                                             alt="{{ $lookbook2['name'] }}">
                                     </a>
                                     <div class="content">
@@ -370,7 +370,7 @@
                             <div class="lookbook-product">
                                 @if (isset($lookbook3))
                                     <a href="{{ $lookbook3['url'] }}" class="image">
-                                        <img width="88" height="88" src="{{ $lookbook3['image'] }}"
+                                        <img width="88" height="88" src="{{ \App\Models\ProductImage::urlForVariant($lookbook3['image'], 'thumb') }}"
                                             alt="{{ $lookbook3['name'] }}">
                                     </a>
                                     <div class="content">

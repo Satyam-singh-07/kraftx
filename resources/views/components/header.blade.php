@@ -51,7 +51,8 @@
             </div>
             <div class="header-center ">
                 <a href="{{ route('home') }}" class="logo-site">
-                    <img loading="lazy" width="150" height="30" src="{{ asset('assets/images/logo/logo.png') }}"
+                    <img loading="lazy" width="150" height="56" style="width: 150px; height: 30px; object-fit: contain;"
+                        src="{{ asset('assets/images/logo/logo-header.webp') }}"
                         alt="{{ config('seo.site_name', config('app.name', 'KraftX')) }} logo">
                 </a>
             </div>
