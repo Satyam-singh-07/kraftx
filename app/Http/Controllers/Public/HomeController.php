@@ -129,11 +129,20 @@ class HomeController extends Controller
             'canonical' => route('home'),
             'type' => 'website',
             'image' => $banners->first()?->image ? $banners->first()->desktop_url : asset('assets/images/logo/logo.png'),
-            'preload' => $banners->first()?->image ? [[
-                'href' => $banners->first()->desktop_url,
-                'as' => 'image',
-                'fetchpriority' => 'high',
-            ]] : [],
+            'preload' => $banners->first()?->image ? [
+                [
+                    'href' => $banners->first()->desktop_url,
+                    'as' => 'image',
+                    'media' => '(min-width: 768px)',
+                    'fetchpriority' => 'high',
+                ],
+                [
+                    'href' => $banners->first()->mobile_url,
+                    'as' => 'image',
+                    'media' => '(max-width: 767px)',
+                    'fetchpriority' => 'high',
+                ],
+            ] : [],
             'json_ld' => [
                 SeoHelper::organizationSchema(),
                 SeoHelper::websiteSchema(),

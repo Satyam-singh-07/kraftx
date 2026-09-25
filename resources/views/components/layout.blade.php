@@ -92,6 +92,7 @@
     @foreach ($seoData['preload'] ?? [] as $preload)
         <link rel="preload" href="{{ $preload['href'] ?? '' }}" as="{{ $preload['as'] ?? 'image' }}"
             @if (!empty($preload['type'])) type="{{ $preload['type'] }}" @endif
+            @if (!empty($preload['media'])) media="{{ $preload['media'] }}" @endif
             @if (!empty($preload['fetchpriority'])) fetchpriority="{{ $preload['fetchpriority'] }}" @endif>
     @endforeach
     {{ $head ?? '' }}
