@@ -230,7 +230,9 @@
                     <div class="box-image_v01 h-100">
                         <a href="#" class="box-image_img img-style">
                             <img loading="lazy" width="700" height="461"
-                                src="assets/images/collage/collage3.webp" alt="Image">
+                                src="assets/images/collage/collage3.webp"
+                                srcset="assets/images/collage/collage3-480x359.webp 480w, assets/images/collage/collage3-768x574.webp 768w, assets/images/collage/collage3-1200x897.webp 1200w"
+                                sizes="(min-width: 576px) 50vw, 100vw" alt="Image">
                         </a>
                         <div class="box-image_content">
                             <a href="{{ isset($collections) && $collections->where('name', 'Best Seller')->first() ? route('collection.show', $collections->where('name', 'Best Seller')->first()->slug) : '#' }}"
