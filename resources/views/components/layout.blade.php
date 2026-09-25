@@ -133,15 +133,15 @@
     <x-modals />
 
     <!-- Javascript -->
-    <script src="{{ asset('assets/js/plugin/jquery.min.js') }}"></script>
-    <script src="{{ asset('assets/js/plugin/bootstrap.min.js') }}"></script>
-    <script src="{{ asset('assets/js/plugin/swiper-bundle.min.js') }}"></script>
-    <script src="{{ asset('assets/js/plugin/count-down.js') }}"></script>
-    <script src="{{ asset('assets/js/plugin/wow.min.js') }}"></script>
+    <script defer src="{{ asset('assets/js/plugin/jquery.min.js') }}"></script>
+    <script defer src="{{ asset('assets/js/plugin/bootstrap.min.js') }}"></script>
+    <script defer src="{{ asset('assets/js/plugin/swiper-bundle.min.js') }}"></script>
+    <script defer src="{{ asset('assets/js/plugin/count-down.js') }}"></script>
+    <script defer src="{{ asset('assets/js/plugin/wow.min.js') }}"></script>
 
-    <script src="{{ asset('assets/js/carousel.js') }}"></script>
-    <script src="{{ asset('assets/js/main.js') }}"></script>
-    <script src="{{ asset('assets/js/wishlist.js') }}"></script>
+    <script defer src="{{ asset('assets/js/carousel.js') }}"></script>
+    <script defer src="{{ asset('assets/js/main.js') }}"></script>
+    <script defer src="{{ asset('assets/js/wishlist.js') }}"></script>
 
     {{ $scripts ?? '' }}
     <script>
