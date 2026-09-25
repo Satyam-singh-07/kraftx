@@ -274,8 +274,10 @@
         <div class="container">
             <div class="banner-image-text type-abs style-2">
                 <div class="bn-image">
-                    <img loading="lazy" width="1600" height="500" src="assets/images/banners/banner2.webp"
-                        alt="Static Banner">
+                    <img loading="lazy" width="1600" height="500"
+                        src="assets/images/banners/banner2-1600x500.webp"
+                        srcset="assets/images/banners/banner2-768x240.webp 768w, assets/images/banners/banner2-1200x375.webp 1200w, assets/images/banners/banner2-1600x500.webp 1600w"
+                        sizes="(min-width: 1440px) 1410px, calc(100vw - 30px)" alt="Static Banner">
                 </div>
             </div>
         </div>
