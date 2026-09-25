@@ -11,8 +11,6 @@
     * Components
  ------------------------------------------------------------------------------ */
 /*--------- Abstracts variable ---------- */
-@import url(bootstrap-select.min.css);
-
 :root {
   --white: #ffffff;
   --black: #000000;
