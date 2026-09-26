@@ -365,7 +365,9 @@
             </div>
             <div class="banner-lookbook wrap-lookbook_hover">
                 <img class="img-banner" loading="lazy" width="955" height="640"
-                    src="assets/images/banners/lookbook1.webp" alt="Image">
+                    src="assets/images/banners/lookbook1.webp"
+                    srcset="assets/images/banners/lookbook1-480x320.webp 480w, assets/images/banners/lookbook1-768x512.webp 768w, assets/images/banners/lookbook1-1200x800.webp 1200w"
+                    sizes="(min-width: 1200px) 50vw, 100vw" alt="Image">
                 <div class="lookbook-item position3">
                     <div class="dropdown dropup-center dropdown-custom dropstart">
                         <div role="dialog" class="tf-pin-btn bundle-pin-item swiper-button" data-slide="0"
