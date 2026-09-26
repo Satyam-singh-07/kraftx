@@ -261,10 +261,6 @@ class ProductController extends Controller
                 ?? 'Browse products from the ' . $collection->name . ' collection at ' . config('app.name', 'KraftX') . '.',
             'canonical' => route('collection.show', $collection->slug),
             'type' => 'website',
-            'preload' => $collection->image ? [[
-                'href' => $collection->thumb_url,
-                'as' => 'image',
-            ]] : [],
             'json_ld' => [
                 SeoHelper::breadcrumbSchema([
                     ['name' => 'Home', 'url' => route('home')],
