@@ -293,7 +293,9 @@
         <div class="tf-grid-layout xl-col-2 gap-10 mb-10">
             <div class="banner-lookbook wrap-lookbook_hover">
                 <img class="img-banner" loading="lazy" width="955" height="640"
-                    src="assets/images/banners/lookbook.webp" alt="Image">
+                    src="assets/images/banners/lookbook.webp"
+                    srcset="assets/images/banners/lookbook-480x320.webp 480w, assets/images/banners/lookbook-768x512.webp 768w, assets/images/banners/lookbook-1200x800.webp 1200w"
+                    sizes="(min-width: 1200px) 50vw, 100vw" alt="Image">
                 <div class="lookbook-item position1">
                     <div class="dropdown dropup-center dropdown-custom dropend">
                         <div role="dialog" class="tf-pin-btn bundle-pin-item swiper-button" data-slide="0"
