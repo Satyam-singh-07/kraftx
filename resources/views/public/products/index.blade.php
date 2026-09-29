@@ -49,41 +49,54 @@
 
     <x-slot name="scripts">
     <script>
-        $(document).ready(function() {
+        document.addEventListener('DOMContentLoaded', function() {
             let page = 1;
             let loading = false;
             let hasMore = {{ $products->hasMorePages() ? 'true' : 'false' }};
 
-            $(window).scroll(function() {
-                if ($(window).scrollTop() + $(window).height() >= $(document).height() - 500) {
-                    if (!loading && hasMore) {
-                        loadMoreProducts();
-                    }
+            const container = document.getElementById('products-container');
+            const loadingIndicator = document.getElementById('loading');
+
+            function isNearPageBottom() {
+                return window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 500;
+            }
+
+            function maybeLoadMore() {
+                if (!loading && hasMore && isNearPageBottom()) {
+                    loadMoreProducts();
                 }
-            });
+            }
+
+            window.addEventListener('scroll', maybeLoadMore);
 
             function loadMoreProducts() {
+                if (loading || !hasMore) return;
+
                 loading = true;
-                page++;
-                $('#loading').show();
+                const requestedPage = page + 1;
+                loadingIndicator.style.display = 'block';
 
                 $.ajax({
-                    url: "{{ route('products.index') }}?page=" + page,
-                    type: "get"
+                    url: "{{ route('products.index') }}",
+                    data: { page: requestedPage },
+                    type: "get",
+                    dataType: "json"
                 })
-                .done(function(data) {
-                    if (data.trim() == "") {
-                        hasMore = false;
-                        $('#loading').hide();
-                        return;
+                .done(function(response) {
+                    if (response.html) {
+                        container.insertAdjacentHTML('beforeend', response.html);
                     }
-                    $('#loading').hide();
-                    $("#products-container").append(data);
+
+                    page = requestedPage;
+                    hasMore = response.has_more === true;
+                    loadingIndicator.style.display = 'none';
                     loading = false;
+
+                    // Load another page only when the viewport still has no scroll range.
+                    maybeLoadMore();
                 })
-                .fail(function(jqXHR, ajaxOptions, thrownError) {
-                    console.log('Server error occured');
-                    $('#loading').hide();
+                .fail(function() {
+                    loadingIndicator.style.display = 'none';
                     loading = false;
                 });
             }

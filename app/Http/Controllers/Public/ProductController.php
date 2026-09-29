@@ -97,7 +97,10 @@ class ProductController extends Controller
         $productsModel->setCollection($products);
 
         if (request()->ajax()) {
-            return view('public.products._list', ['products' => $productsModel])->render();
+            return response()->json([
+                'html' => view('public.products._list', ['products' => $productsModel])->render(),
+                'has_more' => $productsModel->hasMorePages(),
+            ]);
         }
 
         $seo = [
