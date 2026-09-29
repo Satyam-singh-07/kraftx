@@ -64,41 +64,54 @@
 
     <x-slot name="scripts">
     <script>
-        $(document).ready(function() {
+        document.addEventListener('DOMContentLoaded', function() {
             let page = 1;
             let loading = false;
             let hasMore = {{ $collections->hasMorePages() ? 'true' : 'false' }};
 
-            $(window).scroll(function() {
-                if ($(window).scrollTop() + $(window).height() >= $(document).height() - 500) {
-                    if (!loading && hasMore) {
-                        loadMoreCollections();
-                    }
+            const container = document.getElementById('collections-container');
+            const loadingIndicator = document.getElementById('loading');
+
+            function isNearPageBottom() {
+                return window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 500;
+            }
+
+            function maybeLoadMore() {
+                if (!loading && hasMore && isNearPageBottom()) {
+                    loadMoreCollections();
                 }
-            });
+            }
+
+            window.addEventListener('scroll', maybeLoadMore);
 
             function loadMoreCollections() {
+                if (loading || !hasMore) return;
+
                 loading = true;
-                page++;
-                $('#loading').show();
+                const requestedPage = page + 1;
+                loadingIndicator.style.display = 'block';
 
                 $.ajax({
-                    url: "{{ route('collections.index') }}?page=" + page,
-                    type: "get"
+                    url: "{{ route('collections.index') }}",
+                    data: { page: requestedPage },
+                    type: "get",
+                    dataType: "json"
                 })
                 .done(function(data) {
-                    if (data.trim() == "") {
-                        hasMore = false;
-                        $('#loading').hide();
-                        return;
+                    if (data.html) {
+                        container.insertAdjacentHTML('beforeend', data.html);
                     }
-                    $('#loading').hide();
-                    $("#collections-container").append(data);
+
+                    page = requestedPage;
+                    hasMore = data.has_more === true;
+                    loadingIndicator.style.display = 'none';
                     loading = false;
+
+                    // Fill a short viewport sequentially, stopping at the last page.
+                    maybeLoadMore();
                 })
-                .fail(function(jqXHR, ajaxOptions, thrownError) {
-                    console.log('Server error occured');
-                    $('#loading').hide();
+                .fail(function() {
+                    loadingIndicator.style.display = 'none';
                     loading = false;
                 });
             }

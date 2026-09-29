@@ -280,7 +280,10 @@ class ProductController extends Controller
             ->paginate(10);
 
         if (request()->ajax()) {
-            return view('public.collections._list', compact('collections'))->render();
+            return response()->json([
+                'html' => view('public.collections._list', compact('collections'))->render(),
+                'has_more' => $collections->hasMorePages(),
+            ]);
         }
 
         $seo = [
