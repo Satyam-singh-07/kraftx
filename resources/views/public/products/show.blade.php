@@ -1796,10 +1796,10 @@
                 if (stickyAddToCartBtn) stickyAddToCartBtn.addEventListener('click', handleAddToCart);
             });
         </script>
-        <script src="{{ asset('assets/js/plugin/drift.min.js') }}"></script>
-        <script src="{{ asset('assets/js/plugin/photoswipe.umd.min.js') }}"></script>
-        <script src="{{ asset('assets/js/plugin/photoswipe-lightbox.umd.min.js') }}"></script>
-        <script src="{{ asset('assets/js/zoom.js') }}"></script>
+        <script defer src="{{ asset('assets/js/plugin/drift.min.js') }}"></script>
+        <script defer src="{{ asset('assets/js/plugin/photoswipe.umd.min.js') }}"></script>
+        <script defer src="{{ asset('assets/js/plugin/photoswipe-lightbox.umd.min.js') }}"></script>
+        <script defer src="{{ asset('assets/js/zoom.js') }}"></script>
     </x-slot>
 
 </x-layout>
