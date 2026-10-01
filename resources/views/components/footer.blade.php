@@ -83,8 +83,8 @@
 
                          <div class="footer-col-block type-white ">
                             <p class="footer-heading  text-white">MOBILE APPS</p>
-                            <div class="">
-                                <ul class="footer-menu-list" style="display: flex; flex-direction: row; gap: 8px;">
+                            <div class="mobile-app-badges">
+                                <ul class="footer-menu-list mobile-app-badge-list">
                                     <li><img loading="lazy" width="150" height="24" src="{{ asset('assets/images/google-play.svg') }}" alt="Google Play"></li>
                                     <li><img loading="lazy" width="150" height="24" src="{{ asset('assets/images/download-on-the-app-store.svg') }}" alt="App Store"></li>
                                 </ul>
@@ -328,6 +328,30 @@ padding-top: 15px;
             align-items: center;
             justify-content: center;
             background: rgba(255, 255, 255, 0.92);
+        }
+
+        .mobile-app-badges {
+            max-width: 100%;
+        }
+
+        .mobile-app-badge-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .mobile-app-badge-list li {
+            flex: 1 1 140px;
+            min-width: 0;
+        }
+
+        .mobile-app-badge-list img {
+            display: block;
+            width: 100%;
+            max-width: 150px;
+            height: auto;
         }
 
         @media (max-width: 1199px) {

@@ -2451,6 +2451,20 @@ header.header-sticky.tf-header-landing {
   .tf-header .header-inner .header-left {
     flex: unset;
   }
+
+  .tf-header .btn-open-menu {
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tf-header .nav-icon-list .nav-icon-item {
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 .tf-header .tf-dropdown-select.type-currencies>.dropdown-menu {
@@ -5729,6 +5743,12 @@ header.header-sticky.tf-header-landing {
 @media (max-width: 1199px) {
   .tf-toolbar-bottom {
     display: flex;
+    padding-top: 13px;
+    padding-bottom: 13px;
+  }
+
+  .tf-toolbar-bottom a {
+    min-height: 44px;
   }
 }
 

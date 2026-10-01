@@ -14,6 +14,14 @@
         
         @media (max-width: 767px) {
             .blog-single-title { font-size: 32px; }
+            .blog-single-hero .blog-meta {
+                flex-wrap: wrap;
+                row-gap: 8px;
+            }
+            .blog-single-hero .blog-meta > span {
+                min-width: 0;
+                overflow-wrap: anywhere;
+            }
         }
     </style>
 
